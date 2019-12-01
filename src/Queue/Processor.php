@@ -4,6 +4,8 @@ namespace Queue\Queue;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Log\LogTrait;
 use Psr\Log\LogLevel;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Exception;
 use Queue\Queue\JobData;
 use Interop\Queue\Context;
@@ -14,6 +16,21 @@ class Processor implements InteropProcessor
 {
     use EventDispatcherTrait;
     use LogTrait;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * Processor constructor
+     *
+     * @param LoggerInterface $logger
+     */
+    public function __construct(LoggerInterface $logger = null)
+    {
+        $this->logger = $logger ?: new NullLogger();
+    }
 
     /**
      * The method processes messages
@@ -30,7 +47,7 @@ class Processor implements InteropProcessor
         $success = false;
         $job = new JobData($message, $context);
         if (!is_callable($job->getCallable())) {
-            $this->log('Invalid callable for job. Rejecting job from queue.');
+            $this->logger->debug('Invalid callable for job. Rejecting job from queue.');
             $this->dispatchEvent('Processor.job.invalid', ['job' => $job]);
             return InteropProcessor::REJECT;
         }
@@ -40,7 +57,7 @@ class Processor implements InteropProcessor
         try {
             $response = $this->runJob($job);
         } catch (Exception $e) {
-            $this->log(sprintf('Job encountered exception: %s', $e->getMessage()));
+            $this->logger->debug(sprintf('Job encountered exception: %s', $e->getMessage()));
             $this->dispatchEvent('Processor.job.exception', [
                 'job' => $job,
                 'exception' => $e,
@@ -61,18 +78,18 @@ class Processor implements InteropProcessor
         }
 
         if ($response === InteropProcessor::ACK) {
-            $this->log('Job processed sucessfully', LogLevel::DEBUG);
+            $this->logger->debug('Job processed sucessfully');
             $this->dispatchEvent('Processor.job.success', ['job' => $job]);
             return InteropProcessor::ACK;
         }
 
         if ($response === InteropProcessor::REJECT) {
-            $this->log('Job processed with rejection', LogLevel::DEBUG);
+            $this->logger->debug('Job processed with rejection');
             $this->dispatchEvent('Processor.job.reject', ['job' => $job]);
             return InteropProcessor::REJECT;
         }
 
-        $this->log('Job processed with failure, requeuing', LogLevel::DEBUG);
+        $this->logger->debug('Job processed with failure, requeuing');
         $this->dispatchEvent('Processor.job.failure', ['job' => $job]);
         return InteropProcessor::REQUEUE;
     }

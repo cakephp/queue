@@ -7,6 +7,8 @@ use Cake\Log\Log;
 use Cake\Utility\Hash;
 use Enqueue\SimpleClient\SimpleClient;
 use Interop\Queue\Message;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Queue\Queue\Processor;
 use Queue\Queue\QueueExtension;
 
@@ -56,9 +58,9 @@ class WorkerShell extends Shell
     /**
      * Creates and returns a QueueExtension object
      *
-     * @return QueueExtension
+     * @return \Queue\Queue\QueueExtension
      */
-    protected function getQueueExtension(): QueueExtension
+    protected function getQueueExtension(LoggerInterface $logger): QueueExtension
     {
         $maxIterations = $this->param('max-iterations');
         $maxRuntime = $this->param('max-runtime');
@@ -70,23 +72,35 @@ class WorkerShell extends Shell
             $maxRuntime = 0;
         }
 
-        return new QueueExtension($maxIterations, $maxRuntime);
+        return new QueueExtension($maxIterations, $maxRuntime, $logger);
+    }
+
+    /**
+     * Creates and returns a LoggerInterface object
+     *
+     * @return \Psr\Log\LoggerInterface
+     */
+    protected function getLogger(): LoggerInterface
+    {
+        $logger = new NullLogger();
+        if (!empty($this->params['verbose'])) {
+            $logger = Log::engine($this->params['logger']);
+        }
+        return $logger;
     }
 
     /**
      * main() method.
      *
-     * @return bool|int|null Success or error code.
+     * @return null
      */
     public function main()
     {
+        $logger = $this->getLogger();
+        $processor = new Processor($logger);
+        $extension = $this->getQueueExtension($logger);
+
         $config = Hash::get($this->params, 'config');
-        $url = Configure::read(sprintf('Queue.%s.url', $config));
-        $logger = Log::engine($this->params['logger']);
-
-        $processor = new Processor();
-        $extension = $this->getQueueExtension();
-
         if (!empty($config['listener'])) {
             if (!class_exists($config['listener'])) {
                 throw new LogicException(sprintf('Listener class %s not found', $config['listener']));
@@ -97,6 +111,7 @@ class WorkerShell extends Shell
             $extension->getEventManager()->on($listener);
         }
 
+        $url = Configure::read(sprintf('Queue.%s.url', $config));
         $client = new SimpleClient($url, $logger);
         $client->bindTopic($this->params['queue'], $processor);
         $client->consume($extension);

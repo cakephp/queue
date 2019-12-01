@@ -17,6 +17,7 @@ use Enqueue\Consumption\Context\Start;
 use Enqueue\Consumption\ExtensionInterface;
 use Enqueue\Consumption\Result;
 use Psr\Log\LogLevel;
+use Psr\Log\LoggerInterface;
 
 // TODO: Figure out how to avoid needing to set a bunch of empty methods
 class QueueExtension implements ExtensionInterface
@@ -24,20 +25,26 @@ class QueueExtension implements ExtensionInterface
     use EventDispatcherTrait;
     use LogTrait;
 
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
     protected $maxIterations;
     protected $maxRuntime;
 
     protected $iterations = 0;
     protected $runtime = 0;
-    protected $started_at;
+    protected $startedAt;
 
-    public function __construct(int $maxIterations, int $maxRuntime)
+    public function __construct(int $maxIterations, int $maxRuntime, LoggerInterface $logger)
     {
+        $this->logger = $logger;
         $this->maxIterations = $maxIterations;
         $this->maxRuntime = $maxRuntime;
-        $this->started_at = microtime(true);
-        $this->log(sprintf('Max Iterations: %s', $this->maxIterations));
-        $this->log(sprintf('Max Runtime: %s', $this->maxRuntime));
+        $this->startedAt = microtime(true);
+        $this->logger->debug(sprintf('Max Iterations: %s', $this->maxIterations));
+        $this->logger->debug(sprintf('Max Runtime: %s', $this->maxRuntime));
     }
 
     /**
@@ -46,11 +53,11 @@ class QueueExtension implements ExtensionInterface
      */
     public function onPreConsume(PreConsume $context): void
     {
-        $this->runtime = microtime(true) - $this->started_at;
-        $this->log(sprintf('Runtime: %s', $this->runtime));
+        $this->runtime = microtime(true) - $this->startedAt;
+        $this->logger->debug(sprintf('Runtime: %s', $this->runtime));
 
         if ($this->maxRuntime > 0 && $this->runtime >= $this->maxRuntime) {
-            $this->log('Max runtime reached, exiting', LogLevel::DEBUG);
+            $this->logger->debug('Max runtime reached, exiting');
             $this->dispatchEvent('Processor.maxRuntime');
             $context->interruptExecution(0);
         }
@@ -69,9 +76,9 @@ class QueueExtension implements ExtensionInterface
         }
 
         $this->iterations++;
-        $this->log(sprintf('Iterations: %s', $this->iterations));
+        $this->logger->debug(sprintf('Iterations: %s', $this->iterations));
         if ($this->maxIterations > 0 && $this->iterations >= $this->maxIterations) {
-            $this->log('Max iterations reached, exiting', LogLevel::DEBUG);
+            $this->logger->debug('Max iterations reached, exiting');
             $this->dispatchEvent('Processor.maxIterations');
             $context->interruptExecution(0);
         }
