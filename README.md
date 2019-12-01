@@ -57,21 +57,45 @@ Create a Job class:
 namespace App\Job;
 
 use Cake\Log\LogTrait;
+use Interop\Queue\Processor;
 use Psr\Log\LogLevel;
+use Queue\Queue\JobData;
 
 class ExampleJob
 {
     use LogTrait;
 
-    public function perform($job)
+    public function perform(JobData $job)
     {
-        $id = $job->data('id');
-        $message = $job->data('message');
+        $id = $job->getData('id');
+        $message = $job->getData('message');
 
         $this->log(sprintf('%d %s', $id, $message), LogLevel::INFO);
+
+        return Processor::ACK;
     }
 }
 ```
+
+The passed JobData object has the following methods:
+
+- `getData($key = null, $default = null)`: Can return the entire passed dataset or a value based on a `Hash::get()` notation key.
+- `getMessage`: Returns the original message object.
+- `getParsedBody`: Returns the parsed message body.
+
+A job _may_ return any of the following values:
+
+- `Processor::ACK`: Use this constant when the job is processed successfully. The message will be removed from the queue.
+- `Processor::REJECT`: Use this constant when the job could not be processed. The message will be removed from the queue.
+- `Processor::REQUEUE`: Use this constant when the message is not valid or could not be processed right now but we can try again later. The original message is removed from the queue but a copy is published to the queue again.
+
+The job _may_ also return a boolean or null value. These are mapped as follows:
+
+- `null`: `Processor::ACK`
+- `true`: `Processor::ACK`
+- `false`: `Processor::REJECT`
+
+Finally, the original message as well as the processed body are available via accessing the `JobData` object.
 
 ### Queue Jobs
 
