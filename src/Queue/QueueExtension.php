@@ -45,11 +45,11 @@ class QueueExtension implements ExtensionInterface
         $this->runtime = microtime(true) - $this->started_at;
         if ($this->maxRuntime > 0 && $this->runtime >= $this->maxRuntime) {
             $this->log('Max runtime reached, exiting', LogLevel::DEBUG);
-            $this->dispatchEvent('Worker.maxRuntime');
+            $this->dispatchEvent('Processor.maxRuntime');
             $context->interruptExecution(0);
         } elseif ($this->maxIterations > 0 && $this->iterations >= $this->maxIterations) {
             $this->log('Max iterations reached, exiting', LogLevel::DEBUG);
-            $this->dispatchEvent('Worker.maxIterations');
+            $this->dispatchEvent('Processor.maxIterations');
             $context->interruptExecution(0);
         }
     }

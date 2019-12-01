@@ -25,23 +25,23 @@ class Processor implements InteropProcessor
      */
     public function process(Message $message, Context $context)
     {
-        $this->dispatchEvent('Worker.job.seen', ['message' => $message]);
+        $this->dispatchEvent('Processor.job.seen', ['message' => $message]);
 
         $success = false;
         $job = new JobData($message);
         if (!is_callable($job->getCallable())) {
             $this->log('Invalid callable for job. Rejecting job from queue.');
-            $this->dispatchEvent('Worker.job.invalid', ['job' => $job]);
+            $this->dispatchEvent('Processor.job.invalid', ['job' => $job]);
             return InteropProcessor::REJECT;
         }
 
-        $this->dispatchEvent('Worker.job.start', ['job' => $job]);
+        $this->dispatchEvent('Processor.job.start', ['job' => $job]);
 
         try {
             $response = $this->runJob($job);
         } catch (Exception $e) {
             $this->log(sprintf('Job encountered exception: %s', $e->getMessage()));
-            $this->dispatchEvent('Worker.job.exception', [
+            $this->dispatchEvent('Processor.job.exception', [
                 'job' => $job,
                 'exception' => $e,
             ]);
@@ -62,18 +62,18 @@ class Processor implements InteropProcessor
 
         if ($response === InteropProcessor::ACK) {
             $this->log('Job processed sucessfully', LogLevel::DEBUG);
-            $this->dispatchEvent('Worker.job.success', ['job' => $job]);
+            $this->dispatchEvent('Processor.job.success', ['job' => $job]);
             return InteropProcessor::ACK;
         }
 
         if ($response === InteropProcessor::REJECT) {
             $this->log('Job processed with rejection', LogLevel::DEBUG);
-            $this->dispatchEvent('Worker.job.reject', ['job' => $job,]);
+            $this->dispatchEvent('Processor.job.reject', ['job' => $job]);
             return InteropProcessor::REJECT;
         }
 
         $this->log('Job processed with failure, requeuing', LogLevel::DEBUG);
-        $this->dispatchEvent('Worker.job.failure', ['job' => $job]);
+        $this->dispatchEvent('Processor.job.failure', ['job' => $job]);
         return InteropProcessor::REQUEUE;
     }
 
