@@ -65,7 +65,7 @@ class ExampleJob
 {
     use LogTrait;
 
-    public function perform(JobData $job)
+    public function execute(JobData $job)
     {
         $id = $job->getData('id');
         $message = $job->getData('message');
@@ -104,7 +104,7 @@ Queue the jobs using the included `Queue\Queue\Queue` class:
 ```php
 use Queue\Queue\Queue;
 
-$callable = ['\App\Job\ExampleJob', 'perform'];
+$callable = ['\App\Job\ExampleJob', 'execute'];
 $arguments = ['id' => 7, 'message' => 'hi2u'];
 $options = ['config' => 'default']''
 
