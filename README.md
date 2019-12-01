@@ -167,28 +167,28 @@ This shell can take a few different options:
 
 The worker shell may invoke the events during normal execution. These events may be listened to by the associated `listener` in the Queue config.
 
-- `Processor.job.exception`
+- `Processor.job.exception`:
   - description: Dispatched when a job throws an exception.
   - arguments: `job` and `exception`
-- `Processor.job.invalid`'
+- `Processor.job.invalid`:
   - description: Dispatched when a job has an invalid callable.
   - arguments: `job`
-- `Processor.job.reject`'
+- `Processor.job.reject`:
   - description: Dispatched when a job completes and is to be rejected.
   - arguments: `job`
-- `Processor.job.success`'
+- `Processor.job.success`:
   - description: Dispatched when a job completes and is to be acknowledged.
   - arguments: `job`
-- `Processor.maxIterations`
+- `Processor.maxIterations`:
   - description: Dispatched when the max number of iterations is reached.
-- `Processor.maxRuntime`
+- `Processor.maxRuntime`:
   - description: Dispatched when the max runtime is reached.
-- `Processor.job.failure`'
+- `Processor.job.failure`:
   - description: Dispatched when a job completes and is to be requeued.
   - arguments: `job`
-- `Processor.job.seen`'
+- `Processor.job.seen`:
   - description: Dispatched when a message is seen.
   - arguments: `job`
-- `Processor.job.start`'
+- `Processor.job.start`:
   - description: Dispatched before a job is started.
   - arguments: `job`
