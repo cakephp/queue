@@ -141,6 +141,22 @@ class Queue
         ];
 
         $message = new Message($item);
+
+        $delay = Hash::get($options, 'delay', null);
+        if ($delay !== null) {
+            $message->setDelay($delay);    
+        }
+
+        $expires_at = Hash::get($options, 'expires_at', null);
+        if ($expires_at !== null) {
+            $message->setExpire($expires_at);
+        }
+
+        $priority = Hash::get($options, 'priority', null);
+        if ($priority !== null) {
+            $message->setPriority($priority);
+        }
+
         $client = static::engine($name);
         $client->sendEvent($queue, $message);
     }

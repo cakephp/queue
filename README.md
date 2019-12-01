@@ -117,8 +117,35 @@ Queue::push($callable, $arguments, $options);
 Arguments:
   - `$callable`: A callable that will be invoked. This callable _must_ be valid within the context of your application. Job classes are prefered.
   - `$arguments` (optional): A json-serializable array of data that is to be made present for your job. It should be key-value pairs.
-  - `$options` (optional): An array of optional data. This may contain a `queue` name or a `config` key that matches a configured Queue backend.
+  - `$options` (optional): An array of optional data for message queueing.
 
+The following keys are valid for use within the `options` array:
+
+- `config`:
+  - default: default
+  - description: A queue config name
+  - type: string
+- `delay`:
+  - default: `null`
+  - description: Time - in integer seconds - to delay message, after which it will be processed. Not all message brokers accept this.
+  - type: integer
+- `expires_at`:
+  - default: `null`
+  - description: Time - in integer seconds - after which the message expires. The message will be removed from the queue if this time is exceeded and it has not been consumed.
+  - type: integer
+- `priority`:
+  - default: `null`
+  - type: constant
+  - valid values:
+    - `\Enqueue\Client\MessagePriority::VERY_LOW`
+    - `\Enqueue\Client\MessagePriority::LOW`
+    - `\Enqueue\Client\MessagePriority::NORMAL`
+    - `\Enqueue\Client\MessagePriority::HIGH`
+    - `\Enqueue\Client\MessagePriority::VERY_HIGH`
+- `queue`:
+  - default: from queue `config` array or string `default` if empty
+  - description: The name of a queue to use
+  - type: string  
 
 ### Run the worker
 
