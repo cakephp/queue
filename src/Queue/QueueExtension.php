@@ -83,6 +83,14 @@ class QueueExtension implements ExtensionInterface
      */
     public function onPreConsume(PreConsume $context): void
     {
+        $this->runtime = microtime(true) - $this->startedAt;
+        $this->logger->debug(sprintf('Runtime: %s', $this->runtime));
+
+        if ($this->maxRuntime > 0 && $this->runtime >= $this->maxRuntime) {
+            $this->logger->debug('Max runtime reached, exiting');
+            $this->dispatchEvent('Processor.maxRuntime');
+            $context->interruptExecution(0);
+        }
     }
 
     /**
