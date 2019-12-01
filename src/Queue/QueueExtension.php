@@ -15,6 +15,8 @@ use Enqueue\Consumption\Context\PreSubscribe;
 use Enqueue\Consumption\Context\ProcessorException;
 use Enqueue\Consumption\Context\Start;
 use Enqueue\Consumption\ExtensionInterface;
+use Enqueue\Consumption\Result;
+use Psr\Log\LogLevel;
 
 // TODO: Figure out how to avoid needing to set a bunch of empty methods
 class QueueExtension implements ExtensionInterface
@@ -34,6 +36,8 @@ class QueueExtension implements ExtensionInterface
         $this->maxIterations = $maxIterations;
         $this->maxRuntime = $maxRuntime;
         $this->started_at = microtime(true);
+        $this->log(sprintf('Max Iterations: %s', $this->maxIterations));
+        $this->log(sprintf('Max Runtime: %s', $this->maxRuntime));
     }
 
     /**
@@ -43,11 +47,30 @@ class QueueExtension implements ExtensionInterface
     public function onPreConsume(PreConsume $context): void
     {
         $this->runtime = microtime(true) - $this->started_at;
+        $this->log(sprintf('Runtime: %s', $this->runtime));
+
         if ($this->maxRuntime > 0 && $this->runtime >= $this->maxRuntime) {
             $this->log('Max runtime reached, exiting', LogLevel::DEBUG);
             $this->dispatchEvent('Processor.maxRuntime');
             $context->interruptExecution(0);
-        } elseif ($this->maxIterations > 0 && $this->iterations >= $this->maxIterations) {
+        }
+    }
+
+    /**
+     * Executed at the very end of consumption callback. The message has already been acknowledged.
+     * The message result could not be changed.
+     * The consumption could be interrupted at this point.
+     */
+    public function onPostMessageReceived(PostMessageReceived $context): void
+    {
+        $result = $context->getResult();
+        if ($result instanceof Result && $result->getReason()) {
+            return;
+        }
+
+        $this->iterations++;
+        $this->log(sprintf('Iterations: %s', $this->iterations));
+        if ($this->maxIterations > 0 && $this->iterations >= $this->maxIterations) {
             $this->log('Max iterations reached, exiting', LogLevel::DEBUG);
             $this->dispatchEvent('Processor.maxIterations');
             $context->interruptExecution(0);
@@ -60,7 +83,6 @@ class QueueExtension implements ExtensionInterface
      */
     public function onPostConsume(PostConsume $context): void
     {
-        $this->iterations++;
     }
 
     /**
@@ -76,15 +98,6 @@ class QueueExtension implements ExtensionInterface
      * The processor could be changed or decorated at this point.
      */
     public function onMessageReceived(MessageReceived $context): void
-    {
-    }
-
-    /**
-     * Executed at the very end of consumption callback. The message has already been acknowledged.
-     * The message result could not be changed.
-     * The consumption could be interrupted at this point.
-     */
-    public function onPostMessageReceived(PostMessageReceived $context): void
     {
     }
 
