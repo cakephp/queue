@@ -28,7 +28,7 @@ class Processor implements InteropProcessor
         $this->dispatchEvent('Processor.job.seen', ['message' => $message]);
 
         $success = false;
-        $job = new JobData($message);
+        $job = new JobData($message, $context);
         if (!is_callable($job->getCallable())) {
             $this->log('Invalid callable for job. Rejecting job from queue.');
             $this->dispatchEvent('Processor.job.invalid', ['job' => $job]);

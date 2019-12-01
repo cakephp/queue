@@ -79,9 +79,10 @@ class ExampleJob
 }
 ```
 
-The passed JobData object has the following methods:
+The passed `JobData` object has the following methods:
 
 - `getArgument($key = null, $default = null)`: Can return the entire passed dataset or a value based on a `Hash::get()` notation key.
+- `getContext()`: Returns the original context object.
 - `getMessage()`: Returns the original message object.
 - `getParsedBody()`: Returns the parsed message body.
 
