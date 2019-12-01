@@ -105,9 +105,10 @@ Finally, the original message as well as the processed body are available via ac
 Queue the jobs using the included `Queue\Queue\Queue` class:
 
 ```php
+use App\Job\ExampleJob;
 use Queue\Queue\Queue;
 
-$callable = ['\App\Job\ExampleJob', 'execute'];
+$callable = [ExampleJob::class, 'execute'];
 $arguments = ['id' => 7, 'message' => 'hi2u'];
 $options = ['config' => 'default'];
 
