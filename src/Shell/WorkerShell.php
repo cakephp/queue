@@ -40,17 +40,25 @@ class WorkerShell extends Shell
         ]);
         $parser->addOption('max-iterations', [
             'help' => 'Number of max iterations to run',
-            'default' => 0,
+            'default' => null,
             'short' => 'i',
         ]);
         $parser->addOption('max-runtime', [
             'help' => 'Seconds for max runtime',
-            'default' => 0,
+            'default' => null,
             'short' => 'r',
         ]);
         $parser->setDescription(__('Runs a Queuesadilla worker.'));
 
         return $parser;
+    }
+
+    protected function getQueueExtension()
+    {
+        $maxIterations = $this->params['max-iterations'];
+        $maxRuntime = $this->params['max-runtime'];
+        $extension = new QueueExtension($maxIterations, $maxRuntime)
+
     }
 
     /**
@@ -65,10 +73,7 @@ class WorkerShell extends Shell
         $logger = Log::engine($this->params['logger']);
 
         $processor = new Processor();
-        $extension = new QueueExtension(
-            (int)$this->params['max-iterations'],
-            (int)$this->params['max-runtime']
-        );
+        $extension = $this->getQueueExtension();
 
         if (!empty($config['listener'])) {
             if (!class_exists($config['listener'])) {

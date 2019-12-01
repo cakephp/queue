@@ -159,9 +159,9 @@ This shell can take a few different options:
 
 - `--config` (default: default): Name of a queue config to use
 - `--queue` (default: default): Name of queue to bind to
-- `--logger` (default: stdout): Name of a configured logger
-- `--max-iterations` (default: 0): Number of max iterations to run
-- `--max-runtime` (default: 0): Seconds for max runtime
+- `--logger` (default: `stdout`): Name of a configured logger
+- `--max-iterations` (default: `null`): Number of max iterations to run
+- `--max-runtime` (default: `null`): Seconds for max runtime
 
 ### Worker Events
 
