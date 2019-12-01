@@ -5,7 +5,7 @@ use Cake\Event\EventDispatcherTrait;
 use Cake\Log\LogTrait;
 use Psr\Log\LogLevel;
 use Exception;
-use Queue\Queue\Job\Base;
+use Queue\Queue\JobData;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
 use Interop\Queue\Processor as InteropProcessor;
@@ -28,7 +28,7 @@ class Processor implements InteropProcessor
         $this->dispatchEvent('Worker.job.seen', ['message' => $message]);
 
         $success = false;
-        $job = new Base($message);
+        $job = new JobData($message);
         if (!is_callable($job->getCallable())) {
             $this->log('Invalid callable for job. Rejecting job from queue.');
             $this->dispatchEvent('Worker.job.invalid', ['job' => $job]);

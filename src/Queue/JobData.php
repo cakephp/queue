@@ -1,12 +1,12 @@
 <?php
 
-namespace Queue\Queue\Job;
+namespace Queue\Queue;
 
 use Cake\Utility\Hash;
 use Interop\Queue\Processor;
 use JsonSerializable;
 
-class Base implements JsonSerializable
+class JobData implements JsonSerializable
 {
     protected $message;
 
