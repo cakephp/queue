@@ -60,7 +60,7 @@ class WorkerShell extends Shell
      */
     protected function getQueueExtension(): QueueExtension
     {
-        $maxIterations = $this->param('max-iterations']);
+        $maxIterations = $this->param('max-iterations');
         $maxRuntime = $this->param('max-runtime');
         if ($maxIterations === null) {
             $maxIterations = 0;
