@@ -135,3 +135,33 @@ This shell can take a few different options:
 - `--logger` (default: stdout): Name of a configured logger
 - `--max-iterations` (default: 0): Number of max iterations to run
 - `--max-runtime` (default: 0): Seconds for max runtime
+
+### Worker Events
+
+The worker shell may invoke the events during normal execution. These events may be listened to by the associated `listener` in the Queue config.
+
+- `Processor.job.exception`
+  - description: Dispatched when a job throws an exception.
+  - arguments: `job` and `exception`
+- `Processor.job.invalid`'
+  - description: Dispatched when a job has an invalid callable.
+  - arguments: `job`
+- `Processor.job.reject`'
+  - description: Dispatched when a job completes and is to be rejected.
+  - arguments: `job`
+- `Processor.job.success`'
+  - description: Dispatched when a job completes and is to be acknowledged.
+  - arguments: `job`
+- `Processor.maxIterations`
+  - description: Dispatched when the max number of iterations is reached.
+- `Processor.maxRuntime`
+  - description: Dispatched when the max runtime is reached.
+- `Processor.job.failure`'
+  - description: Dispatched when a job completes and is to be requeued.
+  - arguments: `job`
+- `Processor.job.seen`'
+  - description: Dispatched when a message is seen.
+  - arguments: `job`
+- `Processor.job.start`'
+  - description: Dispatched before a job is started.
+  - arguments: `job`
