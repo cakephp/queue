@@ -38,7 +38,7 @@ class Processor implements InteropProcessor
         $this->dispatchEvent('Worker.job.start', ['job' => $job]);
 
         try {
-            $response = $this->perform($job);
+            $response = $this->runJob($job);
         } catch (Exception $e) {
             $this->log(sprintf('Job encountered exception: %s', $e->getMessage()));
             $this->dispatchEvent('Worker.job.exception', [
@@ -77,7 +77,7 @@ class Processor implements InteropProcessor
         return InteropProcessor::REQUEUE;
     }
 
-    public function perform($job)
+    public function runJob($job)
     {
         $callable = $job->getCallable();
 
