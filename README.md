@@ -32,14 +32,14 @@ The following configuration should be present in your app.php:
 $config = [
     'Queue' => [
         'default' => [
-              // A DSN for your configured backend. No default
+              // A DSN for your configured backend. default: null
               'url' => 'redis:'
 
               // The queue that will be used for sending messages. default: default
               'queue' => 'default',
 
-              // The name of a configured logger, default: debug
-              'logger' => 'debug',
+              // The name of a configured logger, default: null
+              'logger' => 'stdout',
 
               // The name of an event listener class to associate with the worker
               'listener' => 'App\Listener\WorkerListener',

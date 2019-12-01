@@ -110,8 +110,12 @@ class Queue
 
         $config = static::getConfig($name);
         $url = Hash::get($config, 'url');
-        $loggerName = Hash::get($config, 'logger', 'debug');
-        $logger = Log::engine($loggerName);
+
+        $logger = null;
+        $loggerName = Hash::get($config, 'logger', null);
+        if ($loggerName) {
+            $logger = Log::engine($loggerName);
+        }
 
         static::$_clients[$name] = new SimpleClient($url, $logger);
         static::$_clients[$name]->setupBroker();
