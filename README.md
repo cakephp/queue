@@ -109,7 +109,7 @@ use Queue\Queue\Queue;
 
 $callable = ['\App\Job\ExampleJob', 'execute'];
 $arguments = ['id' => 7, 'message' => 'hi2u'];
-$options = ['config' => 'default']''
+$options = ['config' => 'default'];
 
 Queue::push($callable, $arguments, $options);
 ```
