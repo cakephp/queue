@@ -132,13 +132,11 @@ class Queue
         $config = static::getConfig($name);
         $queue = Hash::get($config, 'queue', 'default');
 
-        $item = [
+        $message = new Message([
             'queue' => $queue,
             'class' => $callable,
             'args'  => [$args],
-        ];
-
-        $message = new Message($item);
+        ]);
 
         $delay = Hash::get($options, 'delay', null);
         if ($delay !== null) {
