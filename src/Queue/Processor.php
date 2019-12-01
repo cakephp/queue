@@ -48,6 +48,10 @@ class Processor implements InteropProcessor
             return InteropProcessor::REQUEUE;
         }
 
+        if ($response === null) {
+            $response = InteropProcessor::ACK;
+        }
+
         if (is_bool($response)) {
             if ($response) {
                 $response = InteropProcessor::ACK;
