@@ -61,7 +61,6 @@ namespace App\Job;
 
 use Cake\Log\LogTrait;
 use Interop\Queue\Processor;
-use Psr\Log\LogLevel;
 use Queue\Queue\JobData;
 
 class ExampleJob
@@ -73,7 +72,7 @@ class ExampleJob
         $id = $job->getData('id');
         $message = $job->getData('message');
 
-        $this->log(sprintf('%d %s', $id, $message), LogLevel::INFO);
+        $this->log(sprintf('%d %s', $id, $message));
 
         return Processor::ACK;
     }
