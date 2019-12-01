@@ -40,6 +40,9 @@ $config = [
 
               // The name of a configured logger, default: debug
               'logger' => 'debug',
+
+              // The name of an event listener class to associate with the worker
+              'listener' => 'App\Listener\WorkerListener',
         ]
     ]
 ];

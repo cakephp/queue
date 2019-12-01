@@ -70,6 +70,16 @@ class WorkerShell extends Shell
             (int)$this->params['max-runtime']
         );
 
+        if (!empty($config['listener'])) {
+            if (!class_exists($config['listener'])) {
+                throw new LogicException(sprintf('Listener class %s not found', $config['listener']));
+            }
+
+            $listener = new $config['listener'];
+            $processor->getEventManager()->on($listener);
+            $extension->getEventManager()->on($listener);
+        }
+
         $client = new SimpleClient($url, $logger);
         $client->bindTopic($this->params['queue'], $processor);
         $client->consume($extension);
