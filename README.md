@@ -63,11 +63,11 @@ use Cake\Log\LogTrait;
 use Interop\Queue\Processor;
 use Queue\Queue\JobData;
 
-class ExampleJob
+class ExampleJob implements JobInterface
 {
     use LogTrait;
 
-    public function execute(JobData $job)
+    public function execute(JobData $job): ?string
     {
         $id = $data->getArgument('id');
         $message = $data->getArgument('message');
@@ -92,11 +92,7 @@ A job _may_ return any of the following values:
 - `Processor::REJECT`: Use this constant when the job could not be processed. The message will be removed from the queue.
 - `Processor::REQUEUE`: Use this constant when the message is not valid or could not be processed right now but we can try again later. The original message is removed from the queue but a copy is published to the queue again.
 
-The job _may_ also return a boolean or null value. These are mapped as follows:
-
-- `null`: `Processor::ACK`
-- `true`: `Processor::ACK`
-- `false`: `Processor::REJECT`
+The job _may_ also return a null value, which is interpreted as `Processor::ACK`. Failure to respond with a valid type will result in an interperted job failure and requeue of the job.
 
 Finally, the original message as well as the processed body are available via accessing the `JobData` object.
 

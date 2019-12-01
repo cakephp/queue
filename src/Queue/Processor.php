@@ -65,18 +65,6 @@ class Processor implements InteropProcessor
             return InteropProcessor::REQUEUE;
         }
 
-        if ($response === null) {
-            $response = InteropProcessor::ACK;
-        }
-
-        if (is_bool($response)) {
-            if ($response) {
-                $response = InteropProcessor::ACK;
-            } else {
-                $response = InteropProcessor::REQUEUE;
-            }
-        }
-
         if ($response === InteropProcessor::ACK) {
             $this->logger->debug('Job processed sucessfully');
             $this->dispatchEvent('Processor.job.success', ['job' => $job]);
@@ -98,20 +86,20 @@ class Processor implements InteropProcessor
     {
         $callable = $job->getCallable();
 
-        $success = false;
+        $response = InteropProcessor::REQUEUE;
         if (is_array($callable) && count($callable) == 2) {
             $className = $callable[0];
             $methodName = $callable[1];
             $instance = new $className;
-            $success = $instance->$methodName($job);
+            $response = $instance->$methodName($job);
         } elseif (is_string($callable)) {
-            $success = call_user_func($callable, $job);
+            $response = call_user_func($callable, $job);
         }
 
-        if ($success === null) {
-            $success = true;
+        if ($response === null) {
+            $response = InteropProcessor::ACK;
         }
 
-        return $success;
+        return $response;
     }
 }
