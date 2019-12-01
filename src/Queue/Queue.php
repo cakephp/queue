@@ -4,6 +4,7 @@ namespace Queue\Queue;
 use BadMethodCallException;
 use Cake\Log\Log;
 use Cake\Utility\Hash;
+use Enqueue\Client\Message;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
 
@@ -120,7 +121,7 @@ class Queue
     /**
      * Push a single job onto the queue.
      *
-     * @param callable $callable    a job callable
+     * @param callable $callable  a job callable
      * @param array  $args        an array of data to set for the job
      * @param array  $options     an array of options for publishing the job
      * @return void
@@ -139,7 +140,8 @@ class Queue
             'queue_time' => microtime(true),
         ];
 
+        $message = new Message($item);
         $client = static::engine($name);
-        $client->sendEvent($queue, $item);
+        $client->sendEvent($queue, $message);
     }
 }
