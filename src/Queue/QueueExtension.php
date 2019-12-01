@@ -48,22 +48,6 @@ class QueueExtension implements ExtensionInterface
     }
 
     /**
-     * Executed at every new cycle before calling SubscriptionConsumer::consume method.
-     * The consumption could be interrupted at this step.
-     */
-    public function onPreConsume(PreConsume $context): void
-    {
-        $this->runtime = microtime(true) - $this->startedAt;
-        $this->logger->debug(sprintf('Runtime: %s', $this->runtime));
-
-        if ($this->maxRuntime > 0 && $this->runtime >= $this->maxRuntime) {
-            $this->logger->debug('Max runtime reached, exiting');
-            $this->dispatchEvent('Processor.maxRuntime');
-            $context->interruptExecution(0);
-        }
-    }
-
-    /**
      * Executed at the very end of consumption callback. The message has already been acknowledged.
      * The message result could not be changed.
      * The consumption could be interrupted at this point.
@@ -75,6 +59,15 @@ class QueueExtension implements ExtensionInterface
             return;
         }
 
+        $this->runtime = microtime(true) - $this->startedAt;
+        $this->logger->debug(sprintf('Runtime: %s', $this->runtime));
+
+        if ($this->maxRuntime > 0 && $this->runtime >= $this->maxRuntime) {
+            $this->logger->debug('Max runtime reached, exiting');
+            $this->dispatchEvent('Processor.maxRuntime');
+            $context->interruptExecution(0);
+        }
+
         $this->iterations++;
         $this->logger->debug(sprintf('Iterations: %s', $this->iterations));
         if ($this->maxIterations > 0 && $this->iterations >= $this->maxIterations) {
@@ -82,6 +75,14 @@ class QueueExtension implements ExtensionInterface
             $this->dispatchEvent('Processor.maxIterations');
             $context->interruptExecution(0);
         }
+    }
+
+    /**
+     * Executed at every new cycle before calling SubscriptionConsumer::consume method.
+     * The consumption could be interrupted at this step.
+     */
+    public function onPreConsume(PreConsume $context): void
+    {
     }
 
     /**
