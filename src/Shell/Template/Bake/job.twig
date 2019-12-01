@@ -1,0 +1,21 @@
+<?php
+namespace {{ namespace }}\Job;
+
+use Queue\Queue\JobData;
+use Interop\Queue\Processor;
+
+/**
+ * {{ name }} job
+ */
+class {{ name }}Job
+{
+    /**
+     * Executes logic for {{ name }}Job
+     *
+     * @return string
+     */
+    public function execute(JobData $job)
+    {
+        return Processor::ACK;
+    }
+}
