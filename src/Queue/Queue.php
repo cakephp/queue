@@ -136,8 +136,6 @@ class Queue
             'queue' => $queue,
             'class' => $callable,
             'args'  => [$args],
-            'id'    => md5(uniqid('', true)),
-            'queue_time' => microtime(true),
         ];
 
         $message = new Message($item);
