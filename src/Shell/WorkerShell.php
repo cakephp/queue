@@ -53,12 +53,24 @@ class WorkerShell extends Shell
         return $parser;
     }
 
-    protected function getQueueExtension()
+    /**
+     * Creates and returns a QueueExtension object
+     *
+     * @return QueueExtension
+     */
+    protected function getQueueExtension(): QueueExtension
     {
-        $maxIterations = $this->params['max-iterations'];
-        $maxRuntime = $this->params['max-runtime'];
-        $extension = new QueueExtension($maxIterations, $maxRuntime)
+        $maxIterations = $this->param('max-iterations']);
+        $maxRuntime = $this->param('max-runtime');
+        if ($maxIterations === null) {
+            $maxIterations = 0;
+        }
 
+        if ($maxRuntime === null) {
+            $maxRuntime = 0;
+        }
+
+        return new QueueExtension($maxIterations, $maxRuntime);
     }
 
     /**
