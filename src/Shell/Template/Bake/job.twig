@@ -14,7 +14,7 @@ class {{ name }}Job
      *
      * @return string
      */
-    public function execute(JobData $job)
+    public function execute(JobData $job): string
     {
         return Processor::ACK;
     }
