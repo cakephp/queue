@@ -35,7 +35,7 @@ class JobData implements JsonSerializable
         return Hash::get($this->parsedBody, 'class', null);
     }
 
-    public function getData($key = null, $default = null)
+    public function getArgument($key = null, $default = null)
     {
         if ($key === null) {
             return $this->parsedBody['args'][0];

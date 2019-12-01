@@ -69,8 +69,8 @@ class ExampleJob
 
     public function execute(JobData $job)
     {
-        $id = $job->getData('id');
-        $message = $job->getData('message');
+        $id = $data->getArgument('id');
+        $message = $data->getArgument('message');
 
         $this->log(sprintf('%d %s', $id, $message));
 
@@ -81,9 +81,9 @@ class ExampleJob
 
 The passed JobData object has the following methods:
 
-- `getData($key = null, $default = null)`: Can return the entire passed dataset or a value based on a `Hash::get()` notation key.
-- `getMessage`: Returns the original message object.
-- `getParsedBody`: Returns the parsed message body.
+- `getArgument($key = null, $default = null)`: Can return the entire passed dataset or a value based on a `Hash::get()` notation key.
+- `getMessage()`: Returns the original message object.
+- `getParsedBody()`: Returns the parsed message body.
 
 A job _may_ return any of the following values:
 
