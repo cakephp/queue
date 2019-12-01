@@ -42,7 +42,7 @@ $config = [
               'logger' => 'stdout',
 
               // The name of an event listener class to associate with the worker
-              'listener' => 'App\Listener\WorkerListener',
+              'listener' => \App\Listener\WorkerListener::class,
         ]
     ]
 ];
