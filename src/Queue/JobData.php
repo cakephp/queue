@@ -4,7 +4,6 @@ namespace Queue\Queue;
 
 use Cake\Utility\Hash;
 use Interop\Queue\Context;
-use Interop\Queue\Processor;
 use Interop\Queue\Message;
 use JsonSerializable;
 
