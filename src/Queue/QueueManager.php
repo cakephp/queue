@@ -8,7 +8,7 @@ use Enqueue\Client\Message;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
 
-class Queue
+class QueueManager
 {
     /**
      * Configuration sets.
@@ -34,25 +34,25 @@ class Queue
      *
      * ### Usage
      *
-     * Assuming that the class' name is `Queue` the following scenarios
+     * Assuming that the class' name is `QueueManager` the following scenarios
      * are supported:
      *
      * Setting a queue engine up.
      *
      * ```
-     * Queue::setConfig('default', $settings);
+     * QueueManager::setConfig('default', $settings);
      * ```
      *
      * Injecting a constructed adapter in:
      *
      * ```
-     * Queue::setConfig('default', $instance);
+     * QueueManager::setConfig('default', $instance);
      * ```
      *
      * Configure multiple adapters at once:
      *
      * ```
-     * Queue::setConfig($arrayOfConfig);
+     * QueueManager::setConfig($arrayOfConfig);
      * ```
      *
      * @param string|array $key The name of the configuration, or an array of multiple configs.

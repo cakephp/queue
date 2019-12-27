@@ -98,17 +98,17 @@ Finally, the original message as well as the processed body are available via ac
 
 ### Queue Jobs
 
-Queue the jobs using the included `Queue\Queue\Queue` class:
+Queue the jobs using the included `Queue\Queue\QueueManager` class:
 
 ```php
 use App\Job\ExampleJob;
-use Queue\Queue\Queue;
+use Queue\Queue\QueueManager;
 
 $callable = [ExampleJob::class, 'execute'];
 $arguments = ['id' => 7, 'message' => 'hi2u'];
 $options = ['config' => 'default'];
 
-Queue::push($callable, $arguments, $options);
+QueueManager::push($callable, $arguments, $options);
 ```
 
 Arguments:

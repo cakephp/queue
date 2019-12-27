@@ -5,7 +5,7 @@ namespace Queue;
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
 use Cake\Core\PluginApplicationInterface;
-use Queue\Queue\Queue;
+use Queue\Queue\QueueManager;
 
 /**
  * Plugin for Queue
@@ -27,6 +27,6 @@ class Plugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app)
     {
-        Queue::setConfig(Configure::read('Queue'));
+        QueueManager::setConfig(Configure::read('Queue'));
     }
 }
