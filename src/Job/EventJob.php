@@ -3,22 +3,22 @@ namespace Queue\Job;
 
 use Cake\Event\EventManager;
 use Queue\Job\JobInterface;
-use Queue\Queue\JobData;
+use Queue\Job\Message;
 use Interop\Queue\Processor;
 
 class EventJob implements JobInterface
 {
     /**
-     * Constructs and dispatches the event from a job data bag
+     * Constructs and dispatches the event from a job message
      *
-     * @param JobData $jobData job data bag
+     * @param Message $message job message
      * @return string
      */
-    public function execute(JobData $jobData): ?string
+    public function execute(Message $message): ?string
     {
-        $eventClass = $jobData->getArgument('className');
-        $eventName = $jobData->getArgument('eventName');
-        $data = $jobData->getArgument('data', []);
+        $eventClass = $message->getArgument('className');
+        $eventName = $message->getArgument('eventName');
+        $data = $message->getArgument('data', []);
         if (!class_exists($eventClass)) {
           return Processor::REJECT;
         }

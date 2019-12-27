@@ -61,30 +61,30 @@ namespace App\Job;
 
 use Cake\Log\LogTrait;
 use Interop\Queue\Processor;
-use Queue\Queue\JobData;
+use Queue\Job\Message;
 
 class ExampleJob implements JobInterface
 {
     use LogTrait;
 
-    public function execute(JobData $job): ?string
+    public function execute(Message $message): ?string
     {
-        $id = $data->getArgument('id');
-        $message = $data->getArgument('message');
+        $id = $message->getArgument('id');
+        $data = $message->getArgument('data');
 
-        $this->log(sprintf('%d %s', $id, $message));
+        $this->log(sprintf('%d %s', $id, $data));
 
         return Processor::ACK;
     }
 }
 ```
 
-The passed `JobData` object has the following methods:
+The passed `Message` object has the following methods:
 
 - `getArgument($key = null, $default = null)`: Can return the entire passed dataset or a value based on a `Hash::get()` notation key.
 - `getContext()`: Returns the original context object.
-- `getMessage()`: Returns the original message object.
-- `getParsedBody()`: Returns the parsed message body.
+- `getOriginalMessage()`: Returns the original queue message object.
+- `getParsedBody()`: Returns the parsed queue message body.
 
 A job _may_ return any of the following values:
 
@@ -93,8 +93,6 @@ A job _may_ return any of the following values:
 - `Processor::REQUEUE`: Use this constant when the message is not valid or could not be processed right now but we can try again later. The original message is removed from the queue but a copy is published to the queue again.
 
 The job _may_ also return a null value, which is interpreted as `Processor::ACK`. Failure to respond with a valid type will result in an interperted job failure and requeue of the job.
-
-Finally, the original message as well as the processed body are available via accessing the `JobData` object.
 
 ### Queue Jobs
 
@@ -105,7 +103,7 @@ use App\Job\ExampleJob;
 use Queue\Queue\QueueManager;
 
 $callable = [ExampleJob::class, 'execute'];
-$arguments = ['id' => 7, 'message' => 'hi2u'];
+$arguments = ['id' => 7, 'data' => 'hi2u'];
 $options = ['config' => 'default'];
 
 QueueManager::push($callable, $arguments, $options);

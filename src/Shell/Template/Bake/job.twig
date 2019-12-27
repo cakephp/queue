@@ -1,7 +1,7 @@
 <?php
 namespace {{ namespace }}\Job;
 
-use Queue\Queue\JobData;
+use Queue\Job\Message;
 use Interop\Queue\Processor;
 
 /**
@@ -12,9 +12,10 @@ class {{ name }}Job
     /**
      * Executes logic for {{ name }}Job
      *
+     * @param Message $message job message
      * @return string
      */
-    public function execute(JobData $job): string
+    public function execute(Message $message): string
     {
         return Processor::ACK;
     }

@@ -4,22 +4,22 @@ namespace Queue\Queue;
 
 use Cake\Utility\Hash;
 use Interop\Queue\Context;
-use Interop\Queue\Message;
+use Interop\Queue\Message as QueueMessage;
 use JsonSerializable;
 
-class JobData implements JsonSerializable
+class Message implements JsonSerializable
 {
     protected $context;
 
-    protected $message;
+    protected $originalMessage;
 
     protected $parsedBody;
 
-    public function __construct(Message $message, Context $context)
+    public function __construct(QueueMessage $originalMessage, Context $context)
     {
         $this->context = $context;
-        $this->message = $message;
-        $this->parsedBody = json_decode($message->getBody(), true);
+        $this->originalMessage = $originalMessage;
+        $this->parsedBody = json_decode($originalMessage->getBody(), true);
 
         return $this;
     }
@@ -29,9 +29,9 @@ class JobData implements JsonSerializable
         return $this->context;
     }
 
-    public function getMessage()
+    public function getOriginalMessage()
     {
-        return $this->message;
+        return $this->originalMessage;
     }
 
     public function getParsedBody()

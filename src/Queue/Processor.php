@@ -7,9 +7,9 @@ use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Exception;
-use Queue\Queue\JobData;
+use Queue\Job\Message;
 use Interop\Queue\Context;
-use Interop\Queue\Message;
+use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
 
 class Processor implements InteropProcessor
@@ -35,17 +35,17 @@ class Processor implements InteropProcessor
     /**
      * The method processes messages
      *
-     * @param Message $message
+     * @param QueueMessage $message
      * @param Context $context
      *
      * @return string|object with __toString method implemented
      */
-    public function process(Message $message, Context $context)
+    public function process(QueueMessage $message, Context $context)
     {
         $this->dispatchEvent('Processor.job.seen', ['message' => $message]);
 
         $success = false;
-        $job = new JobData($message, $context);
+        $job = new Message($message, $context);
         if (!is_callable($job->getCallable())) {
             $this->logger->debug('Invalid callable for job. Rejecting job from queue.');
             $this->dispatchEvent('Processor.job.invalid', ['job' => $job]);

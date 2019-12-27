@@ -6,7 +6,6 @@ use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Utility\Hash;
 use Enqueue\SimpleClient\SimpleClient;
-use Interop\Queue\Message;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Queue\Queue\Processor;

@@ -5,10 +5,9 @@ use BadMethodCallException;
 use Cake\Event\Event;
 use Cake\Log\Log;
 use Cake\Utility\Hash;
-use Enqueue\Client\Message;
+use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
 use Queue\Job\EventJob;
-use Queue\Queue\JobData;
 use LogicException;
 
 class QueueManager
@@ -139,7 +138,7 @@ class QueueManager
         $config = static::getConfig($name);
         $queue = Hash::get($config, 'queue', 'default');
 
-        $message = new Message([
+        $message = new ClientMessage([
             'queue' => $queue,
             'class' => $callable,
             'args'  => [$args],
