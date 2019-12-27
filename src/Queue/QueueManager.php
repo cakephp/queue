@@ -129,8 +129,8 @@ class QueueManager
      * Push a single job onto the queue.
      *
      * @param callable $callable  a job callable
-     * @param array  $args        an array of data to set for the job
-     * @param array  $options     an array of options for publishing the job
+     * @param array $args         an array of data to set for the job
+     * @param array $options      an array of options for publishing the job
      * @return void
      */
     public static function push($callable, array $args = [], array $options = []): void
