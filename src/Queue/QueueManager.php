@@ -175,7 +175,7 @@ class QueueManager
     {
         $eventClass = Hash::get($options, 'eventClass', Event::class);
 
-        Queue::push([EventJob::class, 'dispatchEvent'], [
+        static::push([EventJob::class, 'dispatchEvent'], [
             'className' => $eventClass,
             'eventName' => $eventName,
             'data' => $data,
