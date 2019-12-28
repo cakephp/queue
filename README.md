@@ -171,7 +171,7 @@ class UserMailer extends Mailer
 It is now possible to use the `UserMailer` to send out user-related emails in a delayed fashion from anywhere in our application. To queue the mailer action, use the `push()` method on a mailer instance.
 
 ```php
-$this->getMailer('User')->push('welcome', [$user]);
+$this->getMailer('User')->push('welcome', ['example@example.com', 'josegonzalez']);
 ```
 
 This `QueueuTrait::push()` call will generate an intermediate `MailerJob` that handles processing of the email message. If the MailerJob is unable to instantiate the Email or Mailer instances, it is interpreted as a `Processor::REJECT`. An invalid `action` is also interpreted as a `Processor::REJECT`, as will the action throwing a `BadMethodCallException`. Any non-exception result will be seen as a `Processor:ACK`.
