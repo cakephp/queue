@@ -3,7 +3,7 @@ namespace Queue\Mailer;
 
 use Cake\Mailer\Email;
 use Queue\Job\MailerJob;
-use Queue\Queue\QueueManager;
+use Queue\QueueManager;
 
 /**
  * Provides functionality for queuing actions from mailer classes.

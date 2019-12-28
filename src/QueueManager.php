@@ -1,5 +1,5 @@
 <?php
-namespace Queue\Queue;
+namespace Queue;
 
 use BadMethodCallException;
 use Cake\Event\Event;
@@ -146,7 +146,7 @@ class QueueManager
 
         $delay = Hash::get($options, 'delay', null);
         if ($delay !== null) {
-            $message->setDelay($delay);    
+            $message->setDelay($delay);
         }
 
         $expires_at = Hash::get($options, 'expires_at', null);
