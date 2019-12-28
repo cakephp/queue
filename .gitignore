@@ -1,0 +1,32 @@
+# User specific & automatically generated files #
+#################################################
+/build
+/dist
+/tags
+/composer.lock
+/phpunit.xml
+/phpcs.xml
+/vendor
+*.mo
+debug.log
+error.log
+/tests/test_app/config/Create/*
+/tests/test_app/config/Queue/*
+/tests/test_app/config/TestsQueue/schema-dump-test.lock
+/tests/test_app/Plugin/TestBlog/config/Queue/*
+
+# IDE and editor specific files #
+#################################
+/nbproject
+.idea
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db

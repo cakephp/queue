@@ -1,14 +1,16 @@
 {
     "name": "josegonzalez/queue",
     "description": "Queue plugin for CakePHP",
+    "homepage": "https://github.com/josegonzalez/cakephp-queue",
     "type": "cakephp-plugin",
     "license": "MIT",
     "require": {
-        "cakephp/cakephp": "^3.5",
-        "enqueue/simple-client": "0.9.*"
+        "cakephp/cakephp": "^4.0",
+        "enqueue/simple-client": "0.9.*",
+        "psr/log": "~1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.7.14|^6.0"
+        "phpunit/phpunit": "~8.5.0"
     },
     "autoload": {
         "psr-4": {
@@ -20,5 +22,24 @@
             "Queue\\Test\\": "tests/",
             "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
         }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "check": [
+            "@cs-check",
+            "@test"
+        ],
+        "cs-check": "phpcs --colors -p src/ tests/",
+        "cs-fix": "phpcbf --colors -p src/ tests/",
+        "phpstan": "phpstan analyse src/",
+        "phpstan-setup": "cp composer.json composer.backup && composer require --dev phpstan/phpstan-shim:^0.11 && mv composer.backup composer.json",
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-clover=clover.xml"
+    },
+    "support": {
+        "source": "https://github.com/josegonzalez/cakephp-queue",
+        "issues": "https://github.com/josegonzalez/cakephp-queue/issues",
+        "irc": "irc://irc.freenode.org/cakephp"
     }
 }
