@@ -1,6 +1,10 @@
 # Queue plugin for CakePHP
 
-Experimental queue plugin for CakePHP using queue-interop.
+Experimental queue plugin for CakePHP using [php-queue](https://php-enqueue.github.io).
+
+## Background
+
+This plugin provides an easy-to-use interface for the php-queue project, which abstracts dozens of queuing backends for use within your application. Queues can be used to increase the performance of your application by deferring long-running processes - such as email or notification sending - until a later time.
 
 ## Installation
 
@@ -36,6 +40,7 @@ $config = [
               'url' => 'redis:'
 
               // The queue that will be used for sending messages. default: default
+              // This can be overriden when queuing or processing messages
               'queue' => 'default',
 
               // The name of a configured logger, default: null
@@ -47,6 +52,8 @@ $config = [
     ]
 ];
 ```
+
+The `Queue` config key can contain one or more queue configurations. Each of these is used for interacting with a different queuing backend.
 
 ## Usage
 
