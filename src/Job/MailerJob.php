@@ -43,7 +43,7 @@ class MailerJob implements JobInterface
             return Processor::REJECT;
         }
 
-        try {        
+        try {
             $result = $mailer->send($action, $args, $headers);
         } catch (BadMethodCallException $e) {
             return Processor::REJECT;
