@@ -2,9 +2,9 @@
 namespace Queue\Job;
 
 use Cake\Event\EventManager;
+use Interop\Queue\Processor;
 use Queue\Job\JobInterface;
 use Queue\Job\Message;
-use Interop\Queue\Processor;
 
 class EventJob implements JobInterface
 {

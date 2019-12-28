@@ -3,14 +3,14 @@ namespace Queue\Queue;
 
 use Cake\Event\EventDispatcherTrait;
 use Cake\Log\LogTrait;
-use Psr\Log\LogLevel;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Exception;
-use Queue\Job\Message;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Psr\Log\NullLogger;
+use Queue\Job\Message;
 
 class Processor implements InteropProcessor
 {

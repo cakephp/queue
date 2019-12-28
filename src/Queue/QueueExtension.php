@@ -16,8 +16,8 @@ use Enqueue\Consumption\Context\ProcessorException;
 use Enqueue\Consumption\Context\Start;
 use Enqueue\Consumption\ExtensionInterface;
 use Enqueue\Consumption\Result;
-use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 // TODO: Figure out how to avoid needing to set a bunch of empty methods
 class QueueExtension implements ExtensionInterface
