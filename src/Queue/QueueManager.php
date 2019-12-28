@@ -63,7 +63,7 @@ class QueueManager
      * @throws \LogicException When trying to store an invalid structured config array.
      * @return void
      */
-    public static function setConfig($key, $config = null)
+    public static function setConfig($key, $config = null): void
     {
         if ($config === null) {
             if (!is_array($key)) {
@@ -104,7 +104,7 @@ class QueueManager
      * @param string $name Key name of a configured adapter to get.
      * @return \Enqueue\SimpleClient\SimpleClient
      */
-    public static function engine($name)
+    public static function engine($name): SimpleClient
     {
         if (isset(static::$_clients[$name])) {
             return static::$_clients[$name];
@@ -171,7 +171,7 @@ class QueueManager
      * @param array $options     an array of options for publishing the job
      * @return void
      */
-    public static function pushEvent($eventName, array $data = [], array $options = [])
+    public static function pushEvent($eventName, array $data = [], array $options = []): void
     {
         $eventClass = Hash::get($options, 'eventClass', Event::class);
 
