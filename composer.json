@@ -1,9 +1,22 @@
 {
-    "name": "josegonzalez/queue",
+    "name": "cakephp/queue",
     "description": "Queue plugin for CakePHP",
-    "homepage": "https://github.com/josegonzalez/cakephp-queue",
+    "keywords": ["cakephp", "queue"],
+    "homepage": "https://github.com/cakephp/queue",
     "type": "cakephp-plugin",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "CakePHP Community",
+            "homepage": "https://github.com/cakephp/queue/graphs/contributors"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/cakephp/queue/issues",
+        "forum": "https://stackoverflow.com/tags/cakephp",
+        "irc": "irc://irc.freenode.org/cakephp",
+        "source": "https://github.com/cakephp/queue"
+    },
     "require": {
         "cakephp/cakephp": "^4.0",
         "enqueue/simple-client": "0.9.*",
@@ -19,9 +32,12 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Queue\\Test\\": "tests/",
-            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/"
+            "Cake\\Test\\": "vendor/cakephp/cakephp/tests/",
+            "Queue\\Test\\": "tests/"
         }
+    },
+    "suggest": {
+        "cakephp/bake": "Required if you want to generate jobs."
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -36,10 +52,5 @@
         "phpstan-setup": "cp composer.json composer.backup && composer require --dev phpstan/phpstan-shim:^0.11 && mv composer.backup composer.json",
         "test": "phpunit",
         "test-coverage": "phpunit --coverage-clover=clover.xml"
-    },
-    "support": {
-        "source": "https://github.com/josegonzalez/cakephp-queue",
-        "issues": "https://github.com/josegonzalez/cakephp-queue/issues",
-        "irc": "irc://irc.freenode.org/cakephp"
     }
 }
