@@ -86,17 +86,17 @@ The passed `Message` object has the following methods:
 - `getOriginalMessage()`: Returns the original queue message object.
 - `getParsedBody()`: Returns the parsed queue message body.
 
-A job _may_ return any of the following values:
+A message _may_ return any of the following values:
 
-- `Processor::ACK`: Use this constant when the job is processed successfully. The message will be removed from the queue.
-- `Processor::REJECT`: Use this constant when the job could not be processed. The message will be removed from the queue.
+- `Processor::ACK`: Use this constant when the message is processed successfully. The message will be removed from the queue.
+- `Processor::REJECT`: Use this constant when the message could not be processed. The message will be removed from the queue.
 - `Processor::REQUEUE`: Use this constant when the message is not valid or could not be processed right now but we can try again later. The original message is removed from the queue but a copy is published to the queue again.
 
-The job _may_ also return a null value, which is interpreted as `Processor::ACK`. Failure to respond with a valid type will result in an interperted job failure and requeue of the job.
+The message _may_ also return a null value, which is interpreted as `Processor::ACK`. Failure to respond with a valid type will result in an interperted message failure and requeue of the message.
 
-### Queue Jobs
+### Queueing
 
-Queue the jobs using the included `Queue\Queue\QueueManager` class:
+Queue the messages using the included `Queue\Queue\QueueManager` class:
 
 ```php
 use App\Job\ExampleJob;
@@ -111,7 +111,7 @@ QueueManager::push($callable, $arguments, $options);
 
 Arguments:
   - `$callable`: A callable that will be invoked. This callable _must_ be valid within the context of your application. Job classes are prefered.
-  - `$arguments` (optional): A json-serializable array of data that is to be made present for your job. It should be key-value pairs.
+  - `$arguments` (optional): A json-serializable array of data that is to be made present for your message. It should be key-value pairs.
   - `$options` (optional): An array of optional data for message queueing.
 
 The following keys are valid for use within the `options` array:
@@ -244,7 +244,7 @@ Results and other state are not persisted across multiple invocations of the sam
 
 ### Run the worker
 
-Once a job is queued, you may run a worker via the included `worker` shell:
+Once a message is queued, you may run a worker via the included `worker` shell:
 
 ```shell
 bin/cake worker
@@ -262,28 +262,28 @@ This shell can take a few different options:
 
 The worker shell may invoke the events during normal execution. These events may be listened to by the associated `listener` in the Queue config.
 
-- `Processor.job.exception`:
-  - description: Dispatched when a job throws an exception.
-  - arguments: `job` and `exception`
-- `Processor.job.invalid`:
-  - description: Dispatched when a job has an invalid callable.
-  - arguments: `job`
-- `Processor.job.reject`:
-  - description: Dispatched when a job completes and is to be rejected.
-  - arguments: `job`
-- `Processor.job.success`:
-  - description: Dispatched when a job completes and is to be acknowledged.
-  - arguments: `job`
+- `Processor.message.exception`:
+  - description: Dispatched when a message throws an exception.
+  - arguments: `message` and `exception`
+- `Processor.message.invalid`:
+  - description: Dispatched when a message has an invalid callable.
+  - arguments: `message`
+- `Processor.message.reject`:
+  - description: Dispatched when a message completes and is to be rejected.
+  - arguments: `message`
+- `Processor.message.success`:
+  - description: Dispatched when a message completes and is to be acknowledged.
+  - arguments: `message`
 - `Processor.maxIterations`:
   - description: Dispatched when the max number of iterations is reached.
 - `Processor.maxRuntime`:
   - description: Dispatched when the max runtime is reached.
-- `Processor.job.failure`:
-  - description: Dispatched when a job completes and is to be requeued.
-  - arguments: `job`
-- `Processor.job.seen`:
+- `Processor.message.failure`:
+  - description: Dispatched when a message completes and is to be requeued.
+  - arguments: `message`
+- `Processor.message.seen`:
   - description: Dispatched when a message is seen.
-  - arguments: `job`
-- `Processor.job.start`:
-  - description: Dispatched before a job is started.
-  - arguments: `job`
+  - arguments: `message`
+- `Processor.message.start`:
+  - description: Dispatched before a message is started.
+  - arguments: `message`
