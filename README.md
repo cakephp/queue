@@ -142,6 +142,47 @@ The following keys are valid for use within the `options` array:
   - description: The name of a queue to use
   - type: string  
 
+#### Queuing Mailer Actions
+
+Mailer actions can be queued by adding the `\Queue\Mailer\QueueTrait` to the mailer class. The following example shows how to setup the trait within a mailer class.
+
+```php
+<?php
+namespace App\Mailer;
+
+use Cake\Mailer\Mailer;
+use Queue\Queue\QueueTrait;
+
+class UserMailer extends Mailer
+{
+    use QueueTrait;
+
+    public function welcome($emailAddress, $username)
+    {
+        $this
+            ->setTo($emailAddress)
+            ->setSubject(sprintf('Welcome %s', $username));
+    }
+
+    // ... other actions here ...
+}
+```
+
+It is now possible to use the `UserMailer` to send out user-related emails in a delayed fashion from anywhere in our application. To queue the mailer action, use the `push()` method on a mailer instance.
+
+```php
+$this->getMailer('User')->push('welcome', [$user]);
+```
+
+This `QueueuTrait::push()` call will generate an intermediate `MailerJob` that handles processing of the email message. If the MailerJob is unable to instantiate the Email or Mailer instances, it is interpreted as a `Processor::REJECT`. An invalid `action` is also interpreted as a `Processor::REJECT`, as will the action throwing a `BadMethodCallException`. Any non-exception result will be seen as a `Processor:ACK`.
+
+The exposed `push()` method has a similar signature to `Mailer::send()`, and also supports an `$options` array argument. The options this array holds are the same options as those available for `QueueManager::push()`, and additionally supports the following:
+
+- `emailClass`:
+  - default: `Cake\Mailer\Email::class`
+  - description: The name of an email class to instantiate for use with the mailer
+  - type: string
+
 #### Queueing Events
 
 CakePHP Event classes may also be queued.
