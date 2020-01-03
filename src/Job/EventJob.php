@@ -23,6 +23,7 @@ class EventJob implements JobInterface
             return Processor::REJECT;
         }
 
+        /** @var \Cake\Event\EventInterface $event */
         $event = new $eventClass($eventName, null, $data);
         EventManager::instance()->dispatch($event);
         if ($event->isStopped()) {

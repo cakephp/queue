@@ -103,6 +103,7 @@ class Processor implements InteropProcessor
             $instance = new $className();
             $response = $instance->$methodName($message);
         } elseif (is_string($callable)) {
+            /** @psalm-suppress InvalidArgument */
             $response = call_user_func($callable, $message);
         }
 

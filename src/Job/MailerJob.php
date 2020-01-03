@@ -22,29 +22,19 @@ class MailerJob implements JobInterface
     public function execute(Message $message): ?string
     {
         $mailerName = $message->getArgument('mailerName');
-        $emailClass = $message->getArgument('emailClass', Email::class);
+        $mailerConfig = $message->getArgument('mailerConfig');
         $action = $message->getArgument('action');
         $args = $message->getArgument('args', []);
         $headers = $message->getArgument('headers', []);
 
-        if (!class_exists($emailClass)) {
-            return Processor::REJECT;
-        }
-
-        $mailer = null;
-        $email = new $emailClass();
         try {
-            $mailer = $this->getMailer($mailerName, $email);
+            $mailer = $this->getMailer($mailerName, $mailerConfig);
         } catch (MissingMailerException $e) {
             return Processor::REJECT;
         }
 
-        if ($mailer == null) {
-            return Processor::REJECT;
-        }
-
         try {
-            $result = $mailer->send($action, $args, $headers);
+            $mailer->send($action, $args, $headers);
         } catch (BadMethodCallException $e) {
             return Processor::REJECT;
         }

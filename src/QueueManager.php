@@ -79,6 +79,7 @@ class QueueManager
         }
 
         if (isset(static::$_config[$key])) {
+            /** @psalm-suppress PossiblyInvalidArgument */
             throw new BadMethodCallException(sprintf('Cannot reconfigure existing key "%s"', $key));
         }
 
@@ -86,6 +87,7 @@ class QueueManager
             throw new BadMethodCallException('Must specify "url" key');
         }
 
+        /** @psalm-suppress InvalidPropertyAssignmentValue */
         static::$_config[$key] = $config;
     }
 
@@ -178,6 +180,7 @@ class QueueManager
     {
         $eventClass = Hash::get($options, 'eventClass', Event::class);
 
+        /** @psalm-suppress InvalidArgument */
         static::push([EventJob::class, 'dispatchEvent'], [
             'className' => $eventClass,
             'eventName' => $eventName,
