@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Queue\Mailer;
 
 use Cake\Mailer\Exception\MissingActionException;
-use Cake\Utility\Hash;
 use Queue\Job\MailerJob;
 use Queue\QueueManager;
 
