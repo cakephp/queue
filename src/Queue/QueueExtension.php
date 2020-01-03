@@ -28,7 +28,7 @@ class QueueExtension implements ExtensionInterface
     /**
      * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    protected $logger;
 
     /**
      * @var int

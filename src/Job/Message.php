@@ -39,7 +39,7 @@ class Message implements JsonSerializable
     /**
      * @return \Interop\Queue\Context
      */
-    public function getContext()
+    public function getContext(): Context
     {
         return $this->context;
     }
@@ -47,7 +47,7 @@ class Message implements JsonSerializable
     /**
      * @return \Interop\Queue\Message
      */
-    public function getOriginalMessage()
+    public function getOriginalMessage(): QueueMessage
     {
         return $this->originalMessage;
     }
@@ -55,7 +55,7 @@ class Message implements JsonSerializable
     /**
      * @return array
      */
-    public function getParsedBody()
+    public function getParsedBody(): array
     {
         return $this->parsedBody;
     }

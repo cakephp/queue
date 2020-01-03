@@ -21,7 +21,7 @@ class Processor implements InteropProcessor
     /**
      * @var \Psr\Log\LoggerInterface
      */
-    private $logger;
+    protected $logger;
 
     /**
      * Processor constructor
@@ -45,7 +45,6 @@ class Processor implements InteropProcessor
     {
         $this->dispatchEvent('Processor.message.seen', ['queueMessage' => $queueMessage]);
 
-        $success = false;
         $message = new Message($queueMessage, $context);
         if (!is_callable($message->getCallable())) {
             $this->logger->debug('Invalid callable for message. Rejecting message from queue.');
@@ -90,9 +89,9 @@ class Processor implements InteropProcessor
 
     /**
      * @param \Queue\Job\Message $message Message.
-     * @return string
+     * @return string|object with __toString method implemented
      */
-    public function processMessage($message)
+    public function processMessage(Message $message)
     {
         $callable = $message->getCallable();
 
