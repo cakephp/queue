@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Queue\Shell;
 
 use Cake\Console\Shell;
@@ -57,6 +59,7 @@ class WorkerShell extends Shell
     /**
      * Creates and returns a QueueExtension object
      *
+     * @param \Psr\Log\LoggerInterface $logger Logger instance.
      * @return \Queue\Queue\QueueExtension
      */
     protected function getQueueExtension(LoggerInterface $logger): QueueExtension
@@ -85,6 +88,7 @@ class WorkerShell extends Shell
         if (!empty($this->params['verbose'])) {
             $logger = Log::engine($this->params['logger']);
         }
+
         return $logger;
     }
 
@@ -105,7 +109,7 @@ class WorkerShell extends Shell
                 throw new LogicException(sprintf('Listener class %s not found', $config['listener']));
             }
 
-            $listener = new $config['listener'];
+            $listener = new $config['listener']();
             $processor->getEventManager()->on($listener);
             $extension->getEventManager()->on($listener);
         }

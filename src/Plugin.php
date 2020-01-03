@@ -1,11 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace Queue;
 
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
 use Cake\Core\PluginApplicationInterface;
-use Queue\QueueManager;
 
 /**
  * Plugin for Queue

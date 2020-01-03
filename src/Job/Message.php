@@ -1,6 +1,7 @@
 <?php
+declare(strict_types=1);
 
-namespace Queue\Queue;
+namespace Queue\Job;
 
 use Cake\Utility\Hash;
 use Interop\Queue\Context;
@@ -9,12 +10,25 @@ use JsonSerializable;
 
 class Message implements JsonSerializable
 {
+    /**
+     * @var \Interop\Queue\Message
+     */
     protected $context;
 
+    /**
+     * @var \Interop\Queue\Message
+     */
     protected $originalMessage;
 
+    /**
+     * @var array
+     */
     protected $parsedBody;
 
+    /**
+     * @param \Interop\Queue\Message $originalMessage Queue message.
+     * @param \Interop\Queue\Context $context Context.
+     */
     public function __construct(QueueMessage $originalMessage, Context $context)
     {
         $this->context = $context;
@@ -24,26 +38,43 @@ class Message implements JsonSerializable
         return $this;
     }
 
+    /**
+     * @return \Interop\Queue\Context
+     */
     public function getContext()
     {
         return $this->context;
     }
 
+    /**
+     * @return \Interop\Queue\Message
+     */
     public function getOriginalMessage()
     {
         return $this->originalMessage;
     }
 
+    /**
+     * @return string
+     */
     public function getParsedBody()
     {
         return $this->parsedBody;
     }
 
+    /**
+     * @return mixed
+     */
     public function getCallable()
     {
         return Hash::get($this->parsedBody, 'class', null);
     }
 
+    /**
+     * @param mixed $key Key
+     * @param mixed $default Default value.
+     * @return mixed
+     */
     public function getArgument($key = null, $default = null)
     {
         if ($key === null) {
@@ -53,11 +84,17 @@ class Message implements JsonSerializable
         return Hash::get($this->parsedBody['args'][0], $key, $default);
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return json_encode($this);
     }
 
+    /**
+     * @return string
+     */
     public function jsonSerialize()
     {
         return $this->parsedBody;

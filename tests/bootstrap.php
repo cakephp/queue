@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
  *
@@ -85,5 +87,5 @@ Plugin::getCollection()->add(new \Queue\Plugin());
 Plugin::getCollection()->add(new \TestBlog\Plugin());
 
 if (!defined('PHINX_VERSION')) {
-    define('PHINX_VERSION', (0 === strpos('@PHINX_VERSION@', '@PHINX_VERSION')) ? 'UNKNOWN' : '@PHINX_VERSION@');
+    define('PHINX_VERSION', strpos('@PHINX_VERSION@', '@PHINX_VERSION') === 0 ? 'UNKNOWN' : '@PHINX_VERSION@');
 }

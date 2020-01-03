@@ -1,9 +1,10 @@
 <?php
+declare(strict_types=1);
+
 namespace Queue\Queue;
 
 use Cake\Event\EventDispatcherTrait;
 use Cake\Log\LogTrait;
-use Enqueue\Client\Message;
 use Enqueue\Consumption\Context\End;
 use Enqueue\Consumption\Context\InitLogger;
 use Enqueue\Consumption\Context\MessageReceived;
@@ -17,7 +18,6 @@ use Enqueue\Consumption\Context\Start;
 use Enqueue\Consumption\ExtensionInterface;
 use Enqueue\Consumption\Result;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 
 // TODO: Figure out how to avoid needing to set a bunch of empty methods
 class QueueExtension implements ExtensionInterface
@@ -26,7 +26,7 @@ class QueueExtension implements ExtensionInterface
     use LogTrait;
 
     /**
-     * @var LoggerInterface
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
@@ -37,6 +37,11 @@ class QueueExtension implements ExtensionInterface
     protected $runtime = 0;
     protected $startedAt;
 
+    /**
+     * @param int $maxIterations Max. iterations.
+     * @param int $maxRuntime Max. runtime.
+     * @param \Psr\Log\LoggerInterface $logger Logger instance.
+     */
     public function __construct(int $maxIterations, int $maxRuntime, LoggerInterface $logger)
     {
         $this->logger = $logger;
@@ -51,6 +56,9 @@ class QueueExtension implements ExtensionInterface
      * Executed at the very end of consumption callback. The message has already been acknowledged.
      * The message result could not be changed.
      * The consumption could be interrupted at this point.
+     *
+     * @param \Enqueue\Consumption\Context\PostMessageReceived $context Context.
+     * @return void
      */
     public function onPostMessageReceived(PostMessageReceived $context): void
     {
@@ -80,6 +88,9 @@ class QueueExtension implements ExtensionInterface
     /**
      * Executed at every new cycle before calling SubscriptionConsumer::consume method.
      * The consumption could be interrupted at this step.
+     *
+     * @param \Enqueue\Consumption\Context\PreConsume $context Context.
+     * @return void
      */
     public function onPreConsume(PreConsume $context): void
     {
@@ -96,6 +107,9 @@ class QueueExtension implements ExtensionInterface
     /**
      * The method is called after SubscriptionConsumer::consume method exits.
      * The consumption could be interrupted at this point.
+     *
+     * @param \Enqueue\Consumption\Context\PostConsume $context Context.
+     * @return void
      */
     public function onPostConsume(PostConsume $context): void
     {
@@ -103,6 +117,9 @@ class QueueExtension implements ExtensionInterface
 
     /**
      * The method is called for each BoundProcessor before calling SubscriptionConsumer::subscribe method.
+     *
+     * @param \Enqueue\Consumption\Context\PreSubscribe $context Context.
+     * @return void
      */
     public function onPreSubscribe(PreSubscribe $context): void
     {
@@ -112,6 +129,9 @@ class QueueExtension implements ExtensionInterface
      * Executed as soon as a a message is received, before it is passed to a processor
      * The extension may set a result. If the result is set the processor is not called
      * The processor could be changed or decorated at this point.
+     *
+     * @param \Enqueue\Consumption\Context\MessageReceived $context Context.
+     * @return void
      */
     public function onMessageReceived(MessageReceived $context): void
     {
@@ -121,6 +141,9 @@ class QueueExtension implements ExtensionInterface
      * Executed when a message is processed by a processor or a result was set in onMessageReceived extension method.
      * BEFORE the message status was sent to the broker
      * The result could be changed at this point.
+     *
+     * @param \Enqueue\Consumption\Context\MessageResult $context Context.
+     * @return void
      */
     public function onResult(MessageResult $context): void
     {
@@ -129,6 +152,9 @@ class QueueExtension implements ExtensionInterface
     /**
      * Execute if a processor throws an exception.
      * The result could be set, if result is not set the exception is thrown again.
+     *
+     * @param \Enqueue\Consumption\Context\ProcessorException $context Context.
+     * @return void
      */
     public function onProcessorException(ProcessorException $context): void
     {
@@ -136,6 +162,9 @@ class QueueExtension implements ExtensionInterface
 
     /**
      * Executed only once at the very beginning of the QueueConsumer::consume method call.
+     *
+     * @param \Enqueue\Consumption\Context\Start $context Context.
+     * @return void
      */
     public function onStart(Start $context): void
     {
@@ -143,6 +172,9 @@ class QueueExtension implements ExtensionInterface
 
     /**
      * Executed only once just before QueueConsumer::consume returns.
+     *
+     * @param \Enqueue\Consumption\Context\End $context Context.
+     * @return void
      */
     public function onEnd(End $context): void
     {
@@ -151,6 +183,9 @@ class QueueExtension implements ExtensionInterface
     /**
      * Executed only once at the very beginning of the QueueConsumer::consume method call.
      * BEFORE onStart extension method.
+     *
+     * @param \Enqueue\Consumption\Context\InitLogger $context Context.
+     * @return void
      */
     public function onInitLogger(InitLogger $context): void
     {

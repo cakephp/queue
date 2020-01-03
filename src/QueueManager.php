@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Queue;
 
 use BadMethodCallException;
@@ -95,7 +97,7 @@ class QueueManager
      */
     public static function getConfig($key)
     {
-        return isset(static::$_config[$key]) ? static::$_config[$key] : null;
+        return static::$_config[$key] ?? null;
     }
 
     /**
@@ -121,6 +123,7 @@ class QueueManager
 
         static::$_clients[$name] = new SimpleClient($url, $logger);
         static::$_clients[$name]->setupBroker();
+
         return static::$_clients[$name];
     }
 
@@ -141,7 +144,7 @@ class QueueManager
         $message = new ClientMessage([
             'queue' => $queue,
             'class' => $callable,
-            'args'  => [$args],
+            'args' => [$args],
         ]);
 
         $delay = Hash::get($options, 'delay', null);

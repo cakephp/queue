@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Queue\Queue;
 
 use Cake\Event\EventDispatcherTrait;
@@ -8,7 +10,6 @@ use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 use Psr\Log\NullLogger;
 use Queue\Job\Message;
 
@@ -18,16 +19,16 @@ class Processor implements InteropProcessor
     use LogTrait;
 
     /**
-     * @var LoggerInterface
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
     /**
      * Processor constructor
      *
-     * @param LoggerInterface $logger
+     * @param \Psr\Log\LoggerInterface $logger Logger instance.
      */
-    public function __construct(LoggerInterface $logger = null)
+    public function __construct(?LoggerInterface $logger = null)
     {
         $this->logger = $logger ?: new NullLogger();
     }
@@ -35,8 +36,8 @@ class Processor implements InteropProcessor
     /**
      * The method processes messages
      *
-     * @param QueueMessage $queueMessage
-     * @param Context $context
+     * @param \Interop\Queue\Message $queueMessage Message.
+     * @param \Interop\Queue\Context $context Context.
      *
      * @return string|object with __toString method implemented
      */
@@ -49,6 +50,7 @@ class Processor implements InteropProcessor
         if (!is_callable($message->getCallable())) {
             $this->logger->debug('Invalid callable for message. Rejecting message from queue.');
             $this->dispatchEvent('Processor.message.invalid', ['message' => $message]);
+
             return InteropProcessor::REJECT;
         }
 
@@ -62,26 +64,34 @@ class Processor implements InteropProcessor
                 'message' => $message,
                 'exception' => $e,
             ]);
+
             return InteropProcessor::REQUEUE;
         }
 
         if ($response === InteropProcessor::ACK) {
             $this->logger->debug('Message processed sucessfully');
             $this->dispatchEvent('Processor.message.success', ['message' => $message]);
+
             return InteropProcessor::ACK;
         }
 
         if ($response === InteropProcessor::REJECT) {
             $this->logger->debug('Message processed with rejection');
             $this->dispatchEvent('Processor.message.reject', ['message' => $message]);
+
             return InteropProcessor::REJECT;
         }
 
         $this->logger->debug('Message processed with failure, requeuing');
         $this->dispatchEvent('Processor.message.failure', ['message' => $message]);
+
         return InteropProcessor::REQUEUE;
     }
 
+    /**
+     * @param \Queue\Job\Message $message Message.
+     * @return string
+     */
     public function processMessage($message)
     {
         $callable = $message->getCallable();
@@ -90,7 +100,7 @@ class Processor implements InteropProcessor
         if (is_array($callable) && count($callable) == 2) {
             $className = $callable[0];
             $methodName = $callable[1];
-            $instance = new $className;
+            $instance = new $className();
             $response = $instance->$methodName($message);
         } elseif (is_string($callable)) {
             $response = call_user_func($callable, $message);
