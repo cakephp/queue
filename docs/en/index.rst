@@ -14,7 +14,7 @@ The recommended way to install composer packages is:
 
 .. code-block:: bash
 
-    composer require josegonzalez/queue
+    composer require cakephp/queue
 
 Install the transport you wish to use. For a list of available transports, see `this page <https://php-enqueue.github.io/transport>`_. The example below is for pure-php redis:
 
