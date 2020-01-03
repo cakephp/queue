@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Shell\Task;
+namespace Queue\Shell\Task;
 
 use Bake\Shell\Task\SimpleBakeTask;
 

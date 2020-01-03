@@ -30,11 +30,29 @@ class QueueExtension implements ExtensionInterface
      */
     private $logger;
 
+    /**
+     * @var int
+     */
     protected $maxIterations;
+
+    /**
+     * @var int
+     */
     protected $maxRuntime;
 
+    /**
+     * @var int
+     */
     protected $iterations = 0;
+
+    /**
+     * @var float
+     */
     protected $runtime = 0;
+
+    /**
+     * @var float
+     */
     protected $startedAt;
 
     /**

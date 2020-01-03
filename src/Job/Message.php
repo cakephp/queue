@@ -11,7 +11,7 @@ use JsonSerializable;
 class Message implements JsonSerializable
 {
     /**
-     * @var \Interop\Queue\Message
+     * @var \Interop\Queue\Context
      */
     protected $context;
 
@@ -34,8 +34,6 @@ class Message implements JsonSerializable
         $this->context = $context;
         $this->originalMessage = $originalMessage;
         $this->parsedBody = json_decode($originalMessage->getBody(), true);
-
-        return $this;
     }
 
     /**
@@ -55,7 +53,7 @@ class Message implements JsonSerializable
     }
 
     /**
-     * @return string
+     * @return array
      */
     public function getParsedBody()
     {
@@ -93,7 +91,7 @@ class Message implements JsonSerializable
     }
 
     /**
-     * @return string
+     * @return array
      */
     public function jsonSerialize()
     {

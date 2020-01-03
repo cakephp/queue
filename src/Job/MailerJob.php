@@ -5,6 +5,7 @@ namespace Queue\Job;
 
 use BadMethodCallException;
 use Cake\Mailer\Email;
+use Cake\Mailer\Exception\MissingMailerException;
 use Cake\Mailer\MailerAwareTrait;
 use Interop\Queue\Processor;
 

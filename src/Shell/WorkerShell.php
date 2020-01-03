@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 namespace Queue\Shell;
 
+use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Utility\Hash;
 use Enqueue\SimpleClient\SimpleClient;
+use LogicException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Queue\Queue\Processor;
@@ -23,7 +25,7 @@ class WorkerShell extends Shell
      *
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function getOptionParser()
+    public function getOptionParser(): ConsoleOptionParser
     {
         $parser = parent::getOptionParser();
         $parser->addOption('config', [
@@ -118,5 +120,7 @@ class WorkerShell extends Shell
         $client = new SimpleClient($url, $logger);
         $client->bindTopic($this->params['queue'], $processor);
         $client->consume($extension);
+
+        return null;
     }
 }
