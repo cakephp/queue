@@ -181,7 +181,7 @@ class QueueManager
         $eventClass = Hash::get($options, 'eventClass', Event::class);
 
         /** @psalm-suppress InvalidArgument */
-        static::push([EventJob::class, 'dispatchEvent'], [
+        static::push([EventJob::class, 'execute'], [
             'className' => $eventClass,
             'eventName' => $eventName,
             'data' => $data,
