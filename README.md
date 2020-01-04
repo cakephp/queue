@@ -1,7 +1,7 @@
 # Queue plugin for CakePHP
 
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.txt)
-[![Build Status](https://img.shields.io/travis/cakephp/queue/master.svg?style=flat-square)](https://travis-ci.org/cakephp/queue)
+[![Build Status](https://img.shields.io/travis/com/cakephp/queue/master.svg?style=flat-square)](https://travis-ci.com/cakephp/queue)
 [![Coverage Status](https://img.shields.io/codecov/c/github/cakephp/queue/master.svg?style=flat-square)](https://codecov.io/github/cakephp/queue?branch=master)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/queue.svg?style=flat-square)](https://packagist.org/packages/cakephp/queue)
 
