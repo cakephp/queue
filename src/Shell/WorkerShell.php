@@ -1,11 +1,15 @@
 <?php
+declare(strict_types=1);
+
 namespace Queue\Shell;
 
+use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Utility\Hash;
 use Enqueue\SimpleClient\SimpleClient;
+use LogicException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Queue\Queue\Processor;
@@ -21,7 +25,7 @@ class WorkerShell extends Shell
      *
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function getOptionParser()
+    public function getOptionParser(): ConsoleOptionParser
     {
         $parser = parent::getOptionParser();
         $parser->addOption('config', [
@@ -57,6 +61,7 @@ class WorkerShell extends Shell
     /**
      * Creates and returns a QueueExtension object
      *
+     * @param \Psr\Log\LoggerInterface $logger Logger instance.
      * @return \Queue\Queue\QueueExtension
      */
     protected function getQueueExtension(LoggerInterface $logger): QueueExtension
@@ -85,6 +90,7 @@ class WorkerShell extends Shell
         if (!empty($this->params['verbose'])) {
             $logger = Log::engine($this->params['logger']);
         }
+
         return $logger;
     }
 
@@ -105,7 +111,7 @@ class WorkerShell extends Shell
                 throw new LogicException(sprintf('Listener class %s not found', $config['listener']));
             }
 
-            $listener = new $config['listener'];
+            $listener = new $config['listener']();
             $processor->getEventManager()->on($listener);
             $extension->getEventManager()->on($listener);
         }
@@ -114,5 +120,7 @@ class WorkerShell extends Shell
         $client = new SimpleClient($url, $logger);
         $client->bindTopic($this->params['queue'], $processor);
         $client->consume($extension);
+
+        return null;
     }
 }

@@ -14,6 +14,7 @@ error.log
 /tests/test_app/config/Queue/*
 /tests/test_app/config/TestsQueue/schema-dump-test.lock
 /tests/test_app/Plugin/TestBlog/config/Queue/*
+.phpunit.result.cache
 
 # IDE and editor specific files #
 #################################

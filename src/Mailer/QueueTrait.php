@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
+
 namespace Queue\Mailer;
 
-use Cake\Mailer\Email;
+use Cake\Mailer\Exception\MissingActionException;
 use Queue\Job\MailerJob;
 use Queue\QueueManager;
 
@@ -20,7 +22,7 @@ trait QueueTrait
      * @return void
      * @throws \Cake\Mailer\Exception\MissingActionException
      */
-    protected function push($action, array $args = [], array $headers = [], array $options = [])
+    protected function push(string $action, array $args = [], array $headers = [], array $options = []): void
     {
         if (!method_exists($this, $action)) {
             throw new MissingActionException([
@@ -29,11 +31,8 @@ trait QueueTrait
             ]);
         }
 
-        $emailClass = Hash::get($options, 'emailClass', Email::class);
-
         QueueManager::push([MailerJob::class, 'dispatchAction'], [
             'mailerName' => self::class,
-            'emailClass' => $emailClass,
             'action' => $action,
             'args' => $args,
             'headers' => $headers,

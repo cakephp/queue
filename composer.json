@@ -19,10 +19,11 @@
     },
     "require": {
         "cakephp/cakephp": "^4.0",
-        "enqueue/simple-client": "0.9.*",
-        "psr/log": "~1.0"
+        "enqueue/simple-client": "^0.9",
+        "psr/log": "^1.0"
     },
     "require-dev": {
+        "cakephp/cakephp-codesniffer": "^4.0",
         "phpunit/phpunit": "~8.5.0"
     },
     "autoload": {
@@ -39,8 +40,6 @@
     "suggest": {
         "cakephp/bake": "Required if you want to generate jobs."
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "scripts": {
         "check": [
             "@cs-check",
@@ -48,8 +47,8 @@
         ],
         "cs-check": "phpcs --colors -p src/ tests/",
         "cs-fix": "phpcbf --colors -p src/ tests/",
-        "phpstan": "phpstan analyse src/",
-        "phpstan-setup": "cp composer.json composer.backup && composer require --dev phpstan/phpstan-shim:^0.11 && mv composer.backup composer.json",
+        "stan": "phpstan analyse src/ && psalm.phar --show-info=false",
+        "stan-setup": "cp composer.json composer.backup && composer require --dev phpstan/phpstan:^0.12 psalm/phar:^3.7 && mv composer.backup composer.json",
         "test": "phpunit",
         "test-coverage": "phpunit --coverage-clover=clover.xml"
     }

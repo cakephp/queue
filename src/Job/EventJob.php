@@ -1,17 +1,17 @@
 <?php
+declare(strict_types=1);
+
 namespace Queue\Job;
 
 use Cake\Event\EventManager;
 use Interop\Queue\Processor;
-use Queue\Job\JobInterface;
-use Queue\Job\Message;
 
 class EventJob implements JobInterface
 {
     /**
      * Constructs and dispatches the event from a job message
      *
-     * @param Message $message job message
+     * @param \Queue\Job\Message $message job message
      * @return string
      */
     public function execute(Message $message): ?string
@@ -20,9 +20,10 @@ class EventJob implements JobInterface
         $eventName = $message->getArgument('eventName');
         $data = $message->getArgument('data', []);
         if (!class_exists($eventClass)) {
-          return Processor::REJECT;
+            return Processor::REJECT;
         }
 
+        /** @var \Cake\Event\EventInterface $event */
         $event = new $eventClass($eventName, null, $data);
         EventManager::instance()->dispatch($event);
         if ($event->isStopped()) {

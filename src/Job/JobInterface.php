@@ -1,14 +1,14 @@
 <?php
-namespace Queue\Job;
+declare(strict_types=1);
 
-use Queue\Job\Message;
+namespace Queue\Job;
 
 interface JobInterface
 {
     /**
      * Executes logic for {{ name }}Job
      *
-     * @param Message $message job message
+     * @param \Queue\Job\Message $message job message
      * @return string
      */
     public function execute(Message $message): ?string;

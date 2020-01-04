@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Queue;
 
 use BadMethodCallException;
@@ -77,6 +79,7 @@ class QueueManager
         }
 
         if (isset(static::$_config[$key])) {
+            /** @psalm-suppress PossiblyInvalidArgument */
             throw new BadMethodCallException(sprintf('Cannot reconfigure existing key "%s"', $key));
         }
 
@@ -84,6 +87,7 @@ class QueueManager
             throw new BadMethodCallException('Must specify "url" key');
         }
 
+        /** @psalm-suppress InvalidPropertyAssignmentValue */
         static::$_config[$key] = $config;
     }
 
@@ -93,9 +97,9 @@ class QueueManager
      * @param string $key The name of the configuration.
      * @return mixed Configuration data at the named key or null if the key does not exist.
      */
-    public static function getConfig($key)
+    public static function getConfig(string $key)
     {
-        return isset(static::$_config[$key]) ? static::$_config[$key] : null;
+        return static::$_config[$key] ?? null;
     }
 
     /**
@@ -104,7 +108,7 @@ class QueueManager
      * @param string $name Key name of a configured adapter to get.
      * @return \Enqueue\SimpleClient\SimpleClient
      */
-    public static function engine($name): SimpleClient
+    public static function engine(string $name): SimpleClient
     {
         if (isset(static::$_clients[$name])) {
             return static::$_clients[$name];
@@ -121,6 +125,7 @@ class QueueManager
 
         static::$_clients[$name] = new SimpleClient($url, $logger);
         static::$_clients[$name]->setupBroker();
+
         return static::$_clients[$name];
     }
 
@@ -132,7 +137,7 @@ class QueueManager
      * @param array $options      an array of options for publishing the job
      * @return void
      */
-    public static function push($callable, array $args = [], array $options = []): void
+    public static function push(callable $callable, array $args = [], array $options = []): void
     {
         $name = Hash::get($options, 'config', 'default');
         $config = static::getConfig($name);
@@ -141,7 +146,7 @@ class QueueManager
         $message = new ClientMessage([
             'queue' => $queue,
             'class' => $callable,
-            'args'  => [$args],
+            'args' => [$args],
         ]);
 
         $delay = Hash::get($options, 'delay', null);
@@ -171,10 +176,11 @@ class QueueManager
      * @param array $options     an array of options for publishing the job
      * @return void
      */
-    public static function pushEvent($eventName, array $data = [], array $options = []): void
+    public static function pushEvent(string $eventName, array $data = [], array $options = []): void
     {
         $eventClass = Hash::get($options, 'eventClass', Event::class);
 
+        /** @psalm-suppress InvalidArgument */
         static::push([EventJob::class, 'dispatchEvent'], [
             'className' => $eventClass,
             'eventName' => $eventName,
