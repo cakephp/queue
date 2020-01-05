@@ -35,7 +35,7 @@ trait QueueTrait
      * @return void
      * @throws \Cake\Mailer\Exception\MissingActionException
      */
-    protected function push(string $action, array $args = [], array $headers = [], array $options = []): void
+    public function push(string $action, array $args = [], array $headers = [], array $options = []): void
     {
         if (!method_exists($this, $action)) {
             throw new MissingActionException([
