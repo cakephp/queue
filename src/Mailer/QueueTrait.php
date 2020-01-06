@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Queue\Mailer;
 
 use Cake\Mailer\Exception\MissingActionException;
+use Cake\Utility\Hash;
 use Queue\Job\MailerJob;
 use Queue\QueueManager;
 
@@ -44,7 +45,8 @@ trait QueueTrait
             ]);
         }
 
-        QueueManager::push([MailerJob::class, 'dispatchAction'], [
+        QueueManager::push([MailerJob::class, 'execute'], [
+            'mailerConfig' => Hash::get($options, 'mailerConfig', null),
             'mailerName' => self::class,
             'action' => $action,
             'args' => $args,
