@@ -141,7 +141,9 @@ The following keys are valid for use within the ``options`` array:
   - default: default
   - description: A queue config name
   - type: string
+
 - ``delay``:
+
   - default: ``null``
   - description: Time - in integer seconds - to delay message, after which it will be processed. Not all message brokers accept this.
   - type: integer
