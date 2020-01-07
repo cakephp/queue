@@ -58,6 +58,6 @@ if (!getenv('db_dsn')) {
 }
 Cake\Datasource\ConnectionManager::setConfig('test', [
     'url' => getenv('db_dsn'),
-    'timezone' => 'UTC'
+    'timezone' => 'UTC',
 ]);
 Plugin::getCollection()->add(new \Queue\Plugin());

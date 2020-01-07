@@ -16,7 +16,6 @@ declare(strict_types=1);
  */
 namespace Queue\Test\TestCase\Queue;
 
-
 use Cake\Event\Event;
 use Cake\Event\EventManager;
 use Cake\TestSuite\TestCase;
@@ -43,7 +42,7 @@ class ProcessorTest extends TestCase
             [InteropProcessor::ACK, InteropProcessor::ACK, 'Message processed sucessfully', 'Processor.message.success'],
             [InteropProcessor::REJECT, InteropProcessor::REJECT, 'Message processed with rejection', 'Processor.message.reject'],
             [InteropProcessor::REQUEUE, InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
-            ['anything_else', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure']
+            ['anything_else', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
         ];
     }
 
@@ -274,7 +273,7 @@ class ProcessorTest extends TestCase
         return [
             ['jobProcessMessageCallableIsStringReturnNull', InteropProcessor::ACK],
             ['jobProcessMessageCallableIsStringReturnReject', InteropProcessor::REJECT],
-            ['jobProcessMessageCallableIsStringReturnAck', InteropProcessor::ACK]
+            ['jobProcessMessageCallableIsStringReturnAck', InteropProcessor::ACK],
         ];
     }
 
