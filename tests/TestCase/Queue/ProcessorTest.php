@@ -22,8 +22,6 @@ use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
 use Interop\Queue\Processor as InteropProcessor;
-use Psr\Log\LogLevel;
-use Psr\Log\NullLogger;
 use Queue\Job\Message;
 use Queue\Queue\Processor;
 
