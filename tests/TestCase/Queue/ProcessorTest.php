@@ -16,8 +16,8 @@ declare(strict_types=1);
  */
 namespace Queue\Test\TestCase\Queue;
 
-use Cake\Event\Event;
-use Cake\Event\EventManager;
+use Cake\Event\EventList;
+use Cake\Log\Engine\ArrayLog;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
@@ -39,17 +39,17 @@ class ProcessorTest extends TestCase
     public function dataProviderTestProcess(): array
     {
         return [
-            [InteropProcessor::ACK, InteropProcessor::ACK, 'Message processed sucessfully', 'Processor.message.success'],
-            [InteropProcessor::REJECT, InteropProcessor::REJECT, 'Message processed with rejection', 'Processor.message.reject'],
-            [InteropProcessor::REQUEUE, InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
-            ['anything_else', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
+            ['processReturnAck', InteropProcessor::ACK, 'Message processed sucessfully', 'Processor.message.success'],
+            ['processReturnReject', InteropProcessor::REJECT, 'Message processed with rejection', 'Processor.message.reject'],
+            ['processReturnRequeue', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
+            ['processReturnString', InteropProcessor::REQUEUE, 'Message processed with failure, requeuing', 'Processor.message.failure'],
         ];
     }
 
     /**
      * Test process method
      *
-     * @param string $processMessageReturn The processMessage return value.
+     * @param string $jobMethod The method name to run
      * @param string $expected The expected process result.
      * @param string $logMessage The log message based on process result.
      * @param string $dispacthedEvent The dispatched event based on process result.
@@ -57,73 +57,40 @@ class ProcessorTest extends TestCase
      * @dataProvider dataProviderTestProcess
      * @return void
      */
-    public function testProcess($processMessageReturn, $expected, $logMessage, $dispacthedEvent)
+    public function testProcess($jobMethod, $expected, $logMessage, $dispatchedEvent)
     {
         $messageBody = [
             "queue" => "default",
-            "class" => ["Queue\\Job\\EventJob", "execute"],
-            "args" => [
-                [
-                    "className" => "Cake\\Event\\Event",
-                    "eventName" => 'TestCase.testProcess',
-                    "data" => ['sample_data' => 'a value'],
-                ],
-            ],
+            "class" => [static::class, $jobMethod],
+            "args" => [],
         ];
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
         $queueMessage = new NullMessage(json_encode($messageBody));
         $message = new Message($queueMessage, $context);
-        $logger = $this->getMockBuilder(NullLogger::class)
-            ->setMethods(['log'])
-            ->getMock();
-        $logger->expects($this->once())
-            ->method('log')
-            ->with(
-                $this->equalTo(LogLevel::DEBUG),
-                $logMessage
-            );
-        $processor = $this->getMockBuilder(Processor::class)
-            ->setConstructorArgs([$logger])
-            ->setMethods(['processMessage', 'dispatchEvent'])
-            ->getMock();
 
-        $event = new Event('Processor.message.seen', $processor, ['queueMessage' => $queueMessage]);
-        $processor->expects($this->at(0))
-            ->method('dispatchEvent')
-            ->with(
-                $this->equalTo('Processor.message.seen'),
-                $this->equalTo(['queueMessage' => $queueMessage])
-            )
-            ->willReturn($event);
-
-        $eventData = ['message' => $message];
-        $event = new Event('Processor.message.start', $processor, $eventData);
-        $processor->expects($this->at(1))
-            ->method('dispatchEvent')
-            ->with(
-                $this->equalTo('Processor.message.start'),
-                $this->equalTo($eventData)
-            )
-            ->willReturn($event);
-
-        $processor->expects($this->at(2))
-            ->method('processMessage')
-            ->with($this->equalTo($message))
-            ->willReturn($processMessageReturn);
-
-        $eventData = ['message' => $message];
-        $event = new Event($dispacthedEvent, $processor, $eventData);
-        $processor->expects($this->at(3))
-        ->method('dispatchEvent')
-        ->with(
-            $this->equalTo($dispacthedEvent),
-            $this->equalTo($eventData)
-        )
-        ->willReturn($event);
+        $events = new EventList();
+        $logger = new ArrayLog();
+        $processor = new Processor($logger);
+        $processor->getEventManager()->setEventList($events);
 
         $actual = $processor->process($queueMessage, $context);
         $this->assertEquals($expected, $actual);
+
+        $logs = $logger->read();
+        $this->assertCount(1, $logs);
+        $this->assertStringContainsString('debug', $logs[0]);
+        $this->assertStringContainsString($logMessage, $logs[0]);
+
+        $this->assertSame(3, $events->count());
+        $this->assertSame('Processor.message.seen', $events[0]->getName());
+        $this->assertEquals(['queueMessage' => $queueMessage], $events[0]->getData());
+
+        $this->assertSame('Processor.message.start', $events[1]->getName());
+        $this->assertEquals(['message' => $message], $events[1]->getData());
+
+        $this->assertSame($dispatchedEvent, $events[2]->getName());
+        $this->assertEquals(['message' => $message], $events[2]->getData());
     }
 
     /**
@@ -145,46 +112,24 @@ class ProcessorTest extends TestCase
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
         $queueMessage = new NullMessage(json_encode($messageBody));
-        $message = new Message($queueMessage, $context);
-        $logger = $this->getMockBuilder(NullLogger::class)
-            ->setMethods(['log'])
-            ->getMock();
-        $logger->expects($this->once())
-            ->method('log')
-            ->with(
-                $this->equalTo(LogLevel::DEBUG),
-                'Invalid callable for message. Rejecting message from queue.'
-            );
-        $processor = $this->getMockBuilder(Processor::class)
-            ->setConstructorArgs([$logger])
-            ->setMethods(['processMessage', 'dispatchEvent'])
-            ->getMock();
 
-        $event = new Event('Processor.message.seen', $processor, ['queueMessage' => $queueMessage]);
-        $processor->expects($this->at(0))
-            ->method('dispatchEvent')
-            ->with(
-                $this->equalTo('Processor.message.seen'),
-                $this->equalTo(['queueMessage' => $queueMessage])
-            )
-            ->willReturn($event);
-
-        $eventData = ['message' => $message];
-        $event = new Event('Processor.message.invalid', $processor, $eventData);
-        $processor->expects($this->at(1))
-            ->method('dispatchEvent')
-            ->with(
-                $this->equalTo('Processor.message.invalid'),
-                $this->equalTo($eventData)
-            )
-            ->willReturn($event);
-
-        $processor->expects($this->never())
-            ->method('processMessage');
+        $events = new EventList();
+        $logger = new ArrayLog();
+        $processor = new Processor($logger);
+        $processor->getEventManager()->setEventList($events);
 
         $actual = $processor->process($queueMessage, $context);
         $expected = InteropProcessor::REJECT;
         $this->assertEquals($expected, $actual);
+
+        $logs = $logger->read();
+        $this->assertCount(1, $logs);
+        $this->assertStringContainsString('debug', $logs[0]);
+        $this->assertStringContainsString('Invalid callable for message. Rejecting message from queue', $logs[0]);
+
+        $this->assertSame(2, $events->count());
+        $this->assertSame('Processor.message.seen', $events[0]->getName());
+        $this->assertSame('Processor.message.invalid', $events[1]->getName());
     }
 
     /**
@@ -194,31 +139,21 @@ class ProcessorTest extends TestCase
      */
     public function testProcessMessage()
     {
-        $eventName = 'TestCase.testProcessMessage';
-        $calledEventCallback = false;
-        EventManager::instance()->on($eventName, function (Event $event) use (&$calledEventCallback) {
-            $calledEventCallback = true;
-        });
         $messageBody = [
             "queue" => "default",
-            "class" => ["Queue\\Job\\EventJob", "execute"],
-            "args" => [
-                [
-                    "className" => "Cake\\Event\\Event",
-                    "eventName" => 'TestCase.testProcessMessage',
-                    "data" => ['sample_data' => 'a value'],
-                ],
-            ],
+            "class" => [static::class, "processReturnAck"],
+            "args" => [],
         ];
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
         $queueMessage = new NullMessage(json_encode($messageBody));
         $message = new Message($queueMessage, $context);
         $processor = new Processor();
+
         $actual = $processor->processMessage($message);
         $expected = InteropProcessor::ACK;
         $this->assertSame($expected, $actual);
-        $this->assertTrue($calledEventCallback);
+        $this->assertNotEmpty(static::$lastProcessMessage);
     }
 
     /**
@@ -228,7 +163,7 @@ class ProcessorTest extends TestCase
      *
      * @return null
      */
-    public static function jobProcessMessageCallableIsStringReturnNull(Message $message)
+    public static function processReturnNull(Message $message)
     {
         static::$lastProcessMessage = $message;
 
@@ -242,7 +177,7 @@ class ProcessorTest extends TestCase
      *
      * @return null
      */
-    public static function jobProcessMessageCallableIsStringReturnReject(Message $message)
+    public static function processReturnReject(Message $message)
     {
         static::$lastProcessMessage = $message;
 
@@ -256,11 +191,39 @@ class ProcessorTest extends TestCase
      *
      * @return null
      */
-    public static function jobProcessMessageCallableIsStringReturnAck(Message $message)
+    public static function processReturnAck(Message $message)
     {
         static::$lastProcessMessage = $message;
 
         return InteropProcessor::ACK;
+    }
+
+    /**
+     * Job to be used in test testProcessMessageCallableIsString
+     *
+     * @param \Queue\Queue\Message $message The message to process
+     *
+     * @return null
+     */
+    public static function processReturnRequeue(Message $message)
+    {
+        static::$lastProcessMessage = $message;
+
+        return InteropProcessor::REQUEUE;
+    }
+
+    /**
+     * Job to be used in test testProcessMessageCallableIsString
+     *
+     * @param \Queue\Queue\Message $message The message to process
+     *
+     * @return null
+     */
+    public static function processReturnString(Message $message)
+    {
+        static::$lastProcessMessage = $message;
+
+        return 'invalid value';
     }
 
     /**
@@ -271,9 +234,9 @@ class ProcessorTest extends TestCase
     public function dataProviderTestProcessMessageCallableIsString()
     {
         return [
-            ['jobProcessMessageCallableIsStringReturnNull', InteropProcessor::ACK],
-            ['jobProcessMessageCallableIsStringReturnReject', InteropProcessor::REJECT],
-            ['jobProcessMessageCallableIsStringReturnAck', InteropProcessor::ACK],
+            ['processReturnNull', InteropProcessor::ACK],
+            ['processReturnReject', InteropProcessor::REJECT],
+            ['processReturnAck', InteropProcessor::ACK],
         ];
     }
 
@@ -290,7 +253,7 @@ class ProcessorTest extends TestCase
     {
         $messageBody = [
             "queue" => "default",
-            "class" => '\\Queue\\Test\\TestCase\\Queue\\ProcessorTest::' . $method,
+            "class" => static::class . '::' . $method,
             "args" => [
                 [
                     "data" => ['sample_data' => 'a value', 'key' => md5($method)],
