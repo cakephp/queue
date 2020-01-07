@@ -52,5 +52,12 @@ Configure::write('App', [
         'templates' => [ROOT . 'templates' . DS],
     ],
 ]);
-
+// Ensure default test connection is defined
+if (!getenv('db_dsn')) {
+    putenv('db_dsn=sqlite:///:memory:');
+}
+Cake\Datasource\ConnectionManager::setConfig('test', [
+    'url' => getenv('db_dsn'),
+    'timezone' => 'UTC'
+]);
 Plugin::getCollection()->add(new \Queue\Plugin());
