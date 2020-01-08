@@ -14,7 +14,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Queue\Queue;
+namespace Queue\Consumption;
 
 use Cake\Event\EventDispatcherTrait;
 use Cake\Log\LogTrait;
@@ -32,7 +32,6 @@ use Enqueue\Consumption\ExtensionInterface;
 use Enqueue\Consumption\Result;
 use Psr\Log\LoggerInterface;
 
-// TODO: Figure out how to avoid needing to set a bunch of empty methods
 class QueueExtension implements ExtensionInterface
 {
     use EventDispatcherTrait;
