@@ -98,7 +98,7 @@ The passed ``Message`` object has the following methods:
 - ``getOriginalMessage()``: Returns the original queue message object.
 - ``getParsedBody()``: Returns the parsed queue message body.
 
-A message *may* return any of the following values:
+A job *may* return any of the following values:
 
 - ``Processor::ACK``: Use this constant when the message is processed
   successfully. The message will be removed from the queue.
@@ -108,9 +108,9 @@ A message *may* return any of the following values:
   could not be processed right now but we can try again later. The original
   message is removed from the queue but a copy is published to the queue again.
 
-The message **may** also return a null value, which is interpreted as
+The job **may** also return a null value, which is interpreted as
 ``Processor::ACK``. Failure to respond with a valid type will result in an
-interperted message failure and requeue of the message.
+interpreted message failure and requeue of the message.
 
 Queueing
 --------
