@@ -25,8 +25,8 @@ use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Queue\Consumption\QueueExtension;
 use Queue\Queue\Processor;
-use Queue\Queue\QueueExtension;
 
 /**
  * Worker shell command.
@@ -75,7 +75,7 @@ class WorkerShell extends Shell
      * Creates and returns a QueueExtension object
      *
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
-     * @return \Queue\Queue\QueueExtension
+     * @return \Queue\Consumption\QueueExtension
      */
     protected function getQueueExtension(LoggerInterface $logger): QueueExtension
     {
