@@ -17,13 +17,11 @@ declare(strict_types=1);
 namespace Queue;
 
 use BadMethodCallException;
-use Cake\Event\Event;
 use Cake\Log\Log;
 use Cake\Utility\Hash;
 use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
-use Queue\Job\EventJob;
 
 class QueueManager
 {
@@ -179,25 +177,5 @@ class QueueManager
 
         $client = static::engine($name);
         $client->sendEvent($queue, $message);
-    }
-
-    /**
-     * Places an event in the job queue
-     *
-     * @param string $eventName  name of the event
-     * @param array $data        an array of data to set for the event
-     * @param array $options     an array of options for publishing the job
-     * @return void
-     */
-    public static function pushEvent(string $eventName, array $data = [], array $options = []): void
-    {
-        $eventClass = Hash::get($options, 'eventClass', Event::class);
-
-        /** @psalm-suppress InvalidArgument */
-        static::push([EventJob::class, 'execute'], [
-            'className' => $eventClass,
-            'eventName' => $eventName,
-            'data' => $data,
-        ], $options);
     }
 }
