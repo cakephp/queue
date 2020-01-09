@@ -148,7 +148,7 @@ The following keys are valid for use within the ``options`` array:
   - description: Time - in integer seconds - to delay message, after which it will be processed. Not all message brokers accept this.
   - type: integer
 
-- ``expires_at``:
+- ``expires``:
 
   - default: ``null``
   - description: Time - in integer seconds - after which the message expires.

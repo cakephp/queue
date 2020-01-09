@@ -151,7 +151,7 @@ class QueueManager
             'config' => 'default',
             'queue' => 'default',
             'delay' => null,
-            'expires_at' => null,
+            'expires' => null,
             'priority' => null,
         ];
 
@@ -170,8 +170,8 @@ class QueueManager
             $message->setDelay($options['delay']);
         }
 
-        if ($options['expires_at']) {
-            $message->setExpire($options['expires_at']);
+        if ($options['expires']) {
+            $message->setExpire($options['expires']);
         }
 
         if ($options['priority']) {
