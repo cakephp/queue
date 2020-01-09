@@ -18,7 +18,6 @@ namespace Queue;
 
 use BadMethodCallException;
 use Cake\Log\Log;
-use Cake\Utility\Hash;
 use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;

@@ -20,7 +20,6 @@ use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Log\Log;
-use Cake\Utility\Hash;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
 use Psr\Log\LoggerInterface;
