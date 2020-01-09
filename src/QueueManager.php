@@ -125,16 +125,13 @@ class QueueManager
             return static::$_clients[$name];
         }
 
-        $config = static::getConfig($name);
-        $url = Hash::get($config, 'url');
+        $config = static::getConfig($name) + [
+            'logger' => null,
+        ];
 
-        $logger = null;
-        $loggerName = Hash::get($config, 'logger', null);
-        if ($loggerName) {
-            $logger = Log::engine($loggerName);
-        }
+        $logger = $config['logger'] ? Log::engine($config['logger']) : null;
 
-        static::$_clients[$name] = new SimpleClient($url, $logger);
+        static::$_clients[$name] = new SimpleClient($config['url'], $logger);
         static::$_clients[$name]->setupBroker();
 
         return static::$_clients[$name];
@@ -150,9 +147,18 @@ class QueueManager
      */
     public static function push(callable $callable, array $args = [], array $options = []): void
     {
-        $name = Hash::get($options, 'config', 'default');
+        $options += [
+            'config' => 'default',
+            'queue' => 'default',
+            'delay' => null,
+            'expires_at' => null,
+            'priority' => null,
+        ];
+
+        $name = $options['config'];
+
         $config = static::getConfig($name);
-        $queue = Hash::get($config, 'queue', 'default');
+        $queue = $config['queue'] ?? 'default';
 
         $message = new ClientMessage([
             'queue' => $queue,
@@ -160,19 +166,16 @@ class QueueManager
             'args' => [$args],
         ]);
 
-        $delay = Hash::get($options, 'delay', null);
-        if ($delay !== null) {
-            $message->setDelay($delay);
+        if ($options['delay']) {
+            $message->setDelay($options['delay']);
         }
 
-        $expires_at = Hash::get($options, 'expires_at', null);
-        if ($expires_at !== null) {
-            $message->setExpire($expires_at);
+        if ($options['expires_at']) {
+            $message->setExpire($options['expires_at']);
         }
 
-        $priority = Hash::get($options, 'priority', null);
-        if ($priority !== null) {
-            $message->setPriority($priority);
+        if ($options['priority']) {
+            $message->setPriority($options['priority']);
         }
 
         $client = static::engine($name);
