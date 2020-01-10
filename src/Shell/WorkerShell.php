@@ -20,7 +20,6 @@ use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Log\Log;
-use Cake\Utility\Hash;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
 use Psr\Log\LoggerInterface;
@@ -118,7 +117,7 @@ class WorkerShell extends Shell
         $processor = new Processor($logger);
         $extension = $this->getQueueExtension($logger);
 
-        $config = Hash::get($this->params, 'config');
+        $config = $this->params['config'];
         if (!empty($config['listener'])) {
             if (!class_exists($config['listener'])) {
                 throw new LogicException(sprintf('Listener class %s not found', $config['listener']));

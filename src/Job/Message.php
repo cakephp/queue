@@ -78,7 +78,7 @@ class Message implements JsonSerializable
      */
     public function getCallable()
     {
-        return Hash::get($this->parsedBody, 'class', null);
+        return $this->parsedBody['class'] ?? null;
     }
 
     /**
