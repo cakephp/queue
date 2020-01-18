@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
+use Cake\Routing\Router;
 
 $findRoot = function ($root) {
     do {
@@ -52,12 +53,30 @@ Configure::write('App', [
         'templates' => [ROOT . 'templates' . DS],
     ],
 ]);
+
+Configure::write('Queue', [
+    'default' => [
+        // Don't actually send messages anywhere.
+        'url' => 'null:',
+
+        // The queue that will be used for sending messages. default: default
+        // This can be overriden when queuing or processing messages
+        'queue' => 'default',
+
+        // The name of a configured logger, default: null
+        'logger' => 'stdout',
+    ]
+]);
+
 // Ensure default test connection is defined
 if (!getenv('db_dsn')) {
     putenv('db_dsn=sqlite:///:memory:');
 }
+
 Cake\Datasource\ConnectionManager::setConfig('test', [
     'url' => getenv('db_dsn'),
     'timezone' => 'UTC',
 ]);
 Plugin::getCollection()->add(new \Queue\Plugin());
+
+Router::reload();

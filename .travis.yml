@@ -10,7 +10,6 @@ env:
     - DEFAULT=1
 
 matrix:
-
   fast_finish: true
 
   include:

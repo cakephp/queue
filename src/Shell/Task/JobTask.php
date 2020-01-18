@@ -25,7 +25,7 @@ class JobTask extends SimpleBakeTask
     /**
      * @return string
      */
-    public function name()
+    public function name(): string
     {
         return 'job';
     }
@@ -34,7 +34,7 @@ class JobTask extends SimpleBakeTask
      * @param string $name Name.
      * @return string
      */
-    public function fileName($name)
+    public function fileName($name): string
     {
         return $name . 'Job.php';
     }
@@ -42,8 +42,8 @@ class JobTask extends SimpleBakeTask
     /**
      * @return string
      */
-    public function template()
+    public function template(): string
     {
-        return 'job';
+        return 'Queue.job';
     }
 }

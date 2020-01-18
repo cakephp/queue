@@ -14,6 +14,8 @@
  */
 #}
 <?php
+declare(strict_types=1);
+
 namespace {{ namespace }}\Job;
 
 use Queue\Job\Message;
@@ -27,7 +29,7 @@ class {{ name }}Job
     /**
      * Executes logic for {{ name }}Job
      *
-     * @param Message $message job message
+     * @param \Queue\Job\Message $message job message
      * @return string
      */
     public function execute(Message $message): string
