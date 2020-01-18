@@ -24,7 +24,8 @@
     },
     "require-dev": {
         "cakephp/cakephp-codesniffer": "^4.0",
-        "phpunit/phpunit": "~8.5.0"
+        "phpunit/phpunit": "~8.5.0",
+        "cakephp/bake": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -34,6 +35,7 @@
     "autoload-dev": {
         "psr-4": {
             "Cake\\Test\\": "vendor/cakephp/cakephp/tests/",
+            "TestApp\\": "tests/app/TestApp/",
             "Queue\\Test\\": "tests/"
         }
     },

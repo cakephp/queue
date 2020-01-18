@@ -65,7 +65,9 @@ class WorkerShell extends Shell
             'default' => null,
             'short' => 'r',
         ]);
-        $parser->setDescription(__('Runs a Queuesadilla worker.'));
+        $parser->setDescription(
+            'Runs a queue worker that consumes from the named queue.'
+        );
 
         return $parser;
     }
