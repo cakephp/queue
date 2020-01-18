@@ -65,7 +65,7 @@ Configure::write('Queue', [
 
         // The name of a configured logger, default: null
         'logger' => 'stdout',
-    ]
+    ],
 ]);
 
 // Ensure default test connection is defined

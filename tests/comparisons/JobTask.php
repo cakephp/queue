@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace TestApp\Job;
 
-use Queue\Job\Message;
 use Interop\Queue\Processor;
+use Queue\Job\Message;
 
 /**
  * Upload job
