@@ -41,7 +41,7 @@ The following configuration should be present in your **config/app.php**::
         'Queue' => [
             'default' => [
                   // A DSN for your configured backend. default: null
-                  'url' => 'redis:'
+                  'url' => 'redis:',
 
                   // The queue that will be used for sending messages. default: default
                   // This can be overriden when queuing or processing messages
