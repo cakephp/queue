@@ -90,11 +90,11 @@ class QueueManager
 
         if (isset(static::$_config[$key])) {
             /** @psalm-suppress PossiblyInvalidArgument */
-            throw new BadMethodCallException(sprintf('Cannot reconfigure existing key "%s"', $key));
+            throw new BadMethodCallException(sprintf('Cannot reconfigure existing key `%s`', $key));
         }
 
         if (empty($config['url'])) {
-            throw new BadMethodCallException('Must specify "url" key');
+            throw new BadMethodCallException('Must specify `url` key.');
         }
 
         /** @psalm-suppress InvalidPropertyAssignmentValue */
@@ -110,6 +110,17 @@ class QueueManager
     public static function getConfig(string $key)
     {
         return static::$_config[$key] ?? null;
+    }
+
+    /**
+     * Remove a configured queue adapter.
+     *
+     * @param string $key The config name to drop.
+     * @return void
+     */
+    public static function drop(string $key): void
+    {
+        unset(static::$_clients[$key], static::$_config[$key]);
     }
 
     /**
