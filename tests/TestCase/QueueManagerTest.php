@@ -67,7 +67,7 @@ class QueueManagerTest extends TestCase
         $this->expectException(BadMethodCallException::class);
         $this->expectExceptionMessage('Cannot reconfigure');
         QueueManager::setConfig('test', [
-            'url' => 'redis:'
+            'url' => 'redis:',
         ]);
     }
 
@@ -81,10 +81,5 @@ class QueueManagerTest extends TestCase
         $this->assertInstanceOf(SimpleClient::class, $engine);
 
         $this->assertSame($engine, QueueManager::engine('test'));
-    }
-
-    public function testPush()
-    {
-        $this->markTestIncomplete('Not sure how to test that an event was sent.');
     }
 }
