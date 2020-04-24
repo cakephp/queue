@@ -51,7 +51,6 @@ class Processor implements InteropProcessor
      *
      * @param \Interop\Queue\Message $queueMessage Message.
      * @param \Interop\Queue\Context $context Context.
-     *
      * @return string|object with __toString method implemented
      */
     public function process(QueueMessage $queueMessage, Context $context)

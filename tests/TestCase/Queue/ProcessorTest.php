@@ -51,7 +51,6 @@ class ProcessorTest extends TestCase
      * @param string $expected The expected process result.
      * @param string $logMessage The log message based on process result.
      * @param string $dispacthedEvent The dispatched event based on process result.
-     *
      * @dataProvider dataProviderTestProcess
      * @return void
      */
@@ -158,7 +157,6 @@ class ProcessorTest extends TestCase
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Queue\Queue\Message $message The message to process
-     *
      * @return null
      */
     public static function processReturnNull(Message $message)
@@ -172,7 +170,6 @@ class ProcessorTest extends TestCase
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Queue\Queue\Message $message The message to process
-     *
      * @return null
      */
     public static function processReturnReject(Message $message)
@@ -186,7 +183,6 @@ class ProcessorTest extends TestCase
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Queue\Queue\Message $message The message to process
-     *
      * @return null
      */
     public static function processReturnAck(Message $message)
@@ -200,7 +196,6 @@ class ProcessorTest extends TestCase
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Queue\Queue\Message $message The message to process
-     *
      * @return null
      */
     public static function processReturnRequeue(Message $message)
@@ -214,7 +209,6 @@ class ProcessorTest extends TestCase
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Queue\Queue\Message $message The message to process
-     *
      * @return null
      */
     public static function processReturnString(Message $message)
@@ -243,7 +237,6 @@ class ProcessorTest extends TestCase
      *
      * @param string $method The local static method name.
      * @param string $expected The expected result value.
-     *
      * @dataProvider dataProviderTestProcessMessageCallableIsString
      * @return void
      */
