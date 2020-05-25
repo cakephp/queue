@@ -16,10 +16,10 @@ declare(strict_types=1);
  */
 namespace Queue\Test\TestCase\Job;
 
+use Cake\Queue\Job\Message;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
-use Queue\Job\Message;
 
 class MessageTest extends TestCase
 {

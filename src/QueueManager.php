@@ -14,7 +14,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Queue;
+namespace Cake\Queue;
 
 use BadMethodCallException;
 use Cake\Log\Log;

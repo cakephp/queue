@@ -18,12 +18,12 @@ namespace Queue\Test\TestCase\Job;
 
 use Cake\Mailer\Exception\MissingMailerException;
 use Cake\Mailer\Mailer;
+use Cake\Queue\Job\MailerJob;
+use Cake\Queue\Job\Message;
+use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
-use Queue\Job\MailerJob;
-use Queue\Job\Message;
-use Queue\Queue\Processor;
 
 class MailerJobTest extends TestCase
 {
@@ -32,7 +32,7 @@ class MailerJobTest extends TestCase
      */
     protected $mailer;
     /**
-     * @var \Queue\Job\MailerJob|\PHPUnit\Framework\MockObject\MockObject
+     * @var Cake\Queue\Job\MailerJob|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $job;
     protected $mailerConfig;

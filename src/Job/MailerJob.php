@@ -14,7 +14,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Queue\Job;
+namespace Cake\Queue\Job;
 
 use BadMethodCallException;
 use Cake\Mailer\Exception\MissingMailerException;
@@ -28,7 +28,7 @@ class MailerJob implements JobInterface
     /**
      * Constructs and dispatches the event from a job message
      *
-     * @param \Queue\Job\Message $message job message
+     * @param Cake\Queue\Job\Message $message job message
      * @return string
      */
     public function execute(Message $message): ?string

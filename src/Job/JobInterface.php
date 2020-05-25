@@ -14,14 +14,14 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Queue\Job;
+namespace Cake\Queue\Job;
 
 interface JobInterface
 {
     /**
      * Executes logic for {{ name }}Job
      *
-     * @param \Queue\Job\Message $message job message
+     * @param \Cake\Queue\Job\Message $message job message
      * @return string
      */
     public function execute(Message $message): ?string;

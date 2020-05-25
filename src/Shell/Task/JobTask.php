@@ -14,7 +14,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Queue\Shell\Task;
+namespace Cake\Queue\Shell\Task;
 
 use Bake\Shell\Task\SimpleBakeTask;
 
@@ -44,6 +44,6 @@ class JobTask extends SimpleBakeTask
      */
     public function template(): string
     {
-        return 'Queue.job';
+        return 'Cake/Queue.job';
     }
 }

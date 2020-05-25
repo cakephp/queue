@@ -14,7 +14,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Queue;
+namespace Cake\Queue;
 
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
@@ -30,7 +30,7 @@ class Plugin extends BasePlugin
      *
      * @var string
      */
-    protected $name = 'Queue';
+    protected $name = 'Cake/Queue';
 
     /**
      * Load the Queue configuration

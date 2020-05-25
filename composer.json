@@ -29,7 +29,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Queue\\": "src/"
+            "Cake\\Queue\\": "src/"
         }
     },
     "autoload-dev": {

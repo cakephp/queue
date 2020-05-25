@@ -19,9 +19,9 @@ namespace Queue\Test\TestCase;
 use BadMethodCallException;
 use Cake\Log\Log;
 use Cake\TestSuite\TestCase;
+use Cake\Queue\QueueManager;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
-use Queue\QueueManager;
 
 /**
  * QueueManager test

@@ -14,18 +14,18 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Queue\Shell;
+namespace Cake\Queue\Shell;
 
 use Cake\Console\ConsoleOptionParser;
 use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Log\Log;
+use Cake\Queue\Consumption\QueueExtension;
+use Cake\Queue\Queue\Processor;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Queue\Consumption\QueueExtension;
-use Queue\Queue\Processor;
 
 /**
  * Worker shell command.
@@ -76,7 +76,7 @@ class WorkerShell extends Shell
      * Creates and returns a QueueExtension object
      *
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
-     * @return \Queue\Consumption\QueueExtension
+     * @return \Cake\Queue\Consumption\QueueExtension
      */
     protected function getQueueExtension(LoggerInterface $logger): QueueExtension
     {
