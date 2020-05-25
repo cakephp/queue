@@ -144,14 +144,14 @@ class MailerJobTest extends TestCase
     protected function createMessage(): Message
     {
         $messageBody = [
-            "queue" => "default",
-            "class" => ["Queue\\Job\\EventJob", "execute"],
-            "args" => [
+            'queue' => 'default',
+            'class' => ['Queue\\Job\\EventJob', 'execute'],
+            'args' => [
                 [
-                    "mailerName" => "SampleTest",
-                    "mailerConfig" => $this->mailerConfig,
-                    "action" => 'welcome',
-                    "args" => $this->args,
+                    'mailerName' => 'SampleTest',
+                    'mailerConfig' => $this->mailerConfig,
+                    'action' => 'welcome',
+                    'args' => $this->args,
                     'headers' => $this->headers,
                 ],
             ],

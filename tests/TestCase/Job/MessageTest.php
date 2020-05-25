@@ -30,14 +30,14 @@ class MessageTest extends TestCase
      */
     public function testConstructorAndGetters()
     {
-        $callable = ["App\\Job\\ExampleJob","execute"];
-        $data = "sample data " . time();
+        $callable = ['App\\Job\\ExampleJob','execute'];
+        $data = 'sample data ' . time();
         $id = 7;
         $args = compact('id', 'data');
         $parsedBody = [
-            "queue" => "default",
-            "class" => $callable,
-            "args" => [$args],
+            'queue' => 'default',
+            'class' => $callable,
+            'args' => [$args],
         ];
         $messageBody = json_encode($parsedBody);
         $connectionFactory = new NullConnectionFactory();

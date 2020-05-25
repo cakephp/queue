@@ -18,13 +18,13 @@ namespace Cake\Queue\Queue;
 
 use Cake\Event\EventDispatcherTrait;
 use Cake\Log\LogTrait;
+use Cake\Queue\Job\Message;
 use Exception;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Cake\Queue\Job\Message;
 
 class Processor implements InteropProcessor
 {
@@ -100,7 +100,7 @@ class Processor implements InteropProcessor
     }
 
     /**
-     * @param Cake\Queue\Job\Message $message Message.
+     * @param \Cake\Queue\Job\Message $message Message.
      * @return string|object with __toString method implemented
      */
     public function processMessage(Message $message)

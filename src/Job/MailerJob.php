@@ -28,7 +28,7 @@ class MailerJob implements JobInterface
     /**
      * Constructs and dispatches the event from a job message
      *
-     * @param Cake\Queue\Job\Message $message job message
+     * @param \Cake\Queue\Job\Message $message job message
      * @return string
      */
     public function execute(Message $message): ?string

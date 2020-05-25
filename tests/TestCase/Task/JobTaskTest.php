@@ -19,8 +19,8 @@ namespace Queue\Test\TestCase\Task;
 use Cake\Command\Command;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\ConsoleIntegrationTestTrait;
-use Cake\TestSuite\TestCase;
 use Cake\TestSuite\StringCompareTrait;
+use Cake\TestSuite\TestCase;
 
 /**
  * JobTask test class
