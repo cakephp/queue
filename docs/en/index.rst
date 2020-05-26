@@ -30,7 +30,7 @@ pure-php redis:
 Ensure that the plugin is loaded in your ``src/Application.php`` file, within
 the ``Application::bootstrap()`` function::
 
-    $this->addPlugin('Queue');
+    $this->addPlugin('Cake/Queue');
 
 Configuration
 =============
@@ -72,8 +72,8 @@ Create a Job class::
     namespace App\Job;
 
     use Cake\Log\LogTrait;
+    use Cake\Queue\Job\Message;
     use Interop\Queue\Processor;
-    use Queue\Job\Message;
 
     class ExampleJob implements JobInterface
     {
@@ -118,7 +118,7 @@ Queueing
 Queue the messages using the included `Queue\QueueManager` class::
 
     use App\Job\ExampleJob;
-    use Queue\QueueManager;
+    use Cake\Queue\QueueManager;
 
     $callable = [ExampleJob::class, 'execute'];
     $arguments = ['id' => 7, 'data' => 'hi2u'];
@@ -185,7 +185,7 @@ class::
     namespace App\Mailer;
 
     use Cake\Mailer\Mailer;
-    use Queue\Queue\QueueTrait;
+    use Cake\Queue\Queue\QueueTrait;
 
     class UserMailer extends Mailer
     {
@@ -207,7 +207,7 @@ use the ``push()`` method on a mailer instance::
 
     $this->getMailer('User')->push('welcome', ['example@example.com', 'josegonzalez']);
 
-This ``QueueuTrait::push()`` call will generate an intermediate ``MailerJob``
+This ``QueueTrait::push()`` call will generate an intermediate ``MailerJob``
 that handles processing of the email message. If the MailerJob is unable to
 instantiate the Email or Mailer instances, it is interpreted as
 a ``Processor::REJECT``. An invalid ``action`` is also interpreted as
@@ -215,7 +215,7 @@ a ``Processor::REJECT``, as will the action throwing
 a ``BadMethodCallException``. Any non-exception result will be seen as
 a ``Processor:ACK``.
 
-The exposed ``QueueuTrait::push()`` method has a similar signature to
+The exposed ``QueueTrait::push()`` method has a similar signature to
 ``Mailer::send()``, and also supports an ``$options`` array argument. The
 options this array holds are the same options as those available for
 ``QueueManager::push()``, and additionally supports the following:

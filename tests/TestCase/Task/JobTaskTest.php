@@ -16,15 +16,18 @@ declare(strict_types=1);
  */
 namespace Queue\Test\TestCase\Task;
 
-use Cake\Console\Command;
-use Cake\TestSuite\ConsoleIntegrationTestCase;
+use Cake\Command\Command;
+use Cake\Queue\QueueManager;
+use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\StringCompareTrait;
+use Cake\TestSuite\TestCase;
 
 /**
  * JobTask test class
  */
-class JobTaskTest extends ConsoleIntegrationTestCase
+class JobTaskTest extends TestCase
 {
+    use ConsoleIntegrationTestTrait;
     use StringCompareTrait;
 
     /**
@@ -43,6 +46,7 @@ class JobTaskTest extends ConsoleIntegrationTestCase
 
         $this->comparisonDir = dirname(dirname(__DIR__)) . DS . 'comparisons' . DS;
         $this->useCommandRunner();
+        QueueManager::drop('default');
     }
 
     public function tearDown(): void

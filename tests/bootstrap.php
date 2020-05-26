@@ -16,7 +16,6 @@ declare(strict_types=1);
  */
 
 use Cake\Core\Configure;
-use Cake\Core\Plugin;
 use Cake\Routing\Router;
 
 $findRoot = function ($root) {
@@ -46,6 +45,7 @@ if (!defined('CONFIG')) {
     define('CONFIG', ROOT . DS . 'config' . DS);
 }
 
+Configure::write('debug', true);
 Configure::write('App', [
     'namespace' => 'TestApp',
     'encoding' => 'UTF-8',
@@ -77,6 +77,5 @@ Cake\Datasource\ConnectionManager::setConfig('test', [
     'url' => getenv('db_dsn'),
     'timezone' => 'UTC',
 ]);
-Plugin::getCollection()->add(new \Queue\Plugin());
 
 Router::reload();

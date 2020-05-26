@@ -18,12 +18,12 @@ namespace Queue\Test\TestCase\Queue;
 
 use Cake\Event\EventList;
 use Cake\Log\Engine\ArrayLog;
+use Cake\Queue\Job\Message;
+use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
 use Interop\Queue\Processor as InteropProcessor;
-use Queue\Job\Message;
-use Queue\Queue\Processor;
 
 class ProcessorTest extends TestCase
 {
@@ -57,9 +57,9 @@ class ProcessorTest extends TestCase
     public function testProcess($jobMethod, $expected, $logMessage, $dispatchedEvent)
     {
         $messageBody = [
-            "queue" => "default",
-            "class" => [static::class, $jobMethod],
-            "args" => [],
+            'queue' => 'default',
+            'class' => [static::class, $jobMethod],
+            'args' => [],
         ];
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
@@ -98,11 +98,11 @@ class ProcessorTest extends TestCase
     public function testProcessNotValidCallable()
     {
         $messageBody = [
-            "queue" => "default",
-            "class" => ["NotValid\\ClassName\\FakeJob", "execute"],
-            "args" => [
+            'queue' => 'default',
+            'class' => ['NotValid\\ClassName\\FakeJob', 'execute'],
+            'args' => [
                 [
-                    "data" => ['sample_data' => 'a value'],
+                    'data' => ['sample_data' => 'a value'],
                 ],
             ],
         ];
@@ -137,9 +137,9 @@ class ProcessorTest extends TestCase
     public function testProcessMessage()
     {
         $messageBody = [
-            "queue" => "default",
-            "class" => [static::class, "processReturnAck"],
-            "args" => [],
+            'queue' => 'default',
+            'class' => [static::class, 'processReturnAck'],
+            'args' => [],
         ];
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
@@ -243,11 +243,11 @@ class ProcessorTest extends TestCase
     public function testProcessMessageCallableIsString($method, $expected)
     {
         $messageBody = [
-            "queue" => "default",
-            "class" => static::class . '::' . $method,
-            "args" => [
+            'queue' => 'default',
+            'class' => static::class . '::' . $method,
+            'args' => [
                 [
-                    "data" => ['sample_data' => 'a value', 'key' => md5($method)],
+                    'data' => ['sample_data' => 'a value', 'key' => md5($method)],
                 ],
             ],
         ];

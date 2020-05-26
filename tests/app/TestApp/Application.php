@@ -20,7 +20,7 @@ class Application extends BaseApplication
 
     public function bootstrap(): void
     {
-        $this->addPlugin('Queue');
+        $this->addPlugin('Cake/Queue');
         $this->addPlugin('Bake');
     }
 }

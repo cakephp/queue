@@ -29,7 +29,7 @@ composer require enqueue/redis predis/predis:^1
 You can load the plugin using the shell command:
 
 ```
-bin/cake plugin load Queue
+bin/cake plugin load Cake/Queue
 ```
 
 Or you can manually add the loading statement in the **src/Application.php** file of your application:
@@ -37,7 +37,7 @@ Or you can manually add the loading statement in the **src/Application.php** fil
 public function bootstrap()
 {
     parent::bootstrap();
-    $this->addPlugin('Queue');
+    $this->addPlugin('Cake/Queue');
 }
 ```
 
