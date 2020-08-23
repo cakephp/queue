@@ -72,7 +72,7 @@ class ProcessorTest extends TestCase
         $processor->getEventManager()->setEventList($events);
 
         $actual = $processor->process($queueMessage, $context);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
 
         $logs = $logger->read();
         $this->assertCount(1, $logs);
@@ -117,7 +117,7 @@ class ProcessorTest extends TestCase
 
         $actual = $processor->process($queueMessage, $context);
         $expected = InteropProcessor::REJECT;
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
 
         $logs = $logger->read();
         $this->assertCount(1, $logs);

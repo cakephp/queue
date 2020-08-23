@@ -54,7 +54,7 @@ class MessageTest extends TestCase
         $this->assertSame($id, $message->getArgument('id'));
         $this->assertSame($data, $message->getArgument('data', 'ignore_this'));
         $this->assertSame('should_use_this', $message->getArgument('unknown', 'should_use_this'));
-        $this->assertSame(null, $message->getArgument('unknown'));
+        $this->assertNull($message->getArgument('unknown'));
         $actualJson = json_encode($message);
         $this->assertSame($messageBody, $actualJson);
         $actualToStringValue = (string)$message;
