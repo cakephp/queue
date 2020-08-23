@@ -49,30 +49,30 @@ class Processor implements InteropProcessor
     /**
      * The method processes messages
      *
-     * @param \Interop\Queue\Message $queueMessage Message.
+     * @param \Interop\Queue\Message $message Message.
      * @param \Interop\Queue\Context $context Context.
      * @return string|object with __toString method implemented
      */
-    public function process(QueueMessage $queueMessage, Context $context)
+    public function process(QueueMessage $message, Context $context)
     {
-        $this->dispatchEvent('Processor.message.seen', ['queueMessage' => $queueMessage]);
+        $this->dispatchEvent('Processor.message.seen', ['queueMessage' => $message]);
 
-        $message = new Message($queueMessage, $context);
-        if (!is_callable($message->getCallable())) {
+        $jobMessage = new Message($message, $context);
+        if (!is_callable($jobMessage->getCallable())) {
             $this->logger->debug('Invalid callable for message. Rejecting message from queue.');
-            $this->dispatchEvent('Processor.message.invalid', ['message' => $message]);
+            $this->dispatchEvent('Processor.message.invalid', ['message' => $jobMessage]);
 
             return InteropProcessor::REJECT;
         }
 
-        $this->dispatchEvent('Processor.message.start', ['message' => $message]);
+        $this->dispatchEvent('Processor.message.start', ['message' => $jobMessage]);
 
         try {
-            $response = $this->processMessage($message);
+            $response = $this->processMessage($jobMessage);
         } catch (Exception $e) {
             $this->logger->debug(sprintf('Message encountered exception: %s', $e->getMessage()));
             $this->dispatchEvent('Processor.message.exception', [
-                'message' => $message,
+                'message' => $jobMessage,
                 'exception' => $e,
             ]);
 
@@ -81,20 +81,20 @@ class Processor implements InteropProcessor
 
         if ($response === InteropProcessor::ACK) {
             $this->logger->debug('Message processed sucessfully');
-            $this->dispatchEvent('Processor.message.success', ['message' => $message]);
+            $this->dispatchEvent('Processor.message.success', ['message' => $jobMessage]);
 
             return InteropProcessor::ACK;
         }
 
         if ($response === InteropProcessor::REJECT) {
             $this->logger->debug('Message processed with rejection');
-            $this->dispatchEvent('Processor.message.reject', ['message' => $message]);
+            $this->dispatchEvent('Processor.message.reject', ['message' => $jobMessage]);
 
             return InteropProcessor::REJECT;
         }
 
         $this->logger->debug('Message processed with failure, requeuing');
-        $this->dispatchEvent('Processor.message.failure', ['message' => $message]);
+        $this->dispatchEvent('Processor.message.failure', ['message' => $jobMessage]);
 
         return InteropProcessor::REQUEUE;
     }
