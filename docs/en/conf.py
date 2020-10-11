@@ -6,5 +6,6 @@ sys.path.insert(0, os.path.abspath('..'))
 # Pull in all the configuration options defined in the global config file..
 from config.all import *
 
+
 # Language in use for this directory.
 language = 'en'

@@ -13,7 +13,7 @@ from cakephpsphinx.config.all import *
 release = '1.x'
 
 # The search index version.
-search_version = 'queue'
+search_version = 'queue-1'
 
 # The marketing display name for the book.
 version_name = ''
@@ -23,11 +23,11 @@ project = 'CakePHP Queue'
 
 # Other versions that display in the version picker menu.
 version_list = [
-    {'name': '1.x', 'number': '/queue/1.x', 'title': '1.x', 'current': True},
+    {'name': '1.x', 'number': '/queue/1/', 'title': '1.x', 'current': True},
 ]
 
 # Languages available.
-languages = ['en', 'fr', 'ja', 'pt']
+languages = ['en']
 
 # The GitHub branch name for this version of the docs
 # for edit links to point at.
