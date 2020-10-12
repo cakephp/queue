@@ -221,9 +221,11 @@ options this array holds are the same options as those available for
 ``QueueManager::push()``, and additionally supports the following:
 
 - ``emailClass``:
+
   - default: ``Cake\Mailer\Email::class``
   - description: The name of an email class to instantiate for use with the mailer
   - type: string
+
 
 Run the worker
 ==============
@@ -249,27 +251,44 @@ The worker shell may invoke the events during normal execution. These events may
 be listened to by the associated ``listener`` in the Queue config.
 
 - ``Processor.message.exception``:
+
   - description: Dispatched when a message throws an exception.
   - arguments: ``message`` and ``exception``
+
 - ``Processor.message.invalid``:
+
   - description: Dispatched when a message has an invalid callable.
   - arguments: ``message``
+
 - ``Processor.message.reject``:
+
   - description: Dispatched when a message completes and is to be rejected.
   - arguments: ``message``
+
 - ``Processor.message.success``:
+
   - description: Dispatched when a message completes and is to be acknowledged.
   - arguments: ``message``
+
 - ``Processor.maxIterations``:
+
   - description: Dispatched when the max number of iterations is reached.
+
 - ``Processor.maxRuntime``:
+
   - description: Dispatched when the max runtime is reached.
+
 - ``Processor.message.failure``:
+
   - description: Dispatched when a message completes and is to be requeued.
   - arguments: ``message``
+
 - ``Processor.message.seen``:
+
   - description: Dispatched when a message is seen.
   - arguments: ``message``
+
 - ``Processor.message.start``:
+
   - description: Dispatched before a message is started.
   - arguments: ``message``
