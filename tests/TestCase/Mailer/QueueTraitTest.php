@@ -49,8 +49,7 @@ class QueueTraitTest extends TestCase
     }
 
     /**
-     * Test that a MissingActionException is being thrown when
-     * the push action is not found on the object with the QueueTrait
+     * Test that QueueTrait calls push
      *
      * @return @void
      */
