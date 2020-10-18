@@ -50,6 +50,7 @@ class QueueTraitTest extends TestCase
 
     /**
      * Test that QueueTrait calls push
+     *
      * @runInSeparateProcess
      * @return @void
      */
