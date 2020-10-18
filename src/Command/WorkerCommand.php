@@ -25,7 +25,7 @@ use Cake\Log\Log;
 use Cake\Queue\Consumption\QueueExtension;
 use Cake\Queue\Queue\Processor;
 use Enqueue\SimpleClient\SimpleClient;
-use LogicException;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -124,12 +124,15 @@ class WorkerCommand extends Command
         $extension = $this->getQueueExtension($args, $logger);
 
         $config = $args->getOption('config');
-        if (!empty($config['listener'])) {
-            if (!class_exists($config['listener'])) {
-                throw new LogicException(sprintf('Listener class %s not found', $config['listener']));
+        $listenerClassName = Configure::read(sprintf('Queue.%s.listener', $config));
+
+        if (!empty($listenerClassName)) {
+            if (!class_exists($listenerClassName)) {
+                $io->error(sprintf('Listener class %s not found', $listenerClassName));
+                $this->abort();
             }
 
-            $listener = new $config['listener']();
+            $listener = new $listenerClassName();
             $processor->getEventManager()->on($listener);
             $extension->getEventManager()->on($listener);
         }

@@ -19,6 +19,7 @@ namespace Queue\Test\TestCase\Command;
 use Cake\Core\Configure;
 use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use TestApp\WelcomeMailerListener;
 
 /**
  * Class WorkerCommandTest
@@ -60,5 +61,42 @@ class WorkerCommandTest extends TestCase
         ]);
         $this->exec('worker --max-runtime=1');
         $this->assertEmpty($this->getActualOutput());
+    }
+    /**
+     * Test that queue will run for one second with valid listener
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesWithListener()
+    {
+        Configure::write(['Queue' => [
+            'default' => [
+                'queue' => 'default',
+                'url' => 'null:',
+                'listener' => WelcomeMailerListener::class
+            ]
+        ]
+        ]);
+        $this->exec('worker --max-runtime=1');
+        $this->assertEmpty($this->getActualOutput());
+    }
+
+    /**
+     * Test that queue will abort with invalid listener
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesWithInvalidListener()
+    {
+        Configure::write(['Queue' => [
+            'default' => [
+                'queue' => 'default',
+                'url' => 'null:',
+                'listener' => 'InvalidListener',
+            ]
+        ]
+        ]);
+
+        $out = $this->exec('worker --max-runtime=1');
+        $this->assertErrorContains('Listener class InvalidListener not found');
     }
 }
