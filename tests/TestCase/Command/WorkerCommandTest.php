@@ -45,6 +45,7 @@ class WorkerCommandTest extends TestCase
 
     /**
      * Test that queue will run for one second
+     * @runInSeparateProcess
      */
     public function testQueueProcessesStart()
     {
