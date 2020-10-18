@@ -74,7 +74,7 @@ class WorkerCommandTest extends TestCase
             'default' => [
                 'queue' => 'default',
                 'url' => 'null:',
-                'listener' => WelcomeMailerListener::class
+                'listener' => WelcomeMailerListener::class,
             ],
         ],
         ]);
