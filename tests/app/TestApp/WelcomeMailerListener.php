@@ -20,6 +20,7 @@ use Cake\Event\EventListenerInterface;
 
 /**
  * Class WelcomeMailerListener
+ *
  * @package Queue\Test\test_app\App\Listener
  */
 class WelcomeMailerListener implements EventListenerInterface
@@ -31,5 +32,4 @@ class WelcomeMailerListener implements EventListenerInterface
     {
         return [];
     }
-
 }

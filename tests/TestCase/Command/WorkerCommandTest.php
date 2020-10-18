@@ -62,8 +62,10 @@ class WorkerCommandTest extends TestCase
         $this->exec('worker --max-runtime=1');
         $this->assertEmpty($this->getActualOutput());
     }
+
     /**
      * Test that queue will run for one second with valid listener
+     *
      * @runInSeparateProcess
      */
     public function testQueueProcessesWithListener()
@@ -73,8 +75,8 @@ class WorkerCommandTest extends TestCase
                 'queue' => 'default',
                 'url' => 'null:',
                 'listener' => WelcomeMailerListener::class
-            ]
-        ]
+            ],
+        ],
         ]);
         $this->exec('worker --max-runtime=1');
         $this->assertEmpty($this->getActualOutput());
@@ -92,11 +94,11 @@ class WorkerCommandTest extends TestCase
                 'queue' => 'default',
                 'url' => 'null:',
                 'listener' => 'InvalidListener',
-            ]
-        ]
+            ],
+        ],
         ]);
 
-        $out = $this->exec('worker --max-runtime=1');
+        $this->exec('worker --max-runtime=1');
         $this->assertErrorContains('Listener class InvalidListener not found');
     }
 }
