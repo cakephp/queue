@@ -105,7 +105,7 @@ class WorkerCommandTest extends TestCase
     }
 
     /**
-     * Test that queue will abort with logger option
+     * Test that queue will write to specified logger option
      *
      * @runInSeparateProcess
      */
