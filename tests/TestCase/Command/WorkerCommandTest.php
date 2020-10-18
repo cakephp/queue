@@ -17,6 +17,8 @@ declare(strict_types=1);
 namespace Queue\Test\TestCase\Command;
 
 use Cake\Core\Configure;
+use Cake\Log\Log;
+use Cake\Queue\QueueManager;
 use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use TestApp\WelcomeMailerListener;
@@ -100,5 +102,32 @@ class WorkerCommandTest extends TestCase
 
         $this->exec('worker --max-runtime=1');
         $this->assertErrorContains('Listener class InvalidListener not found');
+    }
+
+    /**
+     * Test that queue will abort with logger option
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesWithLogger()
+    {
+        Configure::write([
+            'Queue' => [
+                'default' => [
+                        'queue' => 'default',
+                        'url' => 'null:',
+                    ],
+                ],
+        ]);
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        $this->exec('worker --max-runtime=1 --logger=debug --verbose');
+        $log = Log::engine('debug');
+        $this->assertIsArray($log->read());
+        $this->assertNotEmpty($log->read());
+        $this->assertEquals($log->read()[0], 'debug Max Iterations: 0');
     }
 }
