@@ -18,7 +18,6 @@ namespace Queue\Test\TestCase\Command;
 
 use Cake\Core\Configure;
 use Cake\Log\Log;
-use Cake\Queue\QueueManager;
 use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use TestApp\WelcomeMailerListener;
