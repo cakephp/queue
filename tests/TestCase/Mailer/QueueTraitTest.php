@@ -20,6 +20,7 @@ use Cake\Mailer\Exception\MissingActionException;
 use Cake\Queue\Mailer\QueueTrait;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
+use TestApp\WelcomeMailer;
 
 class QueueTraitTest extends TestCase
 {
@@ -31,21 +32,9 @@ class QueueTraitTest extends TestCase
      */
     public function testQueueTraitTestThrowsMissingActionException()
     {
-        $queue = $this->getMockForTrait(
-            QueueTrait::class,
-            [],
-            'GenericMailer',
-            true,
-            true,
-            true,
-            ['getName']
-        );
-
-        try {
-            $queue->push('nonExistentFunction');
-        } catch (MissingActionException $e) {
-            $this->assertInstanceOf(MissingActionException::class, $e);
-        }
+        $queue = new WelcomeMailer();
+        $this->expectException(MissingActionException::class);
+        $queue->push('nonExistentFunction');
     }
 
     /**
@@ -55,21 +44,12 @@ class QueueTraitTest extends TestCase
      */
     public function testQueueTraitCallsPush()
     {
-        $queue = $this->getMockForTrait(
-            QueueTrait::class,
-            [],
-            'GenericMailer',
-            true,
-            true,
-            true,
-            ['getName']
-        );
-
+        $queue = new WelcomeMailer();
         QueueManager::setConfig('default', [
             'queue' => 'default',
             'url' => 'null:',
         ]);
 
-        $this->assertEmpty($queue->push('push'));
+        $this->assertEmpty($queue->push('welcome'));
     }
 }
