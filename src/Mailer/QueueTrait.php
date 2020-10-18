@@ -17,8 +17,8 @@ declare(strict_types=1);
 namespace Cake\Queue\Mailer;
 
 use Cake\Mailer\Exception\MissingActionException;
-use Queue\Job\MailerJob;
-use Queue\QueueManager;
+use Cake\Queue\Job\MailerJob;
+use Cake\Queue\QueueManager;
 
 /**
  * Provides functionality for queuing actions from mailer classes.
