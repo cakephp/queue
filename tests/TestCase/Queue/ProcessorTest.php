@@ -23,6 +23,7 @@ use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
+use Exception;
 use Interop\Queue\Processor as InteropProcessor;
 
 class ProcessorTest extends TestCase
@@ -130,6 +131,44 @@ class ProcessorTest extends TestCase
     }
 
     /**
+     * When processMessage() throws an exception, test that
+     * requeue will return.
+     *
+     * @return void
+     */
+    public function testProcessWillRequeueOnException()
+    {
+        $method = 'processReturnNull';
+        $messageBody = [
+            'queue' => 'default',
+            'class' => [static::class, $method],
+            'args' => [
+                [
+                    'data' => ['sample_data' => 'a value', 'key' => md5($method)],
+                ],
+            ],
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $queueMessage = new NullMessage(json_encode($messageBody));
+
+        $events = new EventList();
+        $logger = new ArrayLog();
+        $processor = $this->getMockBuilder(Processor::class)
+            ->setConstructorArgs([$logger])
+            ->setMethods(['processMessage'])
+            ->getMock();
+        $processor->method('processMessage')->willThrowException(new Exception);
+        $processor->getEventManager()->setEventList($events);
+
+        $actual = $processor->process($queueMessage, $context);
+
+        $expected = InteropProcessor::REQUEUE;
+        $this->assertSame($expected, $actual);
+    }
+
+
+    /**
      * Test processMessage method.
      *
      * @return void
@@ -156,7 +195,7 @@ class ProcessorTest extends TestCase
     /**
      * Job to be used in test testProcessMessageCallableIsString
      *
-     * @param \Queue\Queue\Message $message The message to process
+     * @param \Cake\Queue\Job\Message $message The message to process
      * @return null
      */
     public static function processReturnNull(Message $message)
@@ -169,7 +208,7 @@ class ProcessorTest extends TestCase
     /**
      * Job to be used in test testProcessMessageCallableIsString
      *
-     * @param \Queue\Queue\Message $message The message to process
+     * @param \Cake\Queue\Job\Message $message The message to process
      * @return null
      */
     public static function processReturnReject(Message $message)
@@ -182,7 +221,7 @@ class ProcessorTest extends TestCase
     /**
      * Job to be used in test testProcessMessageCallableIsString
      *
-     * @param \Queue\Queue\Message $message The message to process
+     * @param \Cake\Queue\Job\Message $message The message to process
      * @return null
      */
     public static function processReturnAck(Message $message)
@@ -195,7 +234,7 @@ class ProcessorTest extends TestCase
     /**
      * Job to be used in test testProcessMessageCallableIsString
      *
-     * @param \Queue\Queue\Message $message The message to process
+     * @param \Cake\Queue\Job\Message $message The message to process
      * @return null
      */
     public static function processReturnRequeue(Message $message)
@@ -208,7 +247,7 @@ class ProcessorTest extends TestCase
     /**
      * Job to be used in test testProcessMessageCallableIsString
      *
-     * @param \Queue\Queue\Message $message The message to process
+     * @param \Cake\Queue\Job\Message $message The message to process
      * @return null
      */
     public static function processReturnString(Message $message)
