@@ -22,6 +22,7 @@ use Cake\TestSuite\TestCase;
 
 /**
  * Class WorkerCommandTest
+ *
  * @package Queue\Test\TestCase\Command
  */
 class WorkerCommandTest extends TestCase
@@ -45,6 +46,7 @@ class WorkerCommandTest extends TestCase
 
     /**
      * Test that queue will run for one second
+     *
      * @runInSeparateProcess
      */
     public function testQueueProcessesStart()
@@ -53,8 +55,8 @@ class WorkerCommandTest extends TestCase
                 'default' => [
                     'queue' => 'default',
                     'url' => 'null:',
-                ]
-            ]
+                ],
+            ],
         ]);
         $this->exec('worker --max-runtime=1');
         $this->assertEmpty($this->getActualOutput());
