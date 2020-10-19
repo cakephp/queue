@@ -168,7 +168,9 @@ class QueueManager
             !is_array($callable) ||
             (is_array($callable) && !class_exists($callable[0]))
         ) {
-            throw new InvalidArgumentException('Invalid callable provided. Please use either an array of `[classname, method]` or a string.');
+            throw new InvalidArgumentException(
+                'Invalid callable provided. Please use either an array of `[classname, method]` or a string.'
+            );
         }
         $options += [
             'config' => 'default',
