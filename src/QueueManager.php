@@ -151,10 +151,10 @@ class QueueManager
     /**
      * Push a single job onto the queue.
      *
-     * @param string|array $callable Either an array of [classname, method].
-     *   The class will be constructed by Queue\Processor and have the
-     *   named method invoked. Or a string to a statically callable
-     *   function.
+     * @param string|array $callable Either an array of [classname, method], or a string
+     *   to a statically callable function. When an array is used, the
+     *   class will be constructed by Queue\Processor and have the
+     *   named method invoked.
      * @param array $args An array of data to set for the job
      * @param array $options An array of options for publishing the job
      * @return void
