@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace Queue\Test\TestCase\Mailer;
 
 use Cake\Mailer\Exception\MissingActionException;
-use Cake\Queue\Mailer\QueueTrait;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
 use TestApp\WelcomeMailer;
