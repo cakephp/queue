@@ -19,7 +19,7 @@ namespace Cake\Queue\Job;
 interface JobInterface
 {
     /**
-     * Executes logic for {{ name }}Job
+     * Executes logic for Job
      *
      * @param \Cake\Queue\Job\Message $message job message
      * @return string

@@ -39,14 +39,14 @@ trait QueueTrait
     {
         if (!method_exists($this, $action)) {
             throw new MissingActionException([
-                'mailer' => $this->getName() . 'Mailer',
+                'mailer' => static::class,
                 'action' => $action,
             ]);
         }
 
         QueueManager::push([MailerJob::class, 'execute'], [
             'mailerConfig' => $options['mailerConfig'] ?? null,
-            'mailerName' => self::class,
+            'mailerName' => static::class,
             'action' => $action,
             'args' => $args,
             'headers' => $headers,

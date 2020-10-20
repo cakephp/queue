@@ -20,6 +20,7 @@ use BadMethodCallException;
 use Cake\Log\Log;
 use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
+use InvalidArgumentException;
 use LogicException;
 
 class QueueManager
@@ -150,13 +151,23 @@ class QueueManager
     /**
      * Push a single job onto the queue.
      *
-     * @param callable $callable  a job callable
-     * @param array $args         an array of data to set for the job
-     * @param array $options      an array of options for publishing the job
+     * @param string|string[] $callable Either an array of [classname, method], or a string
+     *   to a statically callable function. When an array is used, the
+     *   class will be constructed by Queue\Processor and have the
+     *   named method invoked.
+     * @param array $args An array of data to set for the job
+     * @param array $options An array of options for publishing the job
      * @return void
      */
-    public static function push(callable $callable, array $args = [], array $options = []): void
+    public static function push($callable, array $args = [], array $options = []): void
     {
+        // We can't use the callable type as it checks that the
+        // [class, method] is statically callable which won't be true.
+        if (is_array($callable) && !class_exists($callable[0])) {
+            throw new InvalidArgumentException(
+                'Invalid callable provided. Please use either an array of `[classname, method]` or a string.'
+            );
+        }
         $options += [
             'config' => 'default',
             'queue' => 'default',

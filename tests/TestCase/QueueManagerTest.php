@@ -82,4 +82,11 @@ class QueueManagerTest extends TestCase
 
         $this->assertSame($engine, QueueManager::engine('test'));
     }
+
+    public function testPushInvalidClass()
+    {
+        $this->expectException('\InvalidArgumentException');
+        $this->expectExceptionMessage('Invalid callable provided.');
+        QueueManager::push(['Nope', 'lol']);
+    }
 }
