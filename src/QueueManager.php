@@ -151,7 +151,7 @@ class QueueManager
     /**
      * Push a single job onto the queue.
      *
-     * @param string|array $callable Either an array of [classname, method], or a string
+     * @param string|string[] $callable Either an array of [classname, method], or a string
      *   to a statically callable function. When an array is used, the
      *   class will be constructed by Queue\Processor and have the
      *   named method invoked.
@@ -163,11 +163,7 @@ class QueueManager
     {
         // We can't use the callable type as it checks that the
         // [class, method] is statically callable which won't be true.
-        if (
-            !is_string($callable) &&
-            !is_array($callable) ||
-            (is_array($callable) && !class_exists($callable[0]))
-        ) {
+        if (is_array($callable) && !class_exists($callable[0])) {
             throw new InvalidArgumentException(
                 'Invalid callable provided. Please use either an array of `[classname, method]` or a string.'
             );
