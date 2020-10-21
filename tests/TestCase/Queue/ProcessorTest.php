@@ -138,7 +138,7 @@ class ProcessorTest extends TestCase
      */
     public function testProcessWillRequeueOnException()
     {
-        $method = 'processReturnNull';
+        $method = 'processAndThrowException';
         $messageBody = [
             'queue' => 'default',
             'class' => [static::class, $method],
@@ -154,11 +154,7 @@ class ProcessorTest extends TestCase
 
         $events = new EventList();
         $logger = new ArrayLog();
-        $processor = $this->getMockBuilder(Processor::class)
-            ->setConstructorArgs([$logger])
-            ->setMethods(['processMessage'])
-            ->getMock();
-        $processor->method('processMessage')->willThrowException(new Exception());
+        $processor = new Processor($logger);
         $processor->getEventManager()->setEventList($events);
 
         $actual = $processor->process($queueMessage, $context);
@@ -194,7 +190,7 @@ class ProcessorTest extends TestCase
     /**
      * Job to be used in test testProcessMessageCallableIsString
      *
-     * @param \Queue\Queue\Message $message The message to process
+     * @param Message $message The message to process
      * @return null
      */
     public static function processReturnNull(Message $message)
@@ -202,6 +198,18 @@ class ProcessorTest extends TestCase
         static::$lastProcessMessage = $message;
 
         return null;
+    }
+
+    /**
+     * Job to be used in test testProcessMessageCallableIsString
+     *
+     * @param Message $message The message to process
+     * @return null
+     * @throws Exception
+     */
+    public static function processAndThrowException(Message $message)
+    {
+        throw new Exception('Something went wrong');
     }
 
     /**
