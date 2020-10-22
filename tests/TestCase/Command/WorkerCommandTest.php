@@ -88,6 +88,27 @@ class WorkerCommandTest extends TestCase
      *
      * @runInSeparateProcess
      */
+    public function testQueueWillAbortWithMissingConfig()
+    {
+        Configure::write(['Queue' => [
+            'default' => [
+                'queue' => 'default',
+                'url' => 'null:',
+                'listener' => 'InvalidListener',
+            ],
+        ],
+        ]);
+
+        $this->exec('worker --config=invalid_config --max-runtime=1');
+        $this->assertErrorContains('Configuration key "invalid_config" was not found');
+    }
+
+
+    /**
+     * Test that queue will abort with invalid listener
+     *
+     * @runInSeparateProcess
+     */
     public function testQueueProcessesWithInvalidListener()
     {
         Configure::write(['Queue' => [

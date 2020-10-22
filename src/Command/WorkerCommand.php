@@ -124,9 +124,14 @@ class WorkerCommand extends Command
         $extension = $this->getQueueExtension($args, $logger);
 
         $config = $args->getOption('config');
-        $listenerClassName = Configure::read(sprintf('Queue.%s.listener', $config));
+        if (!Configure::check(sprintf('Queue.%s', $config))) {
+            $io->error(sprintf('Configuration key "%s" was not found', $config));
+            $this->abort();
+        }
 
-        if (!empty($listenerClassName)) {
+        $hasListener = Configure::check(sprintf('Queue.%s.listener', $config));
+        if ($hasListener) {
+            $listenerClassName = Configure::read(sprintf('Queue.%s.listener', $config));
             if (!class_exists($listenerClassName)) {
                 $io->error(sprintf('Listener class %s not found', $listenerClassName));
                 $this->abort();
