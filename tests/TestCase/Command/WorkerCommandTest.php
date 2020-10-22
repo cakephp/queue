@@ -103,7 +103,6 @@ class WorkerCommandTest extends TestCase
         $this->assertErrorContains('Configuration key "invalid_config" was not found');
     }
 
-
     /**
      * Test that queue will abort with invalid listener
      *
