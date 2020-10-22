@@ -77,6 +77,7 @@ class WorkerCommand extends Command
     /**
      * Creates and returns a QueueExtension object
      *
+     * @param \Cake\Console\Arguments $args Arguments
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
      * @return \Cake\Queue\Consumption\QueueExtension
      */
@@ -98,7 +99,7 @@ class WorkerCommand extends Command
     /**
      * Creates and returns a LoggerInterface object
      *
-     * @param Arguments $args
+     * @param \Cake\Console\Arguments $args Arguments
      * @return \Psr\Log\LoggerInterface
      */
     protected function getLogger(Arguments $args): LoggerInterface
@@ -112,8 +113,8 @@ class WorkerCommand extends Command
     }
 
     /**
-     * @param  Arguments  $args
-     * @param  ConsoleIo  $io
+     * @param \Cake\Console\Arguments $args Arguments
+     * @param \Cake\Console\ConsoleIo $io ConsoleIo
      * @return int|void|null
      */
     public function execute(Arguments $args, ConsoleIo $io)
