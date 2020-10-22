@@ -84,7 +84,7 @@ class WorkerCommandTest extends TestCase
     }
 
     /**
-     * Test that queue will abort with invalid listener
+     * Test that queue will abort when the passed config is not present in the app configuration.
      *
      * @runInSeparateProcess
      */
