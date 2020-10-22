@@ -14,23 +14,24 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Cake\Queue\Shell;
+namespace Cake\Queue\Command;
 
+use Cake\Command\Command;
+use Cake\Console\Arguments;
+use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
-use Cake\Console\Shell;
 use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Queue\Consumption\QueueExtension;
 use Cake\Queue\Queue\Processor;
 use Enqueue\SimpleClient\SimpleClient;
-use LogicException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * Worker shell command.
+ * Worker command.
  */
-class WorkerShell extends Shell
+class WorkerCommand extends Command
 {
     /**
      * Gets the option parser instance and configures it.
@@ -40,6 +41,7 @@ class WorkerShell extends Shell
     public function getOptionParser(): ConsoleOptionParser
     {
         $parser = parent::getOptionParser();
+
         $parser->addOption('config', [
             'default' => 'default',
             'help' => 'Name of a queue config to use',
@@ -78,10 +80,10 @@ class WorkerShell extends Shell
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
      * @return \Cake\Queue\Consumption\QueueExtension
      */
-    protected function getQueueExtension(LoggerInterface $logger): QueueExtension
+    protected function getQueueExtension(Arguments $args, LoggerInterface $logger): QueueExtension
     {
-        $maxIterations = $this->param('max-iterations');
-        $maxRuntime = $this->param('max-runtime');
+        $maxIterations = (int)$args->getOption('max-iterations');
+        $maxRuntime = (int)$args->getOption('max-runtime');
         if ($maxIterations === null) {
             $maxIterations = 0;
         }
@@ -96,45 +98,51 @@ class WorkerShell extends Shell
     /**
      * Creates and returns a LoggerInterface object
      *
+     * @param Arguments $args
      * @return \Psr\Log\LoggerInterface
      */
-    protected function getLogger(): LoggerInterface
+    protected function getLogger(Arguments $args): LoggerInterface
     {
         $logger = new NullLogger();
-        if (!empty($this->params['verbose'])) {
-            $logger = Log::engine($this->params['logger']);
+        if (!empty($args->getOption('verbose'))) {
+            $logger = Log::engine($args->getOption('logger'));
         }
 
         return $logger;
     }
 
     /**
-     * main() method.
-     *
-     * @return null
+     * @param  Arguments  $args
+     * @param  ConsoleIo  $io
+     * @return int|void|null
      */
-    public function main()
+    public function execute(Arguments $args, ConsoleIo $io)
     {
-        $logger = $this->getLogger();
+        $logger = $this->getLogger($args);
         $processor = new Processor($logger);
-        $extension = $this->getQueueExtension($logger);
+        $extension = $this->getQueueExtension($args, $logger);
 
-        $config = $this->params['config'];
-        if (!empty($config['listener'])) {
-            if (!class_exists($config['listener'])) {
-                throw new LogicException(sprintf('Listener class %s not found', $config['listener']));
+        $config = $args->getOption('config');
+        if (!Configure::check(sprintf('Queue.%s', $config))) {
+            $io->error(sprintf('Configuration key "%s" was not found', $config));
+            $this->abort();
+        }
+
+        $hasListener = Configure::check(sprintf('Queue.%s.listener', $config));
+        if ($hasListener) {
+            $listenerClassName = Configure::read(sprintf('Queue.%s.listener', $config));
+            if (!class_exists($listenerClassName)) {
+                $io->error(sprintf('Listener class %s not found', $listenerClassName));
+                $this->abort();
             }
 
-            $listener = new $config['listener']();
+            $listener = new $listenerClassName();
             $processor->getEventManager()->on($listener);
             $extension->getEventManager()->on($listener);
         }
-
         $url = Configure::read(sprintf('Queue.%s.url', $config));
         $client = new SimpleClient($url, $logger);
-        $client->bindTopic($this->params['queue'], $processor);
+        $client->bindTopic($args->getOption('queue'), $processor);
         $client->consume($extension);
-
-        return null;
     }
 }
