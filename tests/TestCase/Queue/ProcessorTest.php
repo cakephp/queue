@@ -23,6 +23,7 @@ use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
+use Exception;
 use Interop\Queue\Processor as InteropProcessor;
 
 class ProcessorTest extends TestCase
@@ -130,6 +131,39 @@ class ProcessorTest extends TestCase
     }
 
     /**
+     * When processMessage() throws an exception, test that
+     * requeue will return.
+     *
+     * @return void
+     */
+    public function testProcessWillRequeueOnException()
+    {
+        $method = 'processAndThrowException';
+        $messageBody = [
+            'queue' => 'default',
+            'class' => [static::class, $method],
+            'args' => [
+                [
+                    'data' => ['sample_data' => 'a value', 'key' => md5($method)],
+                ],
+            ],
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $queueMessage = new NullMessage(json_encode($messageBody));
+
+        $events = new EventList();
+        $logger = new ArrayLog();
+        $processor = new Processor($logger);
+        $processor->getEventManager()->setEventList($events);
+
+        $actual = $processor->process($queueMessage, $context);
+
+        $expected = InteropProcessor::REQUEUE;
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * Test processMessage method.
      *
      * @return void
@@ -156,7 +190,7 @@ class ProcessorTest extends TestCase
     /**
      * Job to be used in test testProcessMessageCallableIsString
      *
-     * @param \Queue\Queue\Message $message The message to process
+     * @param Message $message The message to process
      * @return null
      */
     public static function processReturnNull(Message $message)
@@ -164,6 +198,18 @@ class ProcessorTest extends TestCase
         static::$lastProcessMessage = $message;
 
         return null;
+    }
+
+    /**
+     * Job to be used in test testProcessMessageCallableIsString
+     *
+     * @param Message $message The message to process
+     * @return null
+     * @throws Exception
+     */
+    public static function processAndThrowException(Message $message)
+    {
+        throw new Exception('Something went wrong');
     }
 
     /**
