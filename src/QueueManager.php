@@ -155,8 +155,22 @@ class QueueManager
      *   to a statically callable function. When an array is used, the
      *   class will be constructed by Queue\Processor and have the
      *   named method invoked.
-     * @param array $args An array of data to set for the job
-     * @param array $options An array of options for publishing the job
+     * @param array $args An array of data to set for the job.
+     * @param array $options An array of options for publishing the job:
+     *   - `config` - A queue config name. Defaults to 'default'.
+     *   - `delay` - Time (in integer seconds) to delay message, after which it
+     *      will be processed. Not all message brokers accept this. Default `null`.
+     *   - `expires` - Time (in integer seconds) after which the message expires.
+     *     The message will be removed from the queue if this time is exceeded
+     *     and it has not been consumed. Default `null`.
+     *   - `priority` - Valid values:
+     *      - `\Enqueue\Client\MessagePriority::VERY_LOW`
+     *      - \Enqueue\Client\MessagePriority::LOW`
+     *      - `\Enqueue\Client\MessagePriority::NORMAL`
+     *      - `\Enqueue\Client\MessagePriority::HIGH`
+     *      - `\Enqueue\Client\MessagePriority::VERY_HIGH`
+     *   - `queue` - The name of a queue to use, from queue `config` array or
+     *      string 'default' if empty.
      * @return void
      */
     public static function push($callable, array $args = [], array $options = []): void
