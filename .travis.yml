@@ -28,7 +28,11 @@ script:
   - if [[ $DEFAULT == 1 && $TRAVIS_PHP_VERSION != 7.3 ]]; then vendor/bin/phpunit; fi
   - if [[ $DEFAULT == 1 && $TRAVIS_PHP_VERSION == 7.3 ]]; then vendor/bin/phpunit --coverage-clover=clover.xml; fi
 
-  - if [[ $STATIC_ANALYSIS == 1 ]]; then composer stan; fi
+  - |
+      if [[ $STATIC_ANALYSIS == 1 ]]; then
+        vendor/bin/phpstan analyse src/
+        vendor/bin/psalm.phar
+      fi
   - if [[ $PHPCS == 1 ]]; then composer cs-check; fi
 
 after_success:
