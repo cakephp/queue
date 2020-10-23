@@ -69,6 +69,8 @@ Create a Job class::
 
     <?php
     // src/Job/ExampleJob.php
+    declare(strict_types=1);
+
     namespace App\Job;
 
     use Cake\Log\LogTrait;
@@ -182,6 +184,8 @@ mailer class. The following example shows how to setup the trait within a mailer
 class::
 
     <?php
+    declare(strict_types=1);
+
     namespace App\Mailer;
 
     use Cake\Mailer\Mailer;
@@ -191,7 +195,7 @@ class::
     {
         use QueueTrait;
 
-        public function welcome($emailAddress, $username)
+        public function welcome(string $emailAddress, string $username): void
         {
             $this
                 ->setTo($emailAddress)
