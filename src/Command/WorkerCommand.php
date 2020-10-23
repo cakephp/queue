@@ -85,13 +85,6 @@ class WorkerCommand extends Command
     {
         $maxIterations = (int)$args->getOption('max-iterations');
         $maxRuntime = (int)$args->getOption('max-runtime');
-        if ($maxIterations === null) {
-            $maxIterations = 0;
-        }
-
-        if ($maxRuntime === null) {
-            $maxRuntime = 0;
-        }
 
         return new QueueExtension($maxIterations, $maxRuntime, $logger);
     }
@@ -104,12 +97,12 @@ class WorkerCommand extends Command
      */
     protected function getLogger(Arguments $args): LoggerInterface
     {
-        $logger = new NullLogger();
+        $logger = null;
         if (!empty($args->getOption('verbose'))) {
-            $logger = Log::engine($args->getOption('logger'));
+            $logger = Log::engine((string)$args->getOption('logger'));
         }
 
-        return $logger;
+        return $logger ?? new NullLogger();
     }
 
     /**
@@ -123,7 +116,7 @@ class WorkerCommand extends Command
         $processor = new Processor($logger);
         $extension = $this->getQueueExtension($args, $logger);
 
-        $config = $args->getOption('config');
+        $config = (string)$args->getOption('config');
         if (!Configure::check(sprintf('Queue.%s', $config))) {
             $io->error(sprintf('Configuration key "%s" was not found', $config));
             $this->abort();
@@ -137,13 +130,14 @@ class WorkerCommand extends Command
                 $this->abort();
             }
 
+            /** @var \Cake\Event\EventListenerInterface $listener */
             $listener = new $listenerClassName();
             $processor->getEventManager()->on($listener);
             $extension->getEventManager()->on($listener);
         }
         $url = Configure::read(sprintf('Queue.%s.url', $config));
         $client = new SimpleClient($url, $logger);
-        $client->bindTopic($args->getOption('queue'), $processor);
+        $client->bindTopic((string)$args->getOption('queue'), $processor);
         $client->consume($extension);
     }
 }
