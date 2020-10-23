@@ -35,9 +35,9 @@ the ``Application::bootstrap()`` function::
 Configuration
 =============
 
-The following configuration should be present in your **config/app.php**::
+The following configuration should be present in the config array of your **config/app.php**::
 
-    $config = [
+        // ...
         'Queue' => [
             'default' => [
                   // A DSN for your configured backend. default: null
@@ -53,8 +53,8 @@ The following configuration should be present in your **config/app.php**::
                   // The name of an event listener class to associate with the worker
                   'listener' => \App\Listener\WorkerListener::class,
             ]
-        ]
-    ];
+        ],
+        // ...
 
 The ``Queue`` config key can contain one or more queue configurations. Each of
 these is used for interacting with a different queuing backend.
