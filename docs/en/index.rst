@@ -218,14 +218,7 @@ a ``Processor:ACK``.
 The exposed ``QueueTrait::push()`` method has a similar signature to
 ``Mailer::send()``, and also supports an ``$options`` array argument. The
 options this array holds are the same options as those available for
-``QueueManager::push()``, and additionally supports the following:
-
-- ``emailClass``:
-
-  - default: ``Cake\Mailer\Email::class``
-  - description: The name of an email class to instantiate for use with the mailer
-  - type: string
-
+``QueueManager::push()``.
 
 Run the worker
 ==============
