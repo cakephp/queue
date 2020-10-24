@@ -18,8 +18,10 @@ namespace Queue\Test\TestCase\Command;
 
 use Cake\Core\Configure;
 use Cake\Log\Log;
+use Cake\Queue\QueueManager;
 use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
+use TestApp\WelcomeMailer;
 use TestApp\WelcomeMailerListener;
 
 /**
@@ -148,5 +150,40 @@ class WorkerCommandTest extends TestCase
         $this->assertIsArray($log->read());
         $this->assertNotEmpty($log->read());
         $this->assertEquals($log->read()[0], 'debug Max Iterations: 0');
+    }
+
+    /**
+     * Start up the worker queue, push a job, and see that it processes
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesJob()
+    {
+        Configure::write([
+            'Queue' => [
+                'default' => [
+                    'queue' => 'default',
+                    'url' => 'file:///' . TMP . DS . 'queue',
+                ],
+            ],
+        ]);
+
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        $this->exec('worker --max-runtime=3 --logger=debug --verbose');
+
+        $callable = [WelcomeMailer::class, 'welcome'];
+        $arguments = [];
+        $options = ['config' => 'default'];
+
+        QueueManager::push($callable, $arguments, $options);
+
+        $log = Log::engine('debug');
+        $this->assertIsArray($log->read());
+        $this->assertNotEmpty($log->read());
+        $this->assertContains('info Welcome mail sent', $log->read());
     }
 }
