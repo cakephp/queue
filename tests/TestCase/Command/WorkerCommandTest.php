@@ -184,6 +184,10 @@ class WorkerCommandTest extends TestCase
         $log = Log::engine('debug');
         $this->assertIsArray($log->read());
         $this->assertNotEmpty($log->read());
-        $this->assertContains('info Welcome mail sent', $log->read());
+        foreach ($log->read() as $line) {
+            if (stripos($line, 'Welcome mail sent') !== false) {
+                $this->assertTrue(true);
+            }
+        }
     }
 }
