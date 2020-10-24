@@ -35,9 +35,9 @@ the ``Application::bootstrap()`` function::
 Configuration
 =============
 
-The following configuration should be present in your **config/app.php**::
+The following configuration should be present in the config array of your **config/app.php**::
 
-    $config = [
+        // ...
         'Queue' => [
             'default' => [
                   // A DSN for your configured backend. default: null
@@ -53,8 +53,8 @@ The following configuration should be present in your **config/app.php**::
                   // The name of an event listener class to associate with the worker
                   'listener' => \App\Listener\WorkerListener::class,
             ]
-        ]
-    ];
+        ],
+        // ...
 
 The ``Queue`` config key can contain one or more queue configurations. Each of
 these is used for interacting with a different queuing backend.
@@ -69,6 +69,8 @@ Create a Job class::
 
     <?php
     // src/Job/ExampleJob.php
+    declare(strict_types=1);
+
     namespace App\Job;
 
     use Cake\Log\LogTrait;
@@ -182,6 +184,8 @@ mailer class. The following example shows how to setup the trait within a mailer
 class::
 
     <?php
+    declare(strict_types=1);
+
     namespace App\Mailer;
 
     use Cake\Mailer\Mailer;
@@ -191,7 +195,7 @@ class::
     {
         use QueueTrait;
 
-        public function welcome($emailAddress, $username)
+        public function welcome(string $emailAddress, string $username): void
         {
             $this
                 ->setTo($emailAddress)
@@ -218,14 +222,7 @@ a ``Processor:ACK``.
 The exposed ``QueueTrait::push()`` method has a similar signature to
 ``Mailer::send()``, and also supports an ``$options`` array argument. The
 options this array holds are the same options as those available for
-``QueueManager::push()``, and additionally supports the following:
-
-- ``emailClass``:
-
-  - default: ``Cake\Mailer\Email::class``
-  - description: The name of an email class to instantiate for use with the mailer
-  - type: string
-
+``QueueManager::push()``.
 
 Run the worker
 ==============
