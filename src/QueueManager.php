@@ -165,7 +165,7 @@ class QueueManager
      *     and it has not been consumed. Default `null`.
      *   - `priority` - Valid values:
      *      - `\Enqueue\Client\MessagePriority::VERY_LOW`
-     *      - \Enqueue\Client\MessagePriority::LOW`
+     *      - `\Enqueue\Client\MessagePriority::LOW`
      *      - `\Enqueue\Client\MessagePriority::NORMAL`
      *      - `\Enqueue\Client\MessagePriority::HIGH`
      *      - `\Enqueue\Client\MessagePriority::VERY_HIGH`
