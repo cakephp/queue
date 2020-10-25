@@ -24,6 +24,7 @@ install:
       if [[ $TRAVIS_PHP_VERSION == 'nightly' ]]; then
         composer install --no-interaction --ignore-platform-reqs
       elif [[ $STATIC_ANALYSIS == 1 ]]; then
+        composer install
         composer stan-setup
       else
         composer install
