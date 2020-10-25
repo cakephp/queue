@@ -25,7 +25,8 @@
     "require-dev": {
         "cakephp/cakephp-codesniffer": "^4.0",
         "phpunit/phpunit": "^8.5 || ^9.3",
-        "cakephp/bake": "^2.0"
+        "cakephp/bake": "^2.0",
+        "enqueue/fs": "^0.9"
     },
     "autoload": {
         "psr-4": {
