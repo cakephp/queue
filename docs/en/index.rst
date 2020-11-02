@@ -189,7 +189,7 @@ class::
     namespace App\Mailer;
 
     use Cake\Mailer\Mailer;
-    use Cake\Queue\Queue\QueueTrait;
+    use Cake\Queue\Mailer\QueueTrait;
 
     class UserMailer extends Mailer
     {
