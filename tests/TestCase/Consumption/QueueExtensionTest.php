@@ -16,25 +16,16 @@ declare(strict_types=1);
  */
 namespace Queue\Test\TestCase\Consumption;
 
-use Cake\Core\Configure;
-use Cake\Event\Event;
 use Cake\Event\EventList;
-use Cake\Log\Log;
 use Cake\Queue\Consumption\QueueExtension;
-use Cake\Queue\Job\Message;
-use Cake\Queue\QueueManager;
-use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use Enqueue\Consumption\Context\PostMessageReceived;
 use Enqueue\Consumption\Result;
 use Enqueue\Null\NullConnectionFactory;
-use Enqueue\Null\NullContext;
 use Enqueue\Null\NullMessage;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Psr\Log\Test\TestLogger;
-use TestApp\WelcomeMailer;
-use TestApp\WelcomeMailerListener;
 
 /**
  * Class QueueExtensionTest
