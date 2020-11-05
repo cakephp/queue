@@ -34,7 +34,6 @@ use Psr\Log\Test\TestLogger;
  */
 class QueueExtensionTest extends TestCase
 {
-
     /**
      * Test onPostMessageReceived would return void when result has a reason
      */
