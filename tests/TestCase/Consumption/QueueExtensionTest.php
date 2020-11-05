@@ -29,8 +29,6 @@ use Psr\Log\Test\TestLogger;
 
 /**
  * Class QueueExtensionTest
- *
- * @package Queue\Test\TestCase\Consumption
  */
 class QueueExtensionTest extends TestCase
 {
