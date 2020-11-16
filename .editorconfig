@@ -15,4 +15,4 @@ trim_trailing_whitespace = true
 indent_size = 2
 
 [*.neon]
-indent_size = 2
+indent_style = tab
