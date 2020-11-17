@@ -14,7 +14,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Queue\Test\TestCase\Queue;
+namespace Cake\Queue\Test\TestCase\Queue;
 
 use Cake\Event\EventList;
 use Cake\Log\Engine\ArrayLog;

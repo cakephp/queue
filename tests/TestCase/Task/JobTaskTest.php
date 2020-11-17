@@ -14,7 +14,7 @@ declare(strict_types=1);
  * @since 0.1.0
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Queue\Test\TestCase\Task;
+namespace Cake\Queue\Test\TestCase\Task;
 
 use Cake\Command\Command;
 use Cake\Queue\QueueManager;
