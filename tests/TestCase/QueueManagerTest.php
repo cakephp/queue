@@ -14,7 +14,7 @@ declare(strict_types=1);
  * @since 0.1.0
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Queue\Test\TestCase;
+namespace Cake\Queue\Test\TestCase;
 
 use BadMethodCallException;
 use Cake\Log\Log;
