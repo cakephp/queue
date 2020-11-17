@@ -16,9 +16,11 @@ declare(strict_types=1);
  */
 namespace Cake\Queue;
 
+use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
 use Cake\Core\PluginApplicationInterface;
+use Cake\Queue\Command\WorkerCommand;
 
 /**
  * Plugin for Queue
@@ -33,6 +35,13 @@ class Plugin extends BasePlugin
     protected $name = 'Cake/Queue';
 
     /**
+     * Load routes or not
+     *
+     * @var bool
+     */
+    protected $routesEnabled = false;
+
+    /**
      * Load the Queue configuration
      *
      * @param \Cake\Core\PluginApplicationInterface $app The host application
@@ -41,5 +50,16 @@ class Plugin extends BasePlugin
     public function bootstrap(PluginApplicationInterface $app): void
     {
         QueueManager::setConfig(Configure::read('Queue'));
+    }
+
+    /**
+     * Add console commands for the plugin.
+     *
+     * @param \Cake\Console\CommandCollection $commands The command collection to update
+     * @return \Cake\Console\CommandCollection
+     */
+    public function console(CommandCollection $commands): CommandCollection
+    {
+        return $commands->add('worker', WorkerCommand::class);
     }
 }
