@@ -32,6 +32,14 @@ use Enqueue\Consumption\ExtensionInterface;
 use Enqueue\Consumption\Result;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Queue consumer extension
+ *
+ * Provides support for the max-iterations and max-runtime
+ * options. These options define how long (in seconds), or
+ * how many messages a consumer should process before
+ * restarting its connection.
+ */
 class QueueExtension implements ExtensionInterface
 {
     use EventDispatcherTrait;
