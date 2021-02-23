@@ -52,6 +52,11 @@ class WorkerCommand extends Command
             'help' => 'Name of queue to bind to',
             'short' => 'Q',
         ]);
+        $parser->addOption('processor', [
+            'help' => 'Name of processor to bind to',
+            'default' => null,
+            'short' => 'p',
+        ]);
         $parser->addOption('logger', [
             'help' => 'Name of a configured logger',
             'default' => 'stdout',
@@ -114,6 +119,7 @@ class WorkerCommand extends Command
     {
         $logger = $this->getLogger($args);
         $processor = new Processor($logger);
+        $processorName = (string)$args->getOption('processor');
         $extension = $this->getQueueExtension($args, $logger);
 
         $config = (string)$args->getOption('config');
@@ -137,7 +143,7 @@ class WorkerCommand extends Command
         }
         $url = Configure::read(sprintf('Queue.%s.url', $config));
         $client = new SimpleClient($url, $logger);
-        $client->bindTopic((string)$args->getOption('queue'), $processor);
+        $client->bindTopic((string)$args->getOption('queue'), $processor, $processorName);
         $client->consume($extension);
     }
 }

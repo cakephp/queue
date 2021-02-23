@@ -86,6 +86,24 @@ class WorkerCommandTest extends TestCase
     }
 
     /**
+     * Test that queue will run by setting the processor name
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesWithProcessor()
+    {
+        Configure::write(['Queue' => [
+            'default' => [
+                'queue' => 'default',
+                'url' => 'null:',
+            ],
+        ],
+        ]);
+        $this->exec('worker --max-runtime=1 --processor=processor-name');
+        $this->assertEmpty($this->getActualOutput());
+    }
+
+    /**
      * Test that queue will abort when the passed config is not present in the app configuration.
      *
      * @runInSeparateProcess
@@ -174,6 +192,45 @@ class WorkerCommandTest extends TestCase
         ]);
 
         $this->exec('worker --max-runtime=3 --logger=debug --verbose');
+
+        $callable = [WelcomeMailer::class, 'welcome'];
+        $arguments = [];
+        $options = ['config' => 'default'];
+
+        QueueManager::push($callable, $arguments, $options);
+
+        $log = Log::engine('debug');
+        $this->assertIsArray($log->read());
+        $this->assertNotEmpty($log->read());
+        foreach ($log->read() as $line) {
+            if (stripos($line, 'Welcome mail sent') !== false) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
+    /**
+     * Set the processor name, Start up the worker queue, push a job, and see that it processes
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesJobWithProcessor()
+    {
+        Configure::write([
+            'Queue' => [
+                'default' => [
+                    'queue' => 'default',
+                    'url' => 'file:///' . TMP . DS . 'queue',
+                ],
+            ],
+        ]);
+
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        $this->exec('worker --max-runtime=3 --processor=processor-name --logger=debug --verbose');
 
         $callable = [WelcomeMailer::class, 'welcome'];
         $arguments = [];
