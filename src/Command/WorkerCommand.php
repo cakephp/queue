@@ -119,7 +119,6 @@ class WorkerCommand extends Command
     {
         $logger = $this->getLogger($args);
         $processor = new Processor($logger);
-        $processorName = (string)$args->getOption('processor');
         $extension = $this->getQueueExtension($args, $logger);
 
         $config = (string)$args->getOption('config');
@@ -143,7 +142,7 @@ class WorkerCommand extends Command
         }
         $url = Configure::read(sprintf('Queue.%s.url', $config));
         $client = new SimpleClient($url, $logger);
-        $client->bindTopic((string)$args->getOption('queue'), $processor, $processorName);
+        $client->bindTopic((string)$args->getOption('queue'), $processor, $args->getOption('processor'));
         $client->consume($extension);
     }
 }
