@@ -86,24 +86,6 @@ class WorkerCommandTest extends TestCase
     }
 
     /**
-     * Test that queue will run by setting the processor name
-     *
-     * @runInSeparateProcess
-     */
-    public function testQueueProcessesWithProcessor()
-    {
-        Configure::write(['Queue' => [
-            'default' => [
-                'queue' => 'default',
-                'url' => 'null:',
-            ],
-        ],
-        ]);
-        $this->exec('worker --max-runtime=1 --processor=processor-name');
-        $this->assertEmpty($this->getActualOutput());
-    }
-
-    /**
      * Test that queue will abort when the passed config is not present in the app configuration.
      *
      * @runInSeparateProcess
