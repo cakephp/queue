@@ -237,6 +237,7 @@ This shell can take a few different options:
 
 - ``--config`` (default: default): Name of a queue config to use
 - ``--queue`` (default: default): Name of queue to bind to
+- ``--processor`` (default: ``null``): Name of processor to bind to
 - ``--logger`` (default: ``stdout``): Name of a configured logger
 - ``--max-iterations`` (default: ``null``): Number of max iterations to run
 - ``--max-runtime`` (default: ``null``): Seconds for max runtime
