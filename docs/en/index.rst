@@ -75,6 +75,7 @@ Create a Job class::
 
     use Cake\Log\LogTrait;
     use Cake\Queue\Job\Message;
+    use Cake\Queue\Job\JobInterface;
     use Interop\Queue\Processor;
 
     class ExampleJob implements JobInterface
