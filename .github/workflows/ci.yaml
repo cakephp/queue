@@ -27,7 +27,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        extensions: mbstring, intl, pdo_${{ matrix.db-type }}
+        extensions: mbstring, intl
         coverage: pcov
 
     - name: Get composer cache directory
@@ -61,7 +61,7 @@ jobs:
         fi
 
     - name: Code Coverage Report
-      if: success() && matrix.php-version == '7.4'
+      if: matrix.php-version == '7.4'
       uses: codecov/codecov-action@v1
 
   cs-stan:
