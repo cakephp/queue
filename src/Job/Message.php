@@ -98,14 +98,13 @@ class Message implements JsonSerializable
         $target = $this->parsedBody['class'] ?? null;
 
         $callable = null;
-        if (is_array($target) && count($target) == 2) {
+        if (is_array($target) && count($target) === 2) {
             $instance = new $target[0]();
             $callable = Closure::fromCallable([$instance, $target[1]]);
         } elseif (is_string($target)) {
             /** @psalm-suppress InvalidArgument */
             $callable = Closure::fromCallable($target);
-        }
-        if (!isset($callable)) {
+        } else {
             throw new RuntimeException(sprintf('Could not create callable from `%s`', json_encode($target)));
         }
         $this->callable = $callable;
