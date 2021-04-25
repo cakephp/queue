@@ -340,6 +340,7 @@ class ProcessorTest extends TestCase
         $context = $connectionFactory->createContext();
         $queueMessage = new NullMessage(json_encode($messageBody));
         $message = new Message($queueMessage, $context);
+        static::$lastProcessMessage = null;
         $processor = new Processor();
         $actual = $processor->processMessage($message);
         $this->assertSame($expected, $actual);
