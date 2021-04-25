@@ -17,8 +17,8 @@ declare(strict_types=1);
 namespace Cake\Queue\Test\TestCase\Queue;
 
 use Cake\Event\EventList;
-use Cake\Log\Log;
 use Cake\Log\Engine\ArrayLog;
+use Cake\Log\Log;
 use Cake\Queue\Job\Message;
 use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
