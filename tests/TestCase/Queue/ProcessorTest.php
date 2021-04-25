@@ -202,7 +202,6 @@ class ProcessorTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
-
     /**
      * Test processMessage method.
      *
