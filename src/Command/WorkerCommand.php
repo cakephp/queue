@@ -144,7 +144,7 @@ class WorkerCommand extends Command
             $extension->getEventManager()->on($listener);
         }
         $config = Configure::read(sprintf('Queue.%s', $config));
-        
+
         $simpleClientConfig = new SimpleClientConfig((string)$args->getOption('queue'), $config);
 
         $client = new SimpleClient($simpleClientConfig->get(), $logger);

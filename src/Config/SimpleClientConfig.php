@@ -1,27 +1,51 @@
 <?php
+
 namespace Cake\Queue\Config;
 
 class SimpleClientConfig
-
 {
-
     private $simpleClientConfig = [];
 
+    private $queue = 'default';
 
-    public function __construct($queue, $config)
+    /**
+     * __construct
+     *
+     * @param  mixed $queue
+     * @param  mixed $config
+     * @return void
+     */
+    public function __construct(string $queue, array $config)
     {
-
-        $this->createConfig($queue, $config);
+        $this->create($queue, $config);
     }
 
-    public function get()
+    /**
+     * get
+     * return the SimpleClientConfig array
+     * @return array
+     */
+    public function get(): array
     {
         return $this->simpleClientConfig;
     }
-    public function createConfig($queue, $config)
-    {
 
-        $queue = $queue !== 'default' ? $queue : $config['queue'];
+    public function getQueue(): string
+    {
+        return $this->queue;
+    }
+
+    /**
+     * create
+     * Creates the config array to pass to SimpleClient(...)
+     * 
+     * @param  mixed $queue
+     * @param  mixed $config
+     * @return void
+     */
+    public function create($queue, $config)
+    {
+        $this->queue = $queue !== 'default' ? $queue : $config['queue'];
 
         $this->simpleClientConfig = [
             'transport' => $config['url'],
@@ -30,14 +54,14 @@ class SimpleClientConfig
                 'prefix'                   => 'enqueue',
                 'separator'                => '.',
                 'app_name'                 => 'app',
-                'router_topic'             =>   $queue,
-                'router_queue'             =>   $queue,
-                'default_queue'            =>   $queue,
+                'router_topic'             =>   $this->queue,
+                'router_queue'             =>   $this->queue,
+                'default_queue'            =>   $this->queue,
             ],
             'extensions' => [
                 'signal_extension' => false,
                 'reply_extension' => false,
-            ]
+            ],
         ];
     }
 }
