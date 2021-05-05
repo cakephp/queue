@@ -18,6 +18,7 @@ namespace Cake\Queue;
 
 use BadMethodCallException;
 use Cake\Log\Log;
+use Cake\Queue\Config\SimpleClientConfig;
 use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
 use InvalidArgumentException;
@@ -141,8 +142,11 @@ class QueueManager
         ];
 
         $logger = $config['logger'] ? Log::engine($config['logger']) : null;
+        
+        $simpleClientConfig = new SimpleClientConfig($config['queue'], $config);
 
-        static::$_clients[$name] = new SimpleClient($config['url'], $logger);
+
+        static::$_clients[$name] = new SimpleClient( $simpleClientConfig, $logger);
         static::$_clients[$name]->setupBroker();
 
         return static::$_clients[$name];

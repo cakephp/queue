@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -14,6 +15,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
+
 namespace Cake\Queue\Command;
 
 use Cake\Command\Command;
@@ -22,6 +24,7 @@ use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
 use Cake\Log\Log;
+use Cake\Queue\Config\SimpleClientConfig;
 use Cake\Queue\Consumption\QueueExtension;
 use Cake\Queue\Queue\Processor;
 use Enqueue\SimpleClient\SimpleClient;
@@ -140,10 +143,13 @@ class WorkerCommand extends Command
             $processor->getEventManager()->on($listener);
             $extension->getEventManager()->on($listener);
         }
-        $url = Configure::read(sprintf('Queue.%s.url', $config));
-        $client = new SimpleClient($url, $logger);
+        $config = Configure::read(sprintf('Queue.%s', $config));
+        
+        $simpleClientConfig = new SimpleClientConfig((string)$args->getOption('queue'), $config);
+
+        $client = new SimpleClient($simpleClientConfig, $logger);
         /** @psalm-suppress InvalidArgument */
-        $client->bindTopic((string)$args->getOption('queue'), $processor, $args->getOption('processor'));
+        $client->bindTopic($simpleClientConfig['queue'], $processor, $args->getOption('processor'));
         $client->consume($extension);
     }
 }
