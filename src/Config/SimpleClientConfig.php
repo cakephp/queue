@@ -23,7 +23,7 @@ class SimpleClientConfig
     /**
      * get
      * return the SimpleClientConfig array
-     * 
+     *
      * @return array
      */
     public function get(): array
@@ -46,7 +46,7 @@ class SimpleClientConfig
      * create
      * Creates the config array to pass to SimpleClient(...)
      *
-     * @param  mixed $queue queue name 
+     * @param  mixed $queue queue name
      * @param  mixed $config the Queue.configname array
      * @return void
      */
