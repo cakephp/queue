@@ -145,11 +145,11 @@ class WorkerCommand extends Command
         }
         $config = Configure::read(sprintf('Queue.%s', $config));
         
-        $simpleClientConfig = (new SimpleClientConfig((string)$args->getOption('queue'), $config))->get();
+        $simpleClientConfig = new SimpleClientConfig((string)$args->getOption('queue'), $config);
 
-        $client = new SimpleClient($simpleClientConfig, $logger);
+        $client = new SimpleClient($simpleClientConfig->get(), $logger);
         /** @psalm-suppress InvalidArgument */
-        $client->bindTopic($simpleClientConfig['queue'], $processor, $args->getOption('processor'));
+        $client->bindTopic($simpleClientConfig->getQueue(), $processor, $args->getOption('processor'));
         $client->consume($extension);
     }
 }

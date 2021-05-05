@@ -142,8 +142,8 @@ class QueueManager
         ];
 
         $logger = $config['logger'] ? Log::engine($config['logger']) : null;
-        
-        $simpleClientConfig = (new SimpleClientConfig((string)$args->getOption('queue'), $config))->get();
+
+        $simpleClientConfig = (new SimpleClientConfig($config['queue'], $config))->get();
 
 
         static::$_clients[$name] = new SimpleClient( $simpleClientConfig, $logger);
