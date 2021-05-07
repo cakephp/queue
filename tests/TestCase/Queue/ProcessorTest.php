@@ -18,6 +18,7 @@ namespace Cake\Queue\Test\TestCase\Queue;
 
 use Cake\Event\EventList;
 use Cake\Log\Engine\ArrayLog;
+use Cake\Log\Log;
 use Cake\Queue\Job\Message;
 use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
@@ -84,11 +85,16 @@ class ProcessorTest extends TestCase
         $this->assertSame('Processor.message.seen', $events[0]->getName());
         $this->assertEquals(['queueMessage' => $queueMessage], $events[0]->getData());
 
+        // Events should contain a message with the same payload.
         $this->assertSame('Processor.message.start', $events[1]->getName());
-        $this->assertEquals(['message' => $message], $events[1]->getData());
+        $data = $events[1]->getData();
+        $this->assertArrayHasKey('message', $data);
+        $this->assertSame($message->jsonSerialize(), $data['message']->jsonSerialize());
 
         $this->assertSame($dispatchedEvent, $events[2]->getName());
-        $this->assertEquals(['message' => $message], $events[2]->getData());
+        $data = $events[2]->getData();
+        $this->assertArrayHasKey('message', $data);
+        $this->assertSame($message->jsonSerialize(), $data['message']->jsonSerialize());
     }
 
     /**
@@ -164,6 +170,39 @@ class ProcessorTest extends TestCase
     }
 
     /**
+     * Test processJobMessage method.
+     *
+     * @return void
+     */
+    public function testProcessJobObject()
+    {
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        $messageBody = [
+            'queue' => 'default',
+            'class' => ['TestApp\WelcomeMailer', 'welcome'],
+            'args' => [],
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $queueMessage = new NullMessage(json_encode($messageBody));
+        $processor = new Processor();
+
+        $actual = $processor->process($queueMessage, $context);
+        $logs = Log::engine('debug')->read();
+        Log::drop('debug');
+
+        $this->assertCount(1, $logs);
+        $this->assertStringContainsString('Welcome mail sent', $logs[0]);
+
+        $expected = InteropProcessor::ACK;
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * Test processMessage method.
      *
      * @return void
@@ -190,7 +229,7 @@ class ProcessorTest extends TestCase
     /**
      * Job to be used in test testProcessMessageCallableIsString
      *
-     * @param Message $message The message to process
+     * @param \Cake\Queue\Job\Message $message The message to process
      * @return null
      */
     public static function processReturnNull(Message $message)

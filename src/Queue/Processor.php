@@ -19,12 +19,14 @@ namespace Cake\Queue\Queue;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Log\LogTrait;
 use Cake\Queue\Job\Message;
+use Error;
 use Exception;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 class Processor implements InteropProcessor
 {
@@ -58,7 +60,9 @@ class Processor implements InteropProcessor
         $this->dispatchEvent('Processor.message.seen', ['queueMessage' => $message]);
 
         $jobMessage = new Message($message, $context);
-        if (!is_callable($jobMessage->getCallable())) {
+        try {
+            $jobMessage->getCallable();
+        } catch (RuntimeException | Error $e) {
             $this->logger->debug('Invalid callable for message. Rejecting message from queue.');
             $this->dispatchEvent('Processor.message.invalid', ['message' => $jobMessage]);
 
@@ -106,18 +110,7 @@ class Processor implements InteropProcessor
     public function processMessage(Message $message)
     {
         $callable = $message->getCallable();
-
-        $response = InteropProcessor::REQUEUE;
-        if (is_array($callable) && count($callable) == 2) {
-            $className = $callable[0];
-            $methodName = $callable[1];
-            $instance = new $className();
-            $response = $instance->$methodName($message);
-        } elseif (is_string($callable)) {
-            /** @psalm-suppress InvalidArgument */
-            $response = call_user_func($callable, $message);
-        }
-
+        $response = $callable($message);
         if ($response === null) {
             $response = InteropProcessor::ACK;
         }

@@ -17,9 +17,11 @@ declare(strict_types=1);
 namespace Cake\Queue\Job;
 
 use Cake\Utility\Hash;
+use Closure;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
 use JsonSerializable;
+use RuntimeException;
 
 class Message implements JsonSerializable
 {
@@ -37,6 +39,11 @@ class Message implements JsonSerializable
      * @var array
      */
     protected $parsedBody;
+
+    /**
+     * @var \Closure|null
+     */
+    protected $callable;
 
     /**
      * @param \Interop\Queue\Message $originalMessage Queue message.
@@ -74,11 +81,35 @@ class Message implements JsonSerializable
     }
 
     /**
-     * @return mixed
+     * Get a closure containing the callable in the job.
+     *
+     * Supported callables include:
+     *
+     * - strings for global functions, or static method names.
+     * - array of [class, method]. The class will be constructed with no constructor parameters.
+     *
+     * @return \Closure
      */
     public function getCallable()
     {
-        return $this->parsedBody['class'] ?? null;
+        if ($this->callable) {
+            return $this->callable;
+        }
+        $target = $this->parsedBody['class'] ?? null;
+
+        $callable = null;
+        if (is_array($target) && count($target) === 2) {
+            $instance = new $target[0]();
+            $callable = Closure::fromCallable([$instance, $target[1]]);
+        } elseif (is_string($target)) {
+            /** @psalm-suppress InvalidArgument */
+            $callable = Closure::fromCallable($target);
+        } else {
+            throw new RuntimeException(sprintf('Could not create callable from `%s`', json_encode($target)));
+        }
+        $this->callable = $callable;
+
+        return $this->callable;
     }
 
     /**
