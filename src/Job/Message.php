@@ -41,7 +41,7 @@ class Message implements JsonSerializable
     protected $parsedBody;
 
     /**
-     * @var callable|null
+     * @var \Closure|null
      */
     protected $callable;
 
