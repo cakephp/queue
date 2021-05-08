@@ -17,41 +17,6 @@ class SimpleClientConfig
      */
     public function __construct(string $queue, array $config)
     {
-        $this->create($queue, $config);
-    }
-
-    /**
-     * get
-     * return the SimpleClientConfig array
-     *
-     * @return array
-     */
-    public function get(): array
-    {
-        return $this->simpleClientConfig;
-    }
-
-    /**
-     * getQueue
-     * Return the queue name
-     *
-     * @return string
-     */
-    public function getQueue(): string
-    {
-        return $this->queue;
-    }
-
-    /**
-     * create
-     * Creates the config array to pass to SimpleClient(...)
-     *
-     * @param  mixed $queue queue name
-     * @param  mixed $config the Queue.configname array
-     * @return void
-     */
-    public function create($queue, $config)
-    {
         $this->queue = $queue !== 'default' ? $queue : $config['queue'];
 
         $this->simpleClientConfig = [
@@ -71,4 +36,28 @@ class SimpleClientConfig
             ],
         ];
     }
+
+    /**
+     * get
+     * return the SimpleClientConfig array
+     *
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        return $this->simpleClientConfig;
+    }
+
+    /**
+     * getQueue
+     * Return the queue name
+     *
+     * @return string
+     */
+    public function getQueue(): string
+    {
+        return $this->queue;
+    }
+
+  
 }
