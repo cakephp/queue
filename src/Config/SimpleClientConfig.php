@@ -20,6 +20,8 @@ class SimpleClientConfig
      */
     public function __construct(string $queue, array $config)
     {
+        // if a different queue passed in from WorkerCommand then set to that
+        // otherwise take it from Queue.{configname}.queue
         $this->queue = $queue !== 'default' ? $queue : $config['queue'];
 
         $this->simpleClientConfig = $config['useConfigArray'] ? $this->buildConfig($config) : $config['url'];

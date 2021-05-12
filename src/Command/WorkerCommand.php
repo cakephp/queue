@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 /**
@@ -148,7 +147,7 @@ class WorkerCommand extends Command
         $simpleClientConfig = new SimpleClientConfig((string)$args->getOption('queue'), $config);
 
         $client = new SimpleClient($simpleClientConfig->getConfig(), $logger);
-        
+
         /** @psalm-suppress InvalidArgument */
         $client->bindTopic($simpleClientConfig->getQueue(), $processor, $args->getOption('processor'));
         $client->consume($extension);
