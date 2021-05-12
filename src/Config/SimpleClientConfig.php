@@ -1,49 +1,58 @@
 <?php
+declare(strict_types=1);
 
 namespace Cake\Queue\Config;
 
 class SimpleClientConfig
 {
-    private $simpleClientConfig = [];
+    private $simpleClientConfig;
 
     private $queue = 'default';
 
     /**
      * __construct
      *
-     * @param  mixed $queue the name of the queue drawn from Queue.default.queue or worker -Q queuename
-     * @param  mixed $config the Queue.{configname} array where {configname} is the config name i.e. default
+     * @param  string $queue The name of the queue drawn from Queue.{configname}.queue
+     * (where {configname} is the configuration name)
+     * or bin/cake worker -Q queuename
+     * @param  mixed $config the Queue.{configname} array
      * @return void
      */
     public function __construct(string $queue, array $config)
     {
         $this->queue = $queue !== 'default' ? $queue : $config['queue'];
 
-        $this->simpleClientConfig = [
+        $this->simpleClientConfig = $config['useConfigArray'] ? $this->buildConfig($config) : $config['url'];
+    }
+
+    /**
+     * buildConfig
+     *
+     * @param  array $config The Queue.%s array
+     * @return array
+     */
+    private function buildConfig(array $config): array
+    {
+        $newConfig = array_replace_recursive($config['configArray'], [
             'transport' => $config['url'],
             'client' =>
             [
-                'prefix' => 'enqueue',
-                'separator' => '.',
-                'app_name' => 'app',
                 'router_topic' => $this->queue,
                 'router_queue' => $this->queue,
                 'default_queue' => $this->queue,
             ],
-            'extensions' => [
-                'signal_extension' => false,
-                'reply_extension' => false,
-            ],
-        ];
+        ]);
+
+        return $newConfig;
     }
 
     /**
      * get
      * return the SimpleClientConfig array
      *
-     * @return array
+     * @return mixed either the dsn string or a config array
      */
-    public function getConfig(): array
+    public function getConfig()
     {
         return $this->simpleClientConfig;
     }
@@ -58,6 +67,4 @@ class SimpleClientConfig
     {
         return $this->queue;
     }
-
-  
 }
