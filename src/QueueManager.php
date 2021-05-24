@@ -97,8 +97,8 @@ class QueueManager
         if (empty($config['url'])) {
             throw new BadMethodCallException('Must specify `url` key.');
         }
-        
-        if (isset($config['queue']) && !empty($config['queue'])) {
+
+        if (!empty($config['queue'])) {
             if (!is_array($config['url'])) {
                 $config['url'] = [
                     'transport' => $config['url'],
@@ -117,7 +117,7 @@ class QueueManager
                 ];
             }
         }
-        
+
         /** @psalm-suppress InvalidPropertyAssignmentValue */
         static::$_config[$key] = $config;
     }
