@@ -214,6 +214,39 @@ class WorkerCommandTest extends TestCase
         $this->assertDebugLogContains('Welcome mail sent');
     }
 
+    /**
+     * Test non-default queue name
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesJobWithOtherQueue()
+    {
+        $config = [
+            'queue' => 'other',
+            'url' => 'file:///' . TMP . DS . 'queue',
+        ];
+        Configure::write([
+            'Queue' => ['other' => $config],
+        ]);
+
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        $callable = [WelcomeMailer::class, 'welcome'];
+        $arguments = [];
+        $options = ['config' => 'other'];
+
+        QueueManager::setConfig('other', $config);
+        QueueManager::push($callable, $arguments, $options);
+        QueueManager::drop('other');
+
+        $this->exec('worker --config=other --max-runtime=3 --processor=processor-name --logger=debug --verbose');
+
+        $this->assertDebugLogContains('Welcome mail sent');
+    }
+
     protected function assertDebugLogContains($expected): void
     {
         $log = Log::engine('debug');
