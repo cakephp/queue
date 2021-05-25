@@ -141,7 +141,7 @@ class WorkerCommand extends Command
         }
         $url = Configure::read("Queue.{$config}.url");
         $client = new SimpleClient($url, $logger);
-        $queue = $args->getOption('queue') ?? Configure::read("Queue.{$config}.queue") ?? 'default';
+        $queue = $args->getOption('queue') ?? Configure::read("Queue.{$config}.queue", 'default');
 
         $client->bindTopic($queue, $processor, $args->getOption('processor'));
         $client->consume($extension);
