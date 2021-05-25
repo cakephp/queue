@@ -144,8 +144,9 @@ class WorkerCommand extends Command
         $queue = $args->getOption('queue')
             ? (string)$args->getOption('queue')
             : Configure::read("Queue.{$config}.queue", 'default');
+        $processorName = $args->getOption('processor') ? (string)$args->getOption('processor') : null;
 
-        $client->bindTopic($queue, $processor, $args->getOption('processor'));
+        $client->bindTopic($queue, $processor, $processorName);
         $client->consume($extension);
     }
 }
