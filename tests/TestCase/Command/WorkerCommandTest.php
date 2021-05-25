@@ -146,10 +146,7 @@ class WorkerCommandTest extends TestCase
         ]);
 
         $this->exec('worker --max-runtime=1 --logger=debug --verbose');
-        $log = Log::engine('debug');
-        $this->assertIsArray($log->read());
-        $this->assertNotEmpty($log->read());
-        $this->assertEquals($log->read()[0], 'debug Max Iterations: 0');
+        $this->assertDebugLogContains('debug Max Iterations: 0');
     }
 
     /**
@@ -159,13 +156,12 @@ class WorkerCommandTest extends TestCase
      */
     public function testQueueProcessesJob()
     {
+        $config = [
+            'queue' => 'default',
+            'url' => 'file:///' . TMP . DS . 'queue',
+        ];
         Configure::write([
-            'Queue' => [
-                'default' => [
-                    'queue' => 'default',
-                    'url' => 'file:///' . TMP . DS . 'queue',
-                ],
-            ],
+            'Queue' => ['default' => $config],
         ]);
 
         Log::setConfig('debug', [
@@ -173,22 +169,17 @@ class WorkerCommandTest extends TestCase
             'levels' => ['notice', 'info', 'debug'],
         ]);
 
-        $this->exec('worker --max-runtime=3 --logger=debug --verbose');
-
         $callable = [WelcomeMailer::class, 'welcome'];
         $arguments = [];
         $options = ['config' => 'default'];
 
+        QueueManager::setConfig('default', $config);
         QueueManager::push($callable, $arguments, $options);
+        QueueManager::drop('default');
 
-        $log = Log::engine('debug');
-        $this->assertIsArray($log->read());
-        $this->assertNotEmpty($log->read());
-        foreach ($log->read() as $line) {
-            if (stripos($line, 'Welcome mail sent') !== false) {
-                $this->assertTrue(true);
-            }
-        }
+        $this->exec('worker --max-runtime=3 --logger=debug --verbose');
+
+        $this->assertDebugLogContains('Welcome mail sent');
     }
 
     /**
@@ -198,35 +189,41 @@ class WorkerCommandTest extends TestCase
      */
     public function testQueueProcessesJobWithProcessor()
     {
+        $config = [
+            'queue' => 'default',
+            'url' => 'file:///' . TMP . DS . 'queue',
+        ];
         Configure::write([
-            'Queue' => [
-                'default' => [
-                    'queue' => 'default',
-                    'url' => 'file:///' . TMP . DS . 'queue',
-                ],
-            ],
+            'Queue' => ['default' => $config],
         ]);
-
         Log::setConfig('debug', [
             'className' => 'Array',
             'levels' => ['notice', 'info', 'debug'],
         ]);
 
-        $this->exec('worker --max-runtime=3 --processor=processor-name --logger=debug --verbose');
-
         $callable = [WelcomeMailer::class, 'welcome'];
         $arguments = [];
         $options = ['config' => 'default'];
 
+        QueueManager::setConfig('default', $config);
         QueueManager::push($callable, $arguments, $options);
+        QueueManager::drop('default');
 
+        $this->exec('worker --max-runtime=3 --processor=processor-name --logger=debug --verbose');
+
+        $this->assertDebugLogContains('Welcome mail sent');
+    }
+
+    protected function assertDebugLogContains($expected): void
+    {
         $log = Log::engine('debug');
-        $this->assertIsArray($log->read());
-        $this->assertNotEmpty($log->read());
+        $found = false;
         foreach ($log->read() as $line) {
-            if (stripos($line, 'Welcome mail sent') !== false) {
-                $this->assertTrue(true);
+            if (strpos($line, $expected) !== false) {
+                $found = true;
+                break;
             }
         }
+        $this->assertTrue($found, "Did not find `{$expected}` in logs.");
     }
 }
