@@ -48,8 +48,7 @@ class WorkerCommand extends Command
             'short' => 'c',
         ]);
         $parser->addOption('queue', [
-            'default' => 'default',
-            'help' => 'Name of queue to bind to',
+            'help' => 'Name of queue to bind to. Defaults to the queue config (--config).',
             'short' => 'Q',
         ]);
         $parser->addOption('processor', [
@@ -140,10 +139,14 @@ class WorkerCommand extends Command
             $processor->getEventManager()->on($listener);
             $extension->getEventManager()->on($listener);
         }
-        $url = Configure::read(sprintf('Queue.%s.url', $config));
+        $url = Configure::read("Queue.{$config}.url");
         $client = new SimpleClient($url, $logger);
-        /** @psalm-suppress InvalidArgument */
-        $client->bindTopic((string)$args->getOption('queue'), $processor, $args->getOption('processor'));
+        $queue = $args->getOption('queue')
+            ? (string)$args->getOption('queue')
+            : Configure::read("Queue.{$config}.queue", 'default');
+        $processorName = $args->getOption('processor') ? (string)$args->getOption('processor') : null;
+
+        $client->bindTopic($queue, $processor, $processorName);
         $client->consume($extension);
     }
 }
