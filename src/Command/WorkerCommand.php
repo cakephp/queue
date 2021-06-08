@@ -25,7 +25,6 @@ use Cake\Log\Log;
 use Cake\Queue\Consumption\QueueExtension;
 use Cake\Queue\Queue\Processor;
 use Cake\Queue\QueueManager;
-use Enqueue\SimpleClient\SimpleClient;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
