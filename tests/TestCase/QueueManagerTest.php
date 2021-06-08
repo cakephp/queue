@@ -71,6 +71,33 @@ class QueueManagerTest extends TestCase
         ]);
     }
 
+    public function testNonDefaultQueueNameString()
+    {
+        QueueManager::setConfig('test', [
+            'url' => 'file:///' . TMP . DS . 'queue',
+            'queue' => 'other',
+        ]);
+        $engine = QueueManager::engine('test');
+        $this->assertInstanceOf(SimpleClient::class, $engine);
+        $this->assertSame('other', $engine->getDriver()->getConfig()->getRouterQueue());
+    }
+
+    public function testNonDefaultQueueNameArray()
+    {
+        QueueManager::setConfig('test', [
+            'url' => [
+                'transport' => 'file:',
+                'client' => [
+                    'router_queue' => 'other',
+                ],
+            ],
+            'queue' => 'ignored',
+        ]);
+        $engine = QueueManager::engine('test');
+        $this->assertInstanceOf(SimpleClient::class, $engine);
+        $this->assertSame('other', $engine->getDriver()->getConfig()->getRouterQueue());
+    }
+
     public function testEngine()
     {
         QueueManager::setConfig('test', [

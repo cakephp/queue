@@ -223,7 +223,7 @@ class WorkerCommandTest extends TestCase
     {
         $config = [
             'queue' => 'other',
-            'url' => 'file:///' . TMP . DS . 'queue',
+            'url' => 'file:///' . TMP . DS . 'other-queue',
         ];
         Configure::write([
             'Queue' => ['other' => $config],
