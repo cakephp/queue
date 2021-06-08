@@ -24,6 +24,7 @@ use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Queue\Consumption\QueueExtension;
 use Cake\Queue\Queue\Processor;
+use Cake\Queue\QueueManager;
 use Enqueue\SimpleClient\SimpleClient;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -139,8 +140,7 @@ class WorkerCommand extends Command
             $processor->getEventManager()->on($listener);
             $extension->getEventManager()->on($listener);
         }
-        $url = Configure::read("Queue.{$config}.url");
-        $client = new SimpleClient($url, $logger);
+        $client = QueueManager::engine($config);
         $queue = $args->getOption('queue')
             ? (string)$args->getOption('queue')
             : Configure::read("Queue.{$config}.queue", 'default');
