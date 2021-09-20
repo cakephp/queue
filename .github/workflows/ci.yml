@@ -9,12 +9,12 @@ on:
       - '*'
 
 jobs:
-  testsuite-linux:
+  testsuite:
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['7.2', '7.4', '8.0']
+        php-version: ['7.2', '7.4', '8.0', '8.1']
         prefer-lowest: ['']
         include:
           - php-version: '7.2'
@@ -48,6 +48,8 @@ jobs:
       run: |
         if ${{ matrix.prefer-lowest == 'prefer-lowest' }}; then
           composer update --prefer-lowest --prefer-stable
+        elif ${{ matrix.php-version == '8.1' }}; then
+          composer update --ignore-platform-reqs          
         else
           composer update
         fi
