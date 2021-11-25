@@ -242,6 +242,11 @@ This shell can take a few different options:
 - ``--logger`` (default: ``stdout``): Name of a configured logger
 - ``--max-iterations`` (default: ``null``): Number of max iterations to run
 - ``--max-runtime`` (default: ``null``): Seconds for max runtime
+- ``--verbose`` or ``-v`` (default: ``null``): Provide verbose output, displaying the current values for:
+
+  - Max Iterations
+  - Max Runtime
+  - Runtime: Time since the worker started, the worker will finish when Runtime is over Max Runtime value
 
 Worker Events
 =============
