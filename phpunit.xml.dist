@@ -5,22 +5,15 @@
     bootstrap="tests/bootstrap.php"
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
   <!-- Only collect coverage for src/ -->
-  <coverage>
-    <include>
-      <directory suffix=".php">src/</directory>
-    </include>
-  </coverage>
+  <filter>
+    <whitelist>
+      <directory suffix=".php">./src/</directory>
+    </whitelist>
+  </filter>
+
   <testsuites>
     <testsuite name="queue">
       <directory>tests/TestCase</directory>
     </testsuite>
   </testsuites>
-  <!-- Setup a listener for fixtures -->
-  <listeners>
-    <listener class="Cake\TestSuite\Fixture\FixtureInjector">
-      <arguments>
-        <object class="Cake\TestSuite\Fixture\FixtureManager"/>
-      </arguments>
-    </listener>
-  </listeners>
 </phpunit>
