@@ -16,8 +16,4 @@
       <directory>tests/TestCase</directory>
     </testsuite>
   </testsuites>
-
-  <extensions>
-    <extension class="Cake\TestSuite\Fixture\PHPUnitExtension" />
-  </extensions>
 </phpunit>
