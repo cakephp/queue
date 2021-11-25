@@ -146,7 +146,7 @@ class WorkerCommandTest extends TestCase
         ]);
 
         $this->exec('worker --max-runtime=1 --logger=debug --verbose');
-        $this->assertDebugLogContains('debug: Max Iterations: 0');
+        $this->assertDebugLogContains('Max Iterations: 0');
     }
 
     /**
