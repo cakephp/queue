@@ -49,7 +49,11 @@ class Plugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
-        QueueManager::setConfig(Configure::read('Queue'));
+        foreach (Configure::read('Queue') as $key => $data) {
+            if (QueueManager::getConfig($key) === null) {
+                QueueManager::setConfig($key, $data);
+            }
+        }
     }
 
     /**
