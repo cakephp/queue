@@ -213,7 +213,15 @@ class QueueManager
         $name = $options['config'];
 
         $config = static::getConfig($name);
-        $queue = $config['queue'] ?? 'default';
+        if (!empty($options['queue'])) {
+            $queue = $options['queue'];
+        }
+        elseif (!empty($config['queue'])) {
+            $queue = $config['queue'];
+        }
+        else {
+            $queue = 'default';
+        }
 
         $message = new ClientMessage([
             'queue' => $queue,
