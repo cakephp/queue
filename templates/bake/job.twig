@@ -18,21 +18,22 @@ declare(strict_types=1);
 
 namespace {{ namespace }}\Job;
 
+use Cake\Queue\Job\JobInterface;
 use Cake\Queue\Job\Message;
 use Interop\Queue\Processor;
 
 /**
  * {{ name }} job
  */
-class {{ name }}Job
+class {{ name }}Job implements JobInterface
 {
     /**
      * Executes logic for {{ name }}Job
      *
      * @param \Cake\Queue\Job\Message $message job message
-     * @return string
+     * @return string|null
      */
-    public function execute(Message $message): string
+    public function execute(Message $message): ?string
     {
         return Processor::ACK;
     }
