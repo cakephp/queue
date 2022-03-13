@@ -34,6 +34,16 @@ use Psr\Log\NullLogger;
 class WorkerCommand extends Command
 {
     /**
+     * Get the command name.
+     *
+     * @return string
+     */
+    public static function defaultName(): string
+    {
+        return 'queue worker';
+    }
+
+    /**
      * Gets the option parser instance and configures it.
      *
      * @return \Cake\Console\ConsoleOptionParser

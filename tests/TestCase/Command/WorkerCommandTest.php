@@ -44,7 +44,7 @@ class WorkerCommandTest extends TestCase
      */
     public function testDescriptionOutput()
     {
-        $this->exec('worker --help');
+        $this->exec('queue worker --help');
         $this->assertOutputContains('Runs a queue worker');
     }
 
@@ -62,7 +62,7 @@ class WorkerCommandTest extends TestCase
                 ],
             ],
         ]);
-        $this->exec('worker --max-runtime=1');
+        $this->exec('queue worker --max-runtime=1');
         $this->assertEmpty($this->getActualOutput());
     }
 
@@ -81,7 +81,7 @@ class WorkerCommandTest extends TestCase
             ],
         ],
         ]);
-        $this->exec('worker --max-runtime=1');
+        $this->exec('queue worker --max-runtime=1');
         $this->assertEmpty($this->getActualOutput());
     }
 
@@ -101,7 +101,7 @@ class WorkerCommandTest extends TestCase
         ],
         ]);
 
-        $this->exec('worker --config=invalid_config --max-runtime=1');
+        $this->exec('queue worker --config=invalid_config --max-runtime=1');
         $this->assertErrorContains('Configuration key "invalid_config" was not found');
     }
 
@@ -121,7 +121,7 @@ class WorkerCommandTest extends TestCase
         ],
         ]);
 
-        $this->exec('worker --max-runtime=1');
+        $this->exec('queue worker --max-runtime=1');
         $this->assertErrorContains('Listener class InvalidListener not found');
     }
 
@@ -145,7 +145,7 @@ class WorkerCommandTest extends TestCase
             'levels' => ['notice', 'info', 'debug'],
         ]);
 
-        $this->exec('worker --max-runtime=1 --logger=debug --verbose');
+        $this->exec('queue worker --max-runtime=1 --logger=debug --verbose');
         $this->assertDebugLogContains('Max Iterations: 0');
     }
 
@@ -177,7 +177,7 @@ class WorkerCommandTest extends TestCase
         QueueManager::push($callable, $arguments, $options);
         QueueManager::drop('default');
 
-        $this->exec('worker --max-runtime=3 --logger=debug --verbose');
+        $this->exec('queue worker --max-runtime=3 --logger=debug --verbose');
 
         $this->assertDebugLogContains('Welcome mail sent');
     }
@@ -209,7 +209,7 @@ class WorkerCommandTest extends TestCase
         QueueManager::push($callable, $arguments, $options);
         QueueManager::drop('default');
 
-        $this->exec('worker --max-runtime=3 --processor=processor-name --logger=debug --verbose');
+        $this->exec('queue worker --max-runtime=3 --processor=processor-name --logger=debug --verbose');
 
         $this->assertDebugLogContains('Welcome mail sent');
     }
@@ -242,7 +242,7 @@ class WorkerCommandTest extends TestCase
         QueueManager::push($callable, $arguments, $options);
         QueueManager::drop('other');
 
-        $this->exec('worker --config=other --max-runtime=3 --processor=processor-name --logger=debug --verbose');
+        $this->exec('queue worker --config=other --max-runtime=3 --processor=processor-name --logger=debug --verbose');
 
         $this->assertDebugLogContains('Welcome mail sent');
     }
