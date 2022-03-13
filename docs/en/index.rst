@@ -37,24 +37,24 @@ Configuration
 
 The following configuration should be present in the config array of your **config/app.php**::
 
-        // ...
-        'Queue' => [
-            'default' => [
-                  // A DSN for your configured backend. default: null
-                  'url' => 'redis:',
+    // ...
+    'Queue' => [
+        'default' => [
+            // A DSN for your configured backend. default: null
+            'url' => 'redis:',
 
-                  // The queue that will be used for sending messages. default: default
-                  // This can be overriden when queuing or processing messages
-                  'queue' => 'default',
+            // The queue that will be used for sending messages. default: default
+            // This can be overriden when queuing or processing messages
+            'queue' => 'default',
 
-                  // The name of a configured logger, default: null
-                  'logger' => 'stdout',
+            // The name of a configured logger, default: null
+            'logger' => 'stdout',
 
-                  // The name of an event listener class to associate with the worker
-                  'listener' => \App\Listener\WorkerListener::class,
-            ]
-        ],
-        // ...
+            // The name of an event listener class to associate with the worker
+            'listener' => \App\Listener\WorkerListener::class,
+        ]
+    ],
+    // ...
 
 The ``Queue`` config key can contain one or more queue configurations. Each of
 these is used for interacting with a different queuing backend.
