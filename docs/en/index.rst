@@ -228,11 +228,11 @@ options this array holds are the same options as those available for
 Run the worker
 ==============
 
-Once a message is queued, you may run a worker via the included ``worker`` shell:
+Once a message is queued, you may run a worker via the included ``queue worker`` shell:
 
 .. code-block:: bash
 
-    bin/cake worker
+    bin/cake queue worker
 
 This shell can take a few different options:
 

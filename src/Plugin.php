@@ -64,6 +64,8 @@ class Plugin extends BasePlugin
      */
     public function console(CommandCollection $commands): CommandCollection
     {
-        return $commands->add('worker', WorkerCommand::class);
+        return $commands
+            ->add('queue worker', WorkerCommand::class)
+            ->add('worker', WorkerCommand::class);
     }
 }
