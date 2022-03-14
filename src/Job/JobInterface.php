@@ -22,7 +22,7 @@ interface JobInterface
      * Executes logic for Job
      *
      * @param \Cake\Queue\Job\Message $message job message
-     * @return string
+     * @return string|null
      */
     public function execute(Message $message): ?string;
 }
