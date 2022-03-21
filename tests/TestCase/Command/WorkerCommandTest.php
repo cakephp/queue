@@ -55,11 +55,10 @@ class WorkerCommandTest extends TestCase
      */
     public function testQueueProcessesStart()
     {
-        Configure::write(['Queue' => [
-                'default' => [
-                    'queue' => 'default',
-                    'url' => 'null:',
-                ],
+        Configure::write('Queue', [
+            'default' => [
+                'queue' => 'default',
+                'url' => 'null:',
             ],
         ]);
         $this->exec('queue worker --max-runtime=1');
@@ -73,13 +72,12 @@ class WorkerCommandTest extends TestCase
      */
     public function testQueueProcessesWithListener()
     {
-        Configure::write(['Queue' => [
+        Configure::write('Queue', [
             'default' => [
                 'queue' => 'default',
                 'url' => 'null:',
                 'listener' => WelcomeMailerListener::class,
             ],
-        ],
         ]);
         $this->exec('queue worker --max-runtime=1');
         $this->assertEmpty($this->getActualOutput());
@@ -92,13 +90,12 @@ class WorkerCommandTest extends TestCase
      */
     public function testQueueWillAbortWithMissingConfig()
     {
-        Configure::write(['Queue' => [
+        Configure::write('Queue', [
             'default' => [
                 'queue' => 'default',
                 'url' => 'null:',
                 'listener' => 'InvalidListener',
             ],
-        ],
         ]);
 
         $this->exec('queue worker --config=invalid_config --max-runtime=1');
@@ -112,13 +109,12 @@ class WorkerCommandTest extends TestCase
      */
     public function testQueueProcessesWithInvalidListener()
     {
-        Configure::write(['Queue' => [
+        Configure::write('Queue', [
             'default' => [
                 'queue' => 'default',
                 'url' => 'null:',
                 'listener' => 'InvalidListener',
             ],
-        ],
         ]);
 
         $this->exec('queue worker --max-runtime=1');
@@ -132,13 +128,11 @@ class WorkerCommandTest extends TestCase
      */
     public function testQueueProcessesWithLogger()
     {
-        Configure::write([
-            'Queue' => [
-                'default' => [
-                        'queue' => 'default',
-                        'url' => 'file:///' . TMP . DS . 'queue',
-                    ],
-                ],
+        Configure::write('Queue', [
+            'default' => [
+                'queue' => 'default',
+                'url' => 'file:///' . TMP . DS . 'queue',
+            ],
         ]);
         Log::setConfig('debug', [
             'className' => 'Array',
@@ -160,9 +154,7 @@ class WorkerCommandTest extends TestCase
             'queue' => 'default',
             'url' => 'file:///' . TMP . DS . 'queue',
         ];
-        Configure::write([
-            'Queue' => ['default' => $config],
-        ]);
+        Configure::write('Queue', ['default' => $config]);
 
         Log::setConfig('debug', [
             'className' => 'Array',
@@ -193,9 +185,7 @@ class WorkerCommandTest extends TestCase
             'queue' => 'default',
             'url' => 'file:///' . TMP . DS . 'queue',
         ];
-        Configure::write([
-            'Queue' => ['default' => $config],
-        ]);
+        Configure::write('Queue', ['default' => $config]);
         Log::setConfig('debug', [
             'className' => 'Array',
             'levels' => ['notice', 'info', 'debug'],
@@ -225,9 +215,7 @@ class WorkerCommandTest extends TestCase
             'queue' => 'other',
             'url' => 'file:///' . TMP . DS . 'other-queue',
         ];
-        Configure::write([
-            'Queue' => ['other' => $config],
-        ]);
+        Configure::write('Queue', ['other' => $config]);
 
         Log::setConfig('debug', [
             'className' => 'Array',
