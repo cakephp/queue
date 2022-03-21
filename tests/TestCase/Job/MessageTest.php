@@ -34,13 +34,13 @@ class MessageTest extends TestCase
     public function testConstructorAndGetters()
     {
         $callable = ['TestApp\WelcomeMailer', 'welcome'];
-        $data = 'sample data ' . time();
+        $time = 'sample data ' . time();
         $id = 7;
-        $args = compact('id', 'data');
+        $data = compact('id', 'time');
         $parsedBody = [
             'queue' => 'default',
             'class' => $callable,
-            'args' => [$args],
+            'data' => $data,
         ];
         $messageBody = json_encode($parsedBody);
         $connectionFactory = new NullConnectionFactory();
@@ -53,15 +53,44 @@ class MessageTest extends TestCase
         $this->assertSame($originalMessage, $message->getOriginalMessage());
         $this->assertSame($parsedBody, $message->getParsedBody());
         $this->assertInstanceOf(Closure::class, $message->getCallable());
-        $this->assertSame($args, $message->getArgument());
+        $this->assertSame($data, $message->getArgument());
         $this->assertSame($id, $message->getArgument('id'));
-        $this->assertSame($data, $message->getArgument('data', 'ignore_this'));
+        $this->assertSame($time, $message->getArgument('time', 'ignore_this'));
         $this->assertSame('should_use_this', $message->getArgument('unknown', 'should_use_this'));
         $this->assertNull($message->getArgument('unknown'));
         $actualJson = json_encode($message);
         $this->assertSame($messageBody, $actualJson);
         $actualToStringValue = (string)$message;
         $this->assertSame($messageBody, $actualToStringValue);
+    }
+
+    /**
+     * Test legacy arguments
+     *
+     * @return void
+     */
+    public function testLegacyArguments()
+    {
+        $callable = ['TestApp\WelcomeMailer', 'welcome'];
+        $args = [
+            'first' => 1,
+            'second' => 'two',
+        ];
+        $parsedBody = [
+            'queue' => 'default',
+            'class' => $callable,
+            'args' => [$args],
+        ];
+
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage(json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $this->assertSame($args, $message->getArgument());
+        $this->assertSame(1, $message->getArgument('first'));
+        $this->assertSame('two', $message->getArgument('second', 'ignore_this'));
+        $this->assertSame('no third argument', $message->getArgument('third', 'no third argument'));
     }
 
     /**

@@ -107,11 +107,7 @@ class ProcessorTest extends TestCase
         $messageBody = [
             'queue' => 'default',
             'class' => ['NotValid\\ClassName\\FakeJob', 'execute'],
-            'args' => [
-                [
-                    'data' => ['sample_data' => 'a value'],
-                ],
-            ],
+            'data' => ['sample_data' => 'a value'],
         ];
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
@@ -148,11 +144,7 @@ class ProcessorTest extends TestCase
         $messageBody = [
             'queue' => 'default',
             'class' => [static::class, $method],
-            'args' => [
-                [
-                    'data' => ['sample_data' => 'a value', 'key' => md5($method)],
-                ],
-            ],
+            'data' => ['sample_data' => 'a value', 'key' => md5($method)],
         ];
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
@@ -330,11 +322,7 @@ class ProcessorTest extends TestCase
         $messageBody = [
             'queue' => 'default',
             'class' => static::class . '::' . $method,
-            'args' => [
-                [
-                    'data' => ['sample_data' => 'a value', 'key' => md5($method)],
-                ],
-            ],
+            'data' => ['sample_data' => 'a value', 'key' => md5($method)],
         ];
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
