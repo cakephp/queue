@@ -32,7 +32,7 @@ class MailerJobTest extends TestCase
      */
     protected $mailer;
     /**
-     * @var Cake\Queue\Job\MailerJob|\PHPUnit\Framework\MockObject\MockObject
+     * @var \Cake\Queue\Job\MailerJob|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $job;
     protected $mailerConfig;
@@ -50,11 +50,11 @@ class MailerJobTest extends TestCase
         $this->args = ['username' => 'joe.doe', 'first_name' => 'Joe', 'last_name' => 'Doe'];
 
         $this->mailer = $this->getMockBuilder(Mailer::class)
-            ->setMethods(['send'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $this->job = $this->getMockBuilder(MailerJob::class)
-            ->setMethods(['getMailer'])
+            ->onlyMethods(['getMailer'])
             ->getMock();
     }
 
@@ -139,7 +139,7 @@ class MailerJobTest extends TestCase
     /**
      * Create a simple message for testing.
      *
-     * @return \Queue\Job\Message
+     * @return \Cake\Queue\Job\Message
      */
     protected function createMessage(): Message
     {
