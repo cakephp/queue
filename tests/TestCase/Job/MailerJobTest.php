@@ -50,11 +50,11 @@ class MailerJobTest extends TestCase
         $this->args = ['username' => 'joe.doe', 'first_name' => 'Joe', 'last_name' => 'Doe'];
 
         $this->mailer = $this->getMockBuilder(Mailer::class)
-            ->setMethods(['send'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $this->job = $this->getMockBuilder(MailerJob::class)
-            ->setMethods(['getMailer'])
+            ->onlyMethods(['getMailer'])
             ->getMock();
     }
 
