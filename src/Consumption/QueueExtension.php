@@ -16,6 +16,8 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Consumption;
 
+use Cake\Chronos\Chronos;
+use Cake\Chronos\ChronosInterface;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Log\LogTrait;
 use Enqueue\Consumption\Context\End;
@@ -71,7 +73,7 @@ class QueueExtension implements ExtensionInterface
     protected $runtime = 0;
 
     /**
-     * @var float
+     * @var \Cake\Chronos\Chronos
      */
     protected $startedAt;
 
@@ -85,9 +87,9 @@ class QueueExtension implements ExtensionInterface
         $this->logger = $logger;
         $this->maxIterations = $maxIterations;
         $this->maxRuntime = $maxRuntime;
-        $this->startedAt = microtime(true);
-        $this->logger->debug(sprintf('Max Iterations: %s', $this->maxIterations));
-        $this->logger->debug(sprintf('Max Runtime: %s', $this->maxRuntime));
+        $this->startedAt = Chronos::now();
+        $this->logger->debug(sprintf('Max Iterations: %d', $this->maxIterations));
+        $this->logger->debug(sprintf('Max Runtime (seconds): %d', $this->maxRuntime));
     }
 
     /**
@@ -105,8 +107,8 @@ class QueueExtension implements ExtensionInterface
             return;
         }
 
-        $this->runtime = microtime(true) - $this->startedAt;
-        $this->logger->debug(sprintf('Runtime: %s', $this->runtime));
+        $this->runtime = $this->calculateRuntime($this->startedAt);
+        $this->logger->debug(sprintf('Runtime (seconds): %f', $this->runtime));
 
         if ($this->maxRuntime > 0 && $this->runtime >= $this->maxRuntime) {
             $this->logger->debug('Max runtime reached, exiting');
@@ -132,8 +134,8 @@ class QueueExtension implements ExtensionInterface
      */
     public function onPreConsume(PreConsume $context): void
     {
-        $this->runtime = microtime(true) - $this->startedAt;
-        $this->logger->debug(sprintf('Runtime: %s', $this->runtime));
+        $this->runtime = $this->calculateRuntime($this->startedAt);
+        $this->logger->debug(sprintf('Runtime (seconds): %f', $this->runtime));
 
         if ($this->maxRuntime > 0 && $this->runtime >= $this->maxRuntime) {
             $this->logger->debug('Max runtime reached, exiting');
@@ -227,5 +229,18 @@ class QueueExtension implements ExtensionInterface
      */
     public function onInitLogger(InitLogger $context): void
     {
+    }
+
+    /**
+     * Calculate the runtime of a job
+     *
+     * @param \Cake\Chronos\ChronosInterface $dt The time you want to calculate the runtime from.
+     * @return float
+     */
+    private function calculateRuntime(ChronosInterface $dt): float
+    {
+        $diff = $dt->diff(new Chronos());
+
+        return $diff->f + $diff->s + ($diff->i * 60) + ($diff->h * 3600) + ($diff->d * 86400);
     }
 }

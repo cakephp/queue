@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Consumption;
 
+use Cake\Chronos\Chronos;
 use Cake\Event\EventList;
 use Cake\Queue\Consumption\QueueExtension;
 use Cake\TestSuite\TestCase;
@@ -51,7 +52,8 @@ class QueueExtensionTest extends TestCase
     {
         $logger = new TestLogger();
         $queueExtension = new QueueExtension(5, 1, $logger);
-        sleep(1);
+        // set the time to one second in the future to trigger maxRuntime error
+        Chronos::setTestNow(new Chronos('1 second'));
         $queueExtension->getEventManager()->setEventList(new EventList());
         $queueExtension->onPostMessageReceived($this->getDummyPostMessageReceived($logger));
         $this->assertEventFired('Processor.maxRuntime', $queueExtension->getEventManager());
