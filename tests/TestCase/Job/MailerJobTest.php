@@ -32,7 +32,7 @@ class MailerJobTest extends TestCase
      */
     protected $mailer;
     /**
-     * @var Cake\Queue\Job\MailerJob|\PHPUnit\Framework\MockObject\MockObject
+     * @var \Cake\Queue\Job\MailerJob|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $job;
     protected $mailerConfig;
@@ -139,7 +139,7 @@ class MailerJobTest extends TestCase
     /**
      * Create a simple message for testing.
      *
-     * @return \Queue\Job\Message
+     * @return \Cake\Queue\Job\Message
      */
     protected function createMessage(): Message
     {
