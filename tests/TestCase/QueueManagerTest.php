@@ -113,7 +113,7 @@ class QueueManagerTest extends TestCase
     public function testPushInvalidClass()
     {
         $this->expectException('\InvalidArgumentException');
-        $this->expectExceptionMessage('Invalid callable provided.');
-        QueueManager::push(['Nope', 'lol']);
+        $this->expectExceptionMessage('class does not exist.');
+        QueueManager::push('NotARealJob');
     }
 }

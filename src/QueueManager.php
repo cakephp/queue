@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Queue;
 
 use BadMethodCallException;
+use Cake\Core\App;
 use Cake\Log\Log;
 use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
@@ -176,10 +177,9 @@ class QueueManager
     /**
      * Push a single job onto the queue.
      *
-     * @param string|string[] $callable Either an array of [classname, method], or a string
-     *   to a statically callable function. When an array is used, the
-     *   class will be constructed by Queue\Processor and have the
-     *   named method invoked.
+     * @param string|string[] $className The classname of a job that implements the
+     *   \Cake\Queue\Job\JobInterface. The class will be constructed by
+     *   \Cake\Queue\Processor and have the execute method invoked.
      * @param array $data An array of data that will be passed to the job.
      * @param array $options An array of options for publishing the job:
      *   - `config` - A queue config name. Defaults to 'default'.
@@ -198,15 +198,15 @@ class QueueManager
      *      string 'default' if empty.
      * @return void
      */
-    public static function push($callable, array $data = [], array $options = []): void
+    public static function push($className, array $data = [], array $options = []): void
     {
-        // We can't use the callable type as it checks that the
-        // [class, method] is statically callable which won't be true.
-        if (is_array($callable) && !class_exists($callable[0])) {
-            throw new InvalidArgumentException(
-                'Invalid callable provided. Please use either an array of `[classname, method]` or a string.'
-            );
+        [$class, $method] = is_array($className) ? $className : [$className, 'execute'];
+
+        $class = App::className($class, 'Job', 'Job');
+        if (is_null($class)) {
+            throw new InvalidArgumentException("`$class` class does not exist.");
         }
+
         $options += [
             'config' => 'default',
             'queue' => 'default',
@@ -221,7 +221,7 @@ class QueueManager
         $queue = $config['queue'] ?? 'default';
 
         $message = new ClientMessage([
-            'class' => $callable,
+            'class' => [$class, $method],
             'args' => [$data],
             'data' => $data,
         ]);

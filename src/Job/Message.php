@@ -84,8 +84,6 @@ class Message implements JsonSerializable
      * Get a closure containing the callable in the job.
      *
      * Supported callables include:
-     *
-     * - strings for global functions, or static method names.
      * - array of [class, method]. The class will be constructed with no constructor parameters.
      *
      * @return \Closure
@@ -95,19 +93,17 @@ class Message implements JsonSerializable
         if ($this->callable) {
             return $this->callable;
         }
+
         $target = $this->parsedBody['class'] ?? null;
 
-        $callable = null;
-        if (is_array($target) && count($target) === 2) {
-            $instance = new $target[0]();
-            $callable = Closure::fromCallable([$instance, $target[1]]);
-        } elseif (is_string($target)) {
-            /** @psalm-suppress InvalidArgument */
-            $callable = Closure::fromCallable($target);
-        } else {
-            throw new RuntimeException(sprintf('Could not create callable from `%s`', json_encode($target)));
+        if (!is_array($target) || count($target) !== 2) {
+            throw new RuntimeException(sprintf(
+                'Message class should be in the form `[class, method]` got `%s`',
+                json_encode($target)
+            ));
         }
-        $this->callable = $callable;
+
+        $this->callable = Closure::fromCallable([new $target[0](), $target[1]]);
 
         return $this->callable;
     }

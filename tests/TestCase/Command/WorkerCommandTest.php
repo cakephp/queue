@@ -21,7 +21,7 @@ use Cake\Log\Log;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
-use TestApp\WelcomeMailer;
+use TestApp\Job\LogToDebugJob;
 use TestApp\WelcomeMailerListener;
 
 /**
@@ -144,11 +144,25 @@ class WorkerCommandTest extends TestCase
     }
 
     /**
+     * Data provider for testQueueProcessesJob method
+     *
+     * @return array
+     */
+    public function dataProviderCallableTypes(): array
+    {
+        return [
+            'Job Class' => [LogToDebugJob::class],
+            'Array' => [[LogToDebugJob::class, 'execute']],
+        ];
+    }
+
+    /**
      * Start up the worker queue, push a job, and see that it processes
      *
+     * @dataProvider dataProviderCallableTypes
      * @runInSeparateProcess
      */
-    public function testQueueProcessesJob()
+    public function testQueueProcessesJob($callable)
     {
         $config = [
             'queue' => 'default',
@@ -162,17 +176,13 @@ class WorkerCommandTest extends TestCase
             'levels' => ['notice', 'info', 'debug'],
         ]);
 
-        $callable = [WelcomeMailer::class, 'welcome'];
-        $arguments = [];
-        $options = ['config' => 'default'];
-
         QueueManager::setConfig('default', $config);
-        QueueManager::push($callable, $arguments, $options);
+        QueueManager::push($callable);
         QueueManager::drop('default');
 
         $this->exec('queue worker --max-jobs=1 --logger=debug --verbose');
 
-        $this->assertDebugLogContains('Welcome mail sent');
+        $this->assertDebugLogContains('Debug job was run');
     }
 
     /**
@@ -193,17 +203,13 @@ class WorkerCommandTest extends TestCase
             'levels' => ['notice', 'info', 'debug'],
         ]);
 
-        $callable = [WelcomeMailer::class, 'welcome'];
-        $arguments = [];
-        $options = ['config' => 'default'];
-
         QueueManager::setConfig('default', $config);
-        QueueManager::push($callable, $arguments, $options);
+        QueueManager::push(LogToDebugJob::class);
         QueueManager::drop('default');
 
         $this->exec('queue worker --max-jobs=1 --processor=processor-name --logger=debug --verbose');
 
-        $this->assertDebugLogContains('Welcome mail sent');
+        $this->assertDebugLogContains('Debug job was run');
     }
 
     /**
@@ -225,17 +231,13 @@ class WorkerCommandTest extends TestCase
             'levels' => ['notice', 'info', 'debug'],
         ]);
 
-        $callable = [WelcomeMailer::class, 'welcome'];
-        $arguments = [];
-        $options = ['config' => 'other'];
-
         QueueManager::setConfig('other', $config);
-        QueueManager::push($callable, $arguments, $options);
+        QueueManager::push(LogToDebugJob::class, [], ['config' => 'other']);
         QueueManager::drop('other');
 
         $this->exec('queue worker --config=other --max-jobs=1 --processor=processor-name --logger=debug --verbose');
 
-        $this->assertDebugLogContains('Welcome mail sent');
+        $this->assertDebugLogContains('Debug job was run');
     }
 
     protected function assertDebugLogContains($expected): void

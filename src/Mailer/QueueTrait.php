@@ -44,7 +44,7 @@ trait QueueTrait
             ]);
         }
 
-        QueueManager::push([MailerJob::class, 'execute'], [
+        QueueManager::push(MailerJob::class, [
             'mailerConfig' => $options['mailerConfig'] ?? null,
             'mailerName' => static::class,
             'action' => $action,
