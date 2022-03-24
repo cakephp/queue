@@ -5,12 +5,11 @@
     bootstrap="tests/bootstrap.php"
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
   <!-- Only collect coverage for src/ -->
-  <filter>
-    <whitelist>
+  <coverage>
+    <include>
       <directory suffix=".php">./src/</directory>
-    </whitelist>
-  </filter>
-
+    </include>
+  </coverage>
   <testsuites>
     <testsuite name="queue">
       <directory>tests/TestCase</directory>
