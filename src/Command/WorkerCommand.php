@@ -22,9 +22,14 @@ use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
 use Cake\Log\Log;
-use Cake\Queue\Consumption\QueueExtension;
+use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
 use Cake\Queue\Queue\Processor;
 use Cake\Queue\QueueManager;
+use DateTime;
+use Enqueue\Consumption\ChainExtension;
+use Enqueue\Consumption\Extension\LimitConsumptionTimeExtension;
+use Enqueue\Consumption\Extension\LoggerExtension;
+use Enqueue\Consumption\ExtensionInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -71,13 +76,13 @@ class WorkerCommand extends Command
             'default' => 'stdout',
             'short' => 'l',
         ]);
-        $parser->addOption('max-iterations', [
-            'help' => 'Number of max iterations to run',
+        $parser->addOption('max-jobs', [
+            'help' => 'Maximum number of jobs to process. Worker will exit after limit is reached.',
             'default' => null,
             'short' => 'i',
         ]);
         $parser->addOption('max-runtime', [
-            'help' => 'Seconds for max runtime',
+            'help' => 'Maximum number of seconds worker will run. Worker will exit after limit is reached.',
             'default' => null,
             'short' => 'r',
         ]);
@@ -93,14 +98,25 @@ class WorkerCommand extends Command
      *
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
-     * @return \Cake\Queue\Consumption\QueueExtension
+     * @return \Enqueue\Consumption\ExtensionInterface
      */
-    protected function getQueueExtension(Arguments $args, LoggerInterface $logger): QueueExtension
+    protected function getQueueExtension(Arguments $args, LoggerInterface $logger): ExtensionInterface
     {
-        $maxIterations = (int)$args->getOption('max-iterations');
-        $maxRuntime = (int)$args->getOption('max-runtime');
+        $extensions = [
+            new LoggerExtension($logger),
+        ];
 
-        return new QueueExtension($maxIterations, $maxRuntime, $logger);
+        if (!is_null($args->getOption('max-jobs'))) {
+            $maxJobs = (int)$args->getOption('max-jobs');
+            $extensions[] = new LimitConsumedMessagesExtension($maxJobs);
+        }
+
+        if (!is_null($args->getOption('max-runtime'))) {
+            $endTime = new DateTime(sprintf('+%d seconds', (int)$args->getOption('max-runtime')));
+            $extensions[] = new LimitConsumptionTimeExtension($endTime);
+        }
+
+        return new ChainExtension($extensions);
     }
 
     /**
@@ -147,7 +163,6 @@ class WorkerCommand extends Command
             /** @var \Cake\Event\EventListenerInterface $listener */
             $listener = new $listenerClassName();
             $processor->getEventManager()->on($listener);
-            $extension->getEventManager()->on($listener);
         }
         $client = QueueManager::engine($config);
         $queue = $args->getOption('queue')

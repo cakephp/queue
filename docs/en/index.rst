@@ -52,6 +52,9 @@ The following configuration should be present in the config array of your **conf
 
             // The name of an event listener class to associate with the worker
             'listener' => \App\Listener\WorkerListener::class,
+
+            // The amount of time in milliseconds to sleep if no jobs are currently available. default: 10000
+            'receiveTimeout' => 10000,
         ]
     ],
     // ...
@@ -240,8 +243,8 @@ This shell can take a few different options:
 - ``--queue`` (default: default): Name of queue to bind to
 - ``--processor`` (default: ``null``): Name of processor to bind to
 - ``--logger`` (default: ``stdout``): Name of a configured logger
-- ``--max-iterations`` (default: ``null``): Number of max iterations to run
-- ``--max-runtime`` (default: ``null``): Seconds for max runtime
+- ``--max-jobs`` (default: ``null``): Maximum number of jobs to process. Worker will exit after limit is reached.
+- ``--max-runtime`` (default: ``null``): Maximum number of seconds to run. Worker will exit after limit is reached.
 - ``--verbose`` or ``-v`` (default: ``null``): Provide verbose output, displaying the current values for:
 
   - Max Iterations
@@ -273,14 +276,6 @@ be listened to by the associated ``listener`` in the Queue config.
 
   - description: Dispatched when a message completes and is to be acknowledged.
   - arguments: ``message``
-
-- ``Processor.maxIterations``:
-
-  - description: Dispatched when the max number of iterations is reached.
-
-- ``Processor.maxRuntime``:
-
-  - description: Dispatched when the max runtime is reached.
 
 - ``Processor.message.failure``:
 
