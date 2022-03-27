@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace Cake\Queue\Queue;
 
 use Cake\Event\EventDispatcherTrait;
-use Cake\Log\LogTrait;
 use Cake\Queue\Job\Message;
 use Error;
 use Exception;
@@ -31,7 +30,6 @@ use RuntimeException;
 class Processor implements InteropProcessor
 {
     use EventDispatcherTrait;
-    use LogTrait;
 
     /**
      * @var \Psr\Log\LoggerInterface
