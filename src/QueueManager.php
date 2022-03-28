@@ -221,7 +221,6 @@ class QueueManager
         $queue = $config['queue'] ?? 'default';
 
         $message = new ClientMessage([
-            'queue' => $queue,
             'class' => $callable,
             'args' => [$args],
         ]);

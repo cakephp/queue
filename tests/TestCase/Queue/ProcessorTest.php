@@ -59,7 +59,6 @@ class ProcessorTest extends TestCase
     public function testProcess($jobMethod, $expected, $logMessage, $dispatchedEvent)
     {
         $messageBody = [
-            'queue' => 'default',
             'class' => [static::class, $jobMethod],
             'args' => [],
         ];
@@ -105,7 +104,6 @@ class ProcessorTest extends TestCase
     public function testProcessNotValidCallable()
     {
         $messageBody = [
-            'queue' => 'default',
             'class' => ['NotValid\\ClassName\\FakeJob', 'execute'],
             'args' => [
                 [
@@ -146,7 +144,6 @@ class ProcessorTest extends TestCase
     {
         $method = 'processAndThrowException';
         $messageBody = [
-            'queue' => 'default',
             'class' => [static::class, $method],
             'args' => [
                 [
@@ -182,7 +179,6 @@ class ProcessorTest extends TestCase
         ]);
 
         $messageBody = [
-            'queue' => 'default',
             'class' => ['TestApp\WelcomeMailer', 'welcome'],
             'args' => [],
         ];
@@ -210,7 +206,6 @@ class ProcessorTest extends TestCase
     public function testProcessMessage()
     {
         $messageBody = [
-            'queue' => 'default',
             'class' => [static::class, 'processReturnAck'],
             'args' => [],
         ];
@@ -328,7 +323,6 @@ class ProcessorTest extends TestCase
     public function testProcessMessageCallableIsString($method, $expected)
     {
         $messageBody = [
-            'queue' => 'default',
             'class' => static::class . '::' . $method,
             'args' => [
                 [
