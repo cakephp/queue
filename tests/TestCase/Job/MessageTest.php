@@ -38,7 +38,6 @@ class MessageTest extends TestCase
         $id = 7;
         $data = compact('id', 'time');
         $parsedBody = [
-            'queue' => 'default',
             'class' => $callable,
             'data' => $data,
         ];
@@ -101,7 +100,6 @@ class MessageTest extends TestCase
     public function testGetCallableInvalidClass()
     {
         $parsedBody = [
-            'queue' => 'default',
             'class' => ['Trash', 'trash'],
             'args' => [],
         ];
@@ -124,7 +122,6 @@ class MessageTest extends TestCase
     public function testGetCallableInvalidType()
     {
         $parsedBody = [
-            'queue' => 'default',
             'class' => ['TestApp\WelcomeMailer', 'trash', 'oops'],
             'args' => [],
         ];

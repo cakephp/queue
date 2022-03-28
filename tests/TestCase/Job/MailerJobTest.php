@@ -144,7 +144,6 @@ class MailerJobTest extends TestCase
     protected function createMessage(): Message
     {
         $messageBody = [
-            'queue' => 'default',
             'class' => ['Queue\\Job\\EventJob', 'execute'],
             'data' => [
                 'mailerName' => 'SampleTest',
