@@ -14,16 +14,17 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
-namespace Cake\Queue\Shell\Task;
+namespace Cake\Queue\Command;
 
-use Bake\Shell\Task\SimpleBakeTask;
+use Bake\Command\SimpleBakeCommand;
+use Cake\Console\ConsoleOptionParser;
 
-class JobTask extends SimpleBakeTask
+class JobCommand extends SimpleBakeCommand
 {
     public $pathFragment = 'Job/';
 
     /**
-     * @return string
+     * @inheritDoc
      */
     public function name(): string
     {
@@ -31,19 +32,35 @@ class JobTask extends SimpleBakeTask
     }
 
     /**
-     * @param string $name Name.
-     * @return string
+     * @inheritDoc
      */
-    public function fileName($name): string
+    public function fileName(string $name): string
     {
         return $name . 'Job.php';
     }
 
     /**
-     * @return string
+     * @inheritDoc
      */
     public function template(): string
     {
         return 'Cake/Queue.job';
+    }
+
+    /**
+     * Gets the option parser instance and configures it.
+     *
+     * @param \Cake\Console\ConsoleOptionParser $parser The parser to update.
+     * @return \Cake\Console\ConsoleOptionParser
+     */
+    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    {
+        $parser = $this->_setCommonOptions($parser);
+
+        return $parser
+            ->setDescription('Bake a queue job class.')
+            ->addArgument('name', [
+                'help' => 'The name of the queue job class to create.',
+            ]);
     }
 }

@@ -20,6 +20,7 @@ use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
 use Cake\Core\PluginApplicationInterface;
+use Cake\Queue\Command\JobCommand;
 use Cake\Queue\Command\WorkerCommand;
 
 /**
@@ -64,6 +65,10 @@ class Plugin extends BasePlugin
      */
     public function console(CommandCollection $commands): CommandCollection
     {
+        if (class_exists('Bake\Command\SimpleBakeCommand')) {
+            $commands->add('bake job', JobCommand::class);
+        }
+
         return $commands
             ->add('queue worker', WorkerCommand::class)
             ->add('worker', WorkerCommand::class);
