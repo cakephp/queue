@@ -119,11 +119,18 @@ class Message implements JsonSerializable
      */
     public function getArgument($key = null, $default = null)
     {
-        if ($key === null) {
-            return $this->parsedBody['args'][0];
+        if (array_key_exists('data', $this->parsedBody)) {
+            $data = $this->parsedBody['data'];
+        } else {
+            // support old jobs that still use args key
+            $data = $this->parsedBody['args'][0];
         }
 
-        return Hash::get($this->parsedBody['args'][0], $key, $default);
+        if ($key === null) {
+            return $data;
+        }
+
+        return Hash::get($data, $key, $default);
     }
 
     /**

@@ -180,7 +180,7 @@ class QueueManager
      *   to a statically callable function. When an array is used, the
      *   class will be constructed by Queue\Processor and have the
      *   named method invoked.
-     * @param array $args An array of data to set for the job.
+     * @param array $data An array of data that will be passed to the job.
      * @param array $options An array of options for publishing the job:
      *   - `config` - A queue config name. Defaults to 'default'.
      *   - `delay` - Time (in integer seconds) to delay message, after which it
@@ -198,7 +198,7 @@ class QueueManager
      *      string 'default' if empty.
      * @return void
      */
-    public static function push($callable, array $args = [], array $options = []): void
+    public static function push($callable, array $data = [], array $options = []): void
     {
         // We can't use the callable type as it checks that the
         // [class, method] is statically callable which won't be true.
@@ -223,7 +223,8 @@ class QueueManager
         $message = new ClientMessage([
             'queue' => $queue,
             'class' => $callable,
-            'args' => [$args],
+            'args' => [$data],
+            'data' => $data,
         ]);
 
         if ($options['delay']) {

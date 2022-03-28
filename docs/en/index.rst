@@ -127,17 +127,17 @@ Queue the messages using the included `Queue\QueueManager` class::
     use Cake\Queue\QueueManager;
 
     $callable = [ExampleJob::class, 'execute'];
-    $arguments = ['id' => 7, 'data' => 'hi2u'];
+    $data = ['id' => 7, 'is_premium' => true];
     $options = ['config' => 'default'];
 
-    QueueManager::push($callable, $arguments, $options);
+    QueueManager::push($callable, $data, $options);
 
 Arguments:
 
 - ``$callable``: A callable that will be invoked. This callable **must** be valid
   within the context of your application. Job classes are prefered.
-- ``$arguments`` (optional): A json-serializable array of data that is to be
-  made present for your message. It should be key-value pairs.
+- ``$data`` (optional): A json-serializable array of data that will be passed to
+  the job via message. It should be key-value pairs.
 - ``$options`` (optional): An array of optional data for message queueing.
 
 The following keys are valid for use within the ``options`` array:
