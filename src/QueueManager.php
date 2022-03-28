@@ -158,12 +158,17 @@ class QueueManager
 
         $config = static::getConfig($name) + [
             'logger' => null,
+            'receiveTimeout' => null,
         ];
 
         $logger = $config['logger'] ? Log::engine($config['logger']) : null;
 
         static::$_clients[$name] = new SimpleClient($config['url'], $logger);
         static::$_clients[$name]->setupBroker();
+
+        if (!is_null($config['receiveTimeout'])) {
+            static::$_clients[$name]->getQueueConsumer()->setReceiveTimeout($config['receiveTimeout']);
+        }
 
         return static::$_clients[$name];
     }
