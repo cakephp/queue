@@ -153,7 +153,7 @@ class WorkerCommandTest extends TestCase
         $config = [
             'queue' => 'default',
             'url' => 'file:///' . TMP . DS . 'queue',
-            'receiveTimeout' => 1,
+            'receiveTimeout' => 100,
         ];
         Configure::write('Queue', ['default' => $config]);
 
@@ -185,7 +185,7 @@ class WorkerCommandTest extends TestCase
         $config = [
             'queue' => 'default',
             'url' => 'file:///' . TMP . DS . 'queue',
-            'receiveTimeout' => 1,
+            'receiveTimeout' => 100,
         ];
         Configure::write('Queue', ['default' => $config]);
         Log::setConfig('debug', [
@@ -216,7 +216,7 @@ class WorkerCommandTest extends TestCase
         $config = [
             'queue' => 'other',
             'url' => 'file:///' . TMP . DS . 'other-queue',
-            'receiveTimeout' => 1,
+            'receiveTimeout' => 100,
         ];
         Configure::write('Queue', ['other' => $config]);
 
