@@ -22,17 +22,24 @@ use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
+use TestApp\Job\LogToDebugJob;
 
 /**
  * QueueManager test
  */
 class QueueManagerTest extends TestCase
 {
+    private $fsQueueUrl = 'file:///' . TMP . DS . 'queue';
+
     public function tearDown(): void
     {
         parent::tearDown();
+
         QueueManager::drop('test');
         Log::drop('test');
+
+        // delete file based queues
+        array_map('unlink', glob($this->fsQueueUrl . DS . '*'));
     }
 
     public function testSetConfig()
@@ -74,7 +81,7 @@ class QueueManagerTest extends TestCase
     public function testNonDefaultQueueNameString()
     {
         QueueManager::setConfig('test', [
-            'url' => 'file:///' . TMP . DS . 'queue',
+            'url' => $this->fsQueueUrl,
             'queue' => 'other',
         ]);
         $engine = QueueManager::engine('test');
@@ -115,5 +122,19 @@ class QueueManagerTest extends TestCase
         $this->expectException('\InvalidArgumentException');
         $this->expectExceptionMessage('class does not exist.');
         QueueManager::push('NotARealJob');
+    }
+
+    public function testMessageIsPushedToQueuePassedAsOption()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->fsQueueUrl,
+            'queue' => 'test',
+        ]);
+
+        QueueManager::push(LogToDebugJob::class, [], ['config' => 'test', 'queue' => 'non-default-queue-name']);
+
+        $fsQueueFile = $this->fsQueueUrl . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $this->assertStringContainsString('non-default-queue-name', file_get_contents($fsQueueFile));
     }
 }
