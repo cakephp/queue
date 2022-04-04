@@ -207,18 +207,10 @@ class QueueManager
             throw new InvalidArgumentException("`$class` class does not exist.");
         }
 
-        $options += [
-            'config' => 'default',
-            'queue' => 'default',
-            'delay' => null,
-            'expires' => null,
-            'priority' => null,
-        ];
-
-        $name = $options['config'];
+        $name = $options['config'] ?? 'default';
 
         $config = static::getConfig($name);
-        $queue = $config['queue'] ?? 'default';
+        $queue = $options['queue'] ?? $config['queue'] ?? 'default';
 
         $message = new ClientMessage([
             'class' => [$class, $method],
@@ -226,15 +218,15 @@ class QueueManager
             'data' => $data,
         ]);
 
-        if ($options['delay']) {
+        if (isset($options['delay'])) {
             $message->setDelay($options['delay']);
         }
 
-        if ($options['expires']) {
+        if (isset($options['expires'])) {
             $message->setExpire($options['expires']);
         }
 
-        if ($options['priority']) {
+        if (isset($options['priority'])) {
             $message->setPriority($options['priority']);
         }
 
