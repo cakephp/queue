@@ -57,6 +57,7 @@ class MessageTest extends TestCase
         $this->assertSame($time, $message->getArgument('time', 'ignore_this'));
         $this->assertSame('should_use_this', $message->getArgument('unknown', 'should_use_this'));
         $this->assertNull($message->getArgument('unknown'));
+        $this->assertSame(3, $message->getMaxAttempts());
         $actualJson = json_encode($message);
         $this->assertSame($messageBody, $actualJson);
         $actualToStringValue = (string)$message;
