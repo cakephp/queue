@@ -22,6 +22,7 @@ use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
 use Cake\Log\Log;
+use Cake\Queue\Consumption\LimitAttemptsExtension;
 use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
 use Cake\Queue\Queue\Processor;
 use Cake\Queue\QueueManager;
@@ -86,6 +87,12 @@ class WorkerCommand extends Command
             'default' => null,
             'short' => 'r',
         ]);
+        $parser->addOption('max-attempts', [
+            'help' => 'Maximum number of times each job will be attempted.'
+                . ' Maximum attempts defined on a job will override this value.',
+            'default' => null,
+            'short' => 'a',
+        ]);
         $parser->setDescription(
             'Runs a queue worker that consumes from the named queue.'
         );
@@ -104,6 +111,7 @@ class WorkerCommand extends Command
     {
         $extensions = [
             new LoggerExtension($logger),
+            new LimitAttemptsExtension((int)$args->getOption('max-attempts') ?: null),
         ];
 
         if (!is_null($args->getOption('max-jobs'))) {

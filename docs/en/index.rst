@@ -85,6 +85,13 @@ Create a Job class::
     {
         use LogTrait;
 
+        /**
+         * The maximum number of times the job may be attempted.
+         * 
+         * @var int|null
+         */
+        public static $maxAttempts = 3;
+
         public function execute(Message $message): ?string
         {
             $id = $message->getArgument('id');
@@ -117,6 +124,14 @@ A job *may* return any of the following values:
 The job **may** also return a null value, which is interpreted as
 ``Processor::ACK``. Failure to respond with a valid type will result in an
 interpreted message failure and requeue of the message.
+
+Properties:
+
+- ``maxAttempts``: The maximum number of times the job may be requeued as a result
+  of an exception or by explicitly returning ``Processor::REQUEUE``. If
+  provided, this value will override the value provided in the worker command
+  line option ``--max-attempts``. If a value is not provided by the job or by
+  the command line option, the job may be requeued an infinite number of times.
 
 Queueing
 --------
@@ -244,6 +259,7 @@ This shell can take a few different options:
 - ``--logger`` (default: ``stdout``): Name of a configured logger
 - ``--max-jobs`` (default: ``null``): Maximum number of jobs to process. Worker will exit after limit is reached.
 - ``--max-runtime`` (default: ``null``): Maximum number of seconds to run. Worker will exit after limit is reached.
+- ``--max-attempts`` (default: ``null``): Maximum number of times each job will be attempted. Maximum attempts defined on a job will override this value.
 - ``--verbose`` or ``-v`` (default: ``null``): Provide verbose output, displaying the current values for:
 
   - Max Iterations

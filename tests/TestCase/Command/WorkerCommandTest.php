@@ -19,9 +19,11 @@ namespace Cake\Queue\Test\TestCase\Command;
 use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Queue\QueueManager;
+use Cake\Queue\Test\TestCase\DebugLogTrait;
 use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use TestApp\Job\LogToDebugJob;
+use TestApp\Job\RequeueJob;
 use TestApp\WelcomeMailerListener;
 
 /**
@@ -32,6 +34,7 @@ use TestApp\WelcomeMailerListener;
 class WorkerCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
+    use DebugLogTrait;
 
     public function setUp(): void
     {
@@ -240,16 +243,31 @@ class WorkerCommandTest extends TestCase
         $this->assertDebugLogContains('Debug job was run');
     }
 
-    protected function assertDebugLogContains($expected): void
+    /**
+     * Test max-attempts option
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesJobWithMaxAttempts()
     {
-        $log = Log::engine('debug');
-        $found = false;
-        foreach ($log->read() as $line) {
-            if (strpos($line, $expected) !== false) {
-                $found = true;
-                break;
-            }
-        }
-        $this->assertTrue($found, "Did not find `{$expected}` in logs.");
+        $config = [
+            'queue' => 'default',
+            'url' => 'file:///' . TMP . DS . 'queue',
+            'receiveTimeout' => 100,
+        ];
+        Configure::write('Queue', ['default' => $config]);
+
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        QueueManager::setConfig('default', $config);
+        QueueManager::push(RequeueJob::class);
+        QueueManager::drop('default');
+
+        $this->exec('queue worker --max-attempts=3 --max-jobs=1 --logger=debug --verbose');
+
+        $this->assertDebugLogContainsExactly('RequeueJob is requeueing', 3);
     }
 }

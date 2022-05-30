@@ -11,6 +11,8 @@ class WelcomeMailer extends Mailer
 {
     use QueueTrait;
 
+    public static $maxAttempts = 3;
+
     public function getName()
     {
     }

@@ -28,6 +28,13 @@ use Interop\Queue\Processor;
 class {{ name }}Job implements JobInterface
 {
     /**
+     * The maximum number of times the job may be attempted.
+     * 
+     * @var int|null
+     */
+    public static $maxAttempts = 3;
+
+    /**
      * Executes logic for {{ name }}Job
      *
      * @param \Cake\Queue\Job\Message $message job message

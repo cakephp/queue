@@ -94,6 +94,20 @@ class Message implements JsonSerializable
             return $this->callable;
         }
 
+        $target = $this->getTarget();
+
+        $this->callable = Closure::fromCallable([new $target[0](), $target[1]]);
+
+        return $this->callable;
+    }
+
+    /**
+     * Get the target class and method.
+     *
+     * @return array
+     */
+    protected function getTarget(): array
+    {
         $target = $this->parsedBody['class'] ?? null;
 
         if (!is_array($target) || count($target) !== 2) {
@@ -103,9 +117,7 @@ class Message implements JsonSerializable
             ));
         }
 
-        $this->callable = Closure::fromCallable([new $target[0](), $target[1]]);
-
-        return $this->callable;
+        return $target;
     }
 
     /**
@@ -127,6 +139,20 @@ class Message implements JsonSerializable
         }
 
         return Hash::get($data, $key, $default);
+    }
+
+    /**
+     * The maximum number of attempts allowed by the job.
+     *
+     * @return null|int
+     */
+    public function getMaxAttempts(): ?int
+    {
+        $target = $this->getTarget();
+
+        $class = $target[0];
+
+        return $class::$maxAttempts ?? null;
     }
 
     /**
