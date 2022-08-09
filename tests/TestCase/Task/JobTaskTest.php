@@ -17,8 +17,9 @@ declare(strict_types=1);
 namespace Cake\Queue\Test\TestCase\Task;
 
 use Cake\Command\Command;
+use Cake\Console\CommandInterface;
 use Cake\Queue\QueueManager;
-use Cake\TestSuite\ConsoleIntegrationTestTrait;
+use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\StringCompareTrait;
 use Cake\TestSuite\TestCase;
 
@@ -44,7 +45,7 @@ class JobTaskTest extends TestCase
     {
         parent::setUp();
 
-        $this->comparisonDir = dirname(dirname(__DIR__)) . DS . 'comparisons' . DS;
+        $this->comparisonDir = dirname(__DIR__, 2) . DS . 'comparisons' . DS;
         $this->useCommandRunner();
         QueueManager::drop('default');
     }
@@ -61,10 +62,10 @@ class JobTaskTest extends TestCase
 
     public function testMain()
     {
-        $this->generatedFile = APP . 'Job/UploadJob.php';
+        $this->generatedFile = APP . 'Job' . DS .'UploadJob.php';
 
         $this->exec('bake job upload');
-        $this->assertExitCode(Command::CODE_SUCCESS);
+        $this->assertExitCode(CommandInterface::CODE_SUCCESS);
         $this->assertFileExists($this->generatedFile);
         $this->assertOutputContains('Creating file ' . $this->generatedFile);
         $this->assertSameAsFile(
