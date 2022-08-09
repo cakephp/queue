@@ -93,7 +93,7 @@ class QueueManagerTest extends TestCase
     {
         QueueManager::setConfig('test', [
             'url' => [
-                'transport' => 'file:',
+                'transport' => 'file:' . TMP . 'fs-test.tmp',
                 'client' => [
                     'router_queue' => 'other',
                 ],
