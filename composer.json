@@ -18,14 +18,14 @@
         "source": "https://github.com/cakephp/queue"
     },
     "require": {
-        "php": ">=7.4.0",
+        "php": ">=7.2.0",
         "cakephp/cakephp": "^4.1 ",
         "enqueue/simple-client": "^0.10",
         "psr/log": "^1.0 || ^2.0"
     },
     "require-dev": {
-        "cakephp/bake": "^2.6",
-        "cakephp/cakephp-codesniffer": "^4.5",
+        "cakephp/bake": "^2.2",
+        "cakephp/cakephp-codesniffer": "^4.1",
         "enqueue/fs": "^0.10",
         "phpunit/phpunit": "~8.5.0 || ^9.3"
     },
