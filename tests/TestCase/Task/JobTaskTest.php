@@ -61,7 +61,7 @@ class JobTaskTest extends TestCase
 
     public function testMain()
     {
-        $this->generatedFile = APP . 'Job/UploadJob.php';
+        $this->generatedFile = APP . 'Job' . DS . 'UploadJob.php';
 
         $this->exec('bake job upload');
         $this->assertExitCode(Command::CODE_SUCCESS);
