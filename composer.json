@@ -42,7 +42,8 @@
         }
     },
     "suggest": {
-        "cakephp/bake": "Required if you want to generate jobs."
+        "cakephp/bake": "Required if you want to generate jobs.",
+        "cakephp/migrations": "Needed for running the migrations necessary for using Failed Jobs."
     },
     "scripts": {
         "check": [

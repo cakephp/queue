@@ -21,6 +21,8 @@ use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
 use Cake\Core\PluginApplicationInterface;
 use Cake\Queue\Command\JobCommand;
+use Cake\Queue\Command\PurgeFailedCommand;
+use Cake\Queue\Command\RequeueCommand;
 use Cake\Queue\Command\WorkerCommand;
 
 /**
@@ -71,6 +73,8 @@ class Plugin extends BasePlugin
 
         return $commands
             ->add('queue worker', WorkerCommand::class)
-            ->add('worker', WorkerCommand::class);
+            ->add('worker', WorkerCommand::class)
+            ->add('queue requeue', RequeueCommand::class)
+            ->add('queue purge_failed', PurgeFailedCommand::class);
     }
 }

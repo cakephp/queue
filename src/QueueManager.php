@@ -216,6 +216,11 @@ class QueueManager
             'class' => [$class, $method],
             'args' => [$data],
             'data' => $data,
+            'requeueOptions' => [
+                'config' => $name,
+                'priority' => $options['priority'] ?? null,
+                'queue' => $queue,
+            ],
         ]);
 
         if (isset($options['delay'])) {

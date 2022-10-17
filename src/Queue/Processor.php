@@ -18,6 +18,7 @@ namespace Cake\Queue\Queue;
 
 use Cake\Event\EventDispatcherTrait;
 use Cake\Queue\Job\Message;
+use Enqueue\Consumption\Result;
 use Error;
 use Exception;
 use Interop\Queue\Context;
@@ -78,7 +79,7 @@ class Processor implements InteropProcessor
                 'exception' => $e,
             ]);
 
-            return InteropProcessor::REQUEUE;
+            return Result::requeue(sprintf('Exception occurred while processing message: %s', (string)$e));
         }
 
         if ($response === InteropProcessor::ACK) {

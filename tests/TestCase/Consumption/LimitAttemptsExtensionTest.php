@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Cake\Queue\Test\TestCase\Job;
 
+use Cake\Event\EventList;
+use Cake\Event\EventManager;
 use Cake\Log\Log;
 use Cake\Queue\Consumption\LimitAttemptsExtension;
 use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
@@ -18,6 +20,13 @@ use TestApp\Job\RequeueJob;
 class LimitAttemptsExtensionTest extends TestCase
 {
     use DebugLogTrait;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        EventManager::instance()->setEventList(new EventList());
+    }
 
     /**
      * @beforeClass
@@ -39,6 +48,17 @@ class LimitAttemptsExtensionTest extends TestCase
 
         $count = $this->debugLogCount('RequeueJob is requeueing');
         $this->assertGreaterThanOrEqual(10, $count);
+    }
+
+    public function testFailedEventIsFiredWhenMaxAttemptsIsExceeded()
+    {
+        $consume = $this->setupQeueue();
+
+        QueueManager::push(MaxAttemptsIsThreeJob::class, []);
+
+        $consume();
+
+        $this->assertEventFired('Consumption.LimitAttemptsExtension.failed');
     }
 
     public function testMessageShouldBeRequeuedUntilMaxAttemptsIsReached()

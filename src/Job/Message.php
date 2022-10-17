@@ -106,7 +106,7 @@ class Message implements JsonSerializable
      *
      * @return array
      */
-    protected function getTarget(): array
+    public function getTarget(): array
     {
         $target = $this->parsedBody['class'] ?? null;
 

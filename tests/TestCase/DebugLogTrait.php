@@ -7,7 +7,7 @@ use Cake\Log\Log;
 
 trait DebugLogTrait
 {
-    protected function assertDebugLogContains($expected, $times = null): void
+    protected function assertDebugLogContains($expected): void
     {
         $found = $this->debugLogCount($expected);
 
