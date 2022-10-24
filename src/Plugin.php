@@ -50,6 +50,13 @@ class Plugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
+        if (!Configure::read('Queue')) {
+            throw new \InvalidArgumentException(
+                'Missing `Queue` configuration key, please check the CakePHP Queue documentation' .
+                ' to complete the plugin setup.'
+            );
+        }
+
         foreach (Configure::read('Queue') as $key => $data) {
             if (QueueManager::getConfig($key) === null) {
                 QueueManager::setConfig($key, $data);
