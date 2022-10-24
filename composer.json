@@ -25,7 +25,7 @@
     },
     "require-dev": {
         "cakephp/bake": "^2.1",
-        "cakephp/cakephp-codesniffer": "^4.0",
+        "cakephp/cakephp-codesniffer": "^5.0",
         "enqueue/fs": "^0.10",
         "phpunit/phpunit": "^8.5 || ^9.3"
     },
