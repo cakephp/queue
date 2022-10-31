@@ -42,7 +42,7 @@ The following configuration should be present in the config array of your **conf
         'default' => [
             // A DSN for your configured backend. default: null
             // Can contain protocol/port/username/password or be null if the backend defaults to localhost
-            'url' => 'redis+phpredis://example.com:1000',
+            'url' => 'redis://myusername:mypassword@example.com:1000',
 
             // The queue that will be used for sending messages. default: default
             // This can be overridden when queuing or processing messages
