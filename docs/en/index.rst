@@ -44,7 +44,7 @@ The following configuration should be present in the config array of your **conf
             'url' => 'redis:',
 
             // The queue that will be used for sending messages. default: default
-            // This can be overriden when queuing or processing messages
+            // This can be overridden when queuing or processing messages
             'queue' => 'default',
 
             // The name of a configured logger, default: null
