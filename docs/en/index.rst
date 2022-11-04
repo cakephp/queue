@@ -59,6 +59,16 @@ The following configuration should be present in the config array of your **conf
 
             // Whether to store failed jobs in the queue_failed_jobs table. default: false
             'storeFailedJobs' => true,
+
+            // (optional) The cache configuration for storing unique job ids. `duration`
+            // should be greater than the maximum length of time any job can be expected
+            // to remain on the queue. Otherwise, duplicate jobs may be
+            // possible. Defaults to +24 hours. Note that `File` engine is only suitable
+            // for local development.
+            // See https://book.cakephp.org/4/en/core-libraries/caching.html#configuring-cache-engines.
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
         ]
     ],
     // ...
@@ -111,6 +121,13 @@ Create a Job class::
          */
         public static $maxAttempts = 3;
 
+        /**
+         * Whether there should be only one instance of a job on the queue at a time. (optional property)
+         * 
+         * @var bool
+         */
+        public static $shouldBeUnique = false;
+
         public function execute(Message $message): ?string
         {
             $id = $message->getArgument('id');
@@ -151,6 +168,12 @@ Properties:
   provided, this value will override the value provided in the worker command
   line option ``--max-attempts``. If a value is not provided by the job or by
   the command line option, the job may be requeued an infinite number of times.
+- ``shouldBeUnique``: If ``true``, only one instance of the job, identified by
+  it's class, method, and data, will be allowed to be present on the queue at a
+  time. Subsequent pushes will be silently dropped. This is useful for
+  idempotent operations where consecutive job executions have no benefit. For
+  example, refreshing calculated data. If ``true``, the ``uniqueCache``
+  configuration must be set.
 
 Queueing
 --------

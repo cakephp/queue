@@ -40,7 +40,7 @@ class LimitAttemptsExtensionTest extends TestCase
 
     public function testMessageShouldBeRequeuedIfMaxAttemptsIsNotSet()
     {
-        $consume = $this->setupQeueue();
+        $consume = $this->setupQueue();
 
         QueueManager::push(RequeueJob::class);
 
@@ -52,7 +52,7 @@ class LimitAttemptsExtensionTest extends TestCase
 
     public function testFailedEventIsFiredWhenMaxAttemptsIsExceeded()
     {
-        $consume = $this->setupQeueue();
+        $consume = $this->setupQueue();
 
         QueueManager::push(MaxAttemptsIsThreeJob::class, []);
 
@@ -63,7 +63,7 @@ class LimitAttemptsExtensionTest extends TestCase
 
     public function testMessageShouldBeRequeuedUntilMaxAttemptsIsReached()
     {
-        $consume = $this->setupQeueue();
+        $consume = $this->setupQueue();
 
         QueueManager::push(MaxAttemptsIsThreeJob::class, []);
 
@@ -74,7 +74,7 @@ class LimitAttemptsExtensionTest extends TestCase
 
     public function testMessageShouldBeRequeuedIfGlobalMaxAttemptsIsNotSet()
     {
-        $consume = $this->setupQeueue();
+        $consume = $this->setupQueue();
 
         QueueManager::push(RequeueJob::class);
 
@@ -86,7 +86,7 @@ class LimitAttemptsExtensionTest extends TestCase
 
     public function testMessageShouldBeRequeuedUntilGlobalMaxAttemptsIsReached()
     {
-        $consume = $this->setupQeueue([3]);
+        $consume = $this->setupQueue([3]);
 
         QueueManager::push(MaxAttemptsIsThreeJob::class, ['succeedAt' => 10]);
 
@@ -95,7 +95,7 @@ class LimitAttemptsExtensionTest extends TestCase
         $this->assertDebugLogContainsExactly('MaxAttemptsIsThreeJob is requeueing', 3);
     }
 
-    protected function setupQeueue($extensionArgs = [])
+    protected function setupQueue($extensionArgs = [])
     {
         Log::setConfig('debug', [
             'className' => 'Array',

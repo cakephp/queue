@@ -24,6 +24,7 @@ use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Queue\Consumption\LimitAttemptsExtension;
 use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
+use Cake\Queue\Consumption\RemoveUniqueJobIdFromCacheExtension;
 use Cake\Queue\Listener\FailedJobsListener;
 use Cake\Queue\Queue\Processor;
 use Cake\Queue\QueueManager;
@@ -117,6 +118,7 @@ class WorkerCommand extends Command
         $extensions = [
             new LoggerExtension($logger),
             $limitAttempsExtension,
+            new RemoveUniqueJobIdFromCacheExtension('Cake/Queue.queueUnique'),
         ];
 
         if (!is_null($args->getOption('max-jobs'))) {

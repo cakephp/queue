@@ -104,7 +104,8 @@ class Message implements JsonSerializable
     /**
      * Get the target class and method.
      *
-     * @return array
+     * @return array{string, string}
+     * @psalm-return array{class-string, string}
      */
     public function getTarget(): array
     {
@@ -150,6 +151,7 @@ class Message implements JsonSerializable
     {
         $target = $this->getTarget();
 
+        /** @psalm-var class-string $class */
         $class = $target[0];
 
         return $class::$maxAttempts ?? null;
