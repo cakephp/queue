@@ -15,4 +15,11 @@
       <directory>tests/TestCase</directory>
     </testsuite>
   </testsuites>
+  <listeners>
+    <listener class="Cake\TestSuite\Fixture\FixtureInjector">
+      <arguments>
+        <object class="Cake\TestSuite\Fixture\FixtureManager"/>
+      </arguments>
+    </listener>
+  </listeners>
 </phpunit>
