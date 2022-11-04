@@ -16,6 +16,8 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Job;
 
+use Cake\Log\Log;
+use Cake\Mailer\AbstractTransport;
 use Cake\Queue\Queue\Processor;
 
 /**
@@ -28,17 +30,50 @@ class SendMailJob implements JobInterface
      */
     public function execute(Message $message): ?string
     {
-        $transportClassName = $message->getArgument('transport');
-        $config = $message->getArgument('config');
-        $emailMessage = unserialize($message->getArgument('emailMessage'));
+        $result = false;
         try {
+            $transportClassName = $message->getArgument('transport');
+            $config = $message->getArgument('config', []);
             /** @var \Cake\Mailer\AbstractTransport $transport */
-            $transport = new $transportClassName($config);
+            $transport = $this->getTransport($transportClassName, $config);
+
+            $emailMessage = unserialize($message->getArgument('emailMessage'));
             $result = $transport->send($emailMessage);
         } catch (\Exception $e) {
-            return Processor::REJECT;
+            Log::error(sprintf('An error has occurred processing message: %s', $e->getMessage()));
+        } finally {
+            if (!$result) {
+                return Processor::REJECT;
+            }
         }
 
         return Processor::ACK;
+    }
+
+    /**
+     * Initialize transport
+     *
+     * @param string $transportClassName Transport class name
+     * @param array $config Transport config
+     * @return \Cake\Mailer\AbstractTransport
+     * @throws \InvalidArgumentException if empty transport class name, class does not exist or send method is not defined for class
+     */
+    protected function getTransport(string $transportClassName, array $config): AbstractTransport
+    {
+        if (
+            empty($transportClassName) ||
+            !class_exists($transportClassName) ||
+            !method_exists($transportClassName, 'send')
+        ) {
+            throw new \InvalidArgumentException(sprintf('Transport class name is not valid: %s', $transportClassName));
+        }
+
+        $transport = new $transportClassName($config);
+
+        if (!($transport instanceof AbstractTransport)) {
+            throw new \InvalidArgumentException('Provided class does not extend AbstractTransport.');
+        }
+
+        return $transport;
     }
 }

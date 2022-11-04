@@ -38,15 +38,9 @@ class QueueTransport extends \Cake\Mailer\AbstractTransport
      */
     public function send(Message $message): array
     {
-        QueueManager::push(
-            [SendMailJob::class, 'execute'],
-            [
-                'transport' => $this->getConfig('transport'),
-                'config' => $this->getConfig(),
-                'emailMessage' => serialize($message),
-            ],
-            $this->getConfig('options')
-        );
+        $data = $this->prepareData($message);
+        $options = $this->getConfig('options');
+        $this->enqueueJob($data, $options);
 
         $headers = $message->getHeadersString(
             [
@@ -59,9 +53,40 @@ class QueueTransport extends \Cake\Mailer\AbstractTransport
                 'returnPath',
                 'cc',
                 'bcc',
-            ],
+            ]
         );
 
         return ['headers' => $headers, 'message' => 'Message has been enqueued'];
+    }
+
+    /**
+     * Add job to queue
+     *
+     * @param array $data Data to be sent to job
+     * @param array $options Job options
+     * @return void
+     */
+    protected function enqueueJob(array $data, array $options): void
+    {
+        QueueManager::push(
+            [SendMailJob::class, 'execute'],
+            $data,
+            $options
+        );
+    }
+
+    /**
+     * Prepare data for job
+     *
+     * @param \Cake\Mailer\Message $message Email message
+     * @return array
+     */
+    protected function prepareData(Message $message): array
+    {
+        return [
+            'transport' => $this->getConfig('transport'),
+            'config' => $this->getConfig(),
+            'emailMessage' => serialize($message),
+        ];
     }
 }
