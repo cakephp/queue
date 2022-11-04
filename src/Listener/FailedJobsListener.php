@@ -76,6 +76,7 @@ class FailedJobsListener implements EventListenerInterface
 
         try {
             $failedJobsTable->saveOrFail($failedJob);
+        /** @phpstan-ignore-next-line */
         } catch (PersistenceFailedException $e) {
             $logger = $event->getData('logger');
 
