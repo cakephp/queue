@@ -151,9 +151,9 @@ class Message implements JsonSerializable
     {
         $target = $this->getTarget();
 
-        /** @psalm-var class-string $class */
         $class = $target[0];
 
+        /** @psalm-suppress InvalidPropertyFetch */
         return $class::$maxAttempts ?? null;
     }
 

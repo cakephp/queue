@@ -275,6 +275,7 @@ class QueueManager
         $client = static::engine($name);
         $client->sendEvent($queue, $message);
 
+        /** @psalm-suppress InvalidPropertyFetch */
         if (!empty($class::$shouldBeUnique)) {
             $uniqueId = static::getUniqueId($class, $method, $data);
 
