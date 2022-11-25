@@ -21,6 +21,7 @@ use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
+use Cake\Core\ContainerInterface;
 use Cake\Log\Log;
 use Cake\Queue\Consumption\LimitAttemptsExtension;
 use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
@@ -40,6 +41,20 @@ use Psr\Log\NullLogger;
  */
 class WorkerCommand extends Command
 {
+    /**
+     * @var \Cake\Core\ContainerInterface|null
+     */
+    protected $container;
+
+    /**
+     * @param \Cake\Core\ContainerInterface|null $container DI container instance
+     */
+    public function __construct(?ContainerInterface $container = null)
+    {
+        parent::__construct();
+        $this->container = $container;
+    }
+
     /**
      * Get the command name.
      *
@@ -156,7 +171,7 @@ class WorkerCommand extends Command
     public function execute(Arguments $args, ConsoleIo $io)
     {
         $logger = $this->getLogger($args);
-        $processor = new Processor($logger);
+        $processor = new Processor($logger, $this->container);
         $extension = $this->getQueueExtension($args, $logger);
 
         $config = (string)$args->getOption('config');

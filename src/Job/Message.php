@@ -16,6 +16,8 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Job;
 
+use Cake\Core\ContainerInterface;
+use Cake\Queue\Queue\ServicesTrait;
 use Cake\Utility\Hash;
 use Closure;
 use Interop\Queue\Context;
@@ -46,14 +48,21 @@ class Message implements JsonSerializable
     protected $callable;
 
     /**
+     * @var \Cake\Core\ContainerInterface|null
+     */
+    protected $container;
+
+    /**
      * @param \Interop\Queue\Message $originalMessage Queue message.
      * @param \Interop\Queue\Context $context Context.
+     * @param \Cake\Core\ContainerInterface|null $container DI container instance
      */
-    public function __construct(QueueMessage $originalMessage, Context $context)
+    public function __construct(QueueMessage $originalMessage, Context $context, ?ContainerInterface $container = null)
     {
         $this->context = $context;
         $this->originalMessage = $originalMessage;
         $this->parsedBody = json_decode($originalMessage->getBody(), true);
+        $this->container = $container;
     }
 
     /**
@@ -95,8 +104,14 @@ class Message implements JsonSerializable
         }
 
         $target = $this->getTarget();
+        $object = new $target[0]();
 
-        $this->callable = Closure::fromCallable([new $target[0](), $target[1]]);
+        $traits = class_uses($object);
+        if ($this->container && $traits && in_array(ServicesTrait::class, $traits, true)) {
+            $object->setContainer($this->container);
+        }
+
+        $this->callable = Closure::fromCallable([$object, $target[1]]);
 
         return $this->callable;
     }
