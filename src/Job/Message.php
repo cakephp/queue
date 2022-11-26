@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace Cake\Queue\Job;
 
 use Cake\Core\ContainerInterface;
-use Cake\Queue\Queue\ServicesTrait;
 use Cake\Utility\Hash;
 use Closure;
 use Interop\Queue\Context;
@@ -104,11 +103,10 @@ class Message implements JsonSerializable
         }
 
         $target = $this->getTarget();
-        $object = new $target[0]();
-
-        $traits = class_uses($object);
-        if ($this->container && $traits && in_array(ServicesTrait::class, $traits, true)) {
-            $object->setContainer($this->container);
+        if ($this->container && $this->container->has($target[0])) {
+            $object = $this->container->get($target[0]);
+        } else {
+            $object = new $target[0]();
         }
 
         $this->callable = Closure::fromCallable([$object, $target[1]]);
