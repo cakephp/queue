@@ -19,6 +19,7 @@ namespace Cake\Queue\Test\TestCase\Command;
 use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Queue\QueueManager;
+use Cake\Queue\Test\test_app\src\Job\LogToDebugWithServiceJob;
 use Cake\Queue\Test\TestCase\DebugLogTrait;
 use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
@@ -269,5 +270,33 @@ class WorkerCommandTest extends TestCase
         $this->exec('queue worker --max-attempts=3 --max-jobs=1 --logger=debug --verbose');
 
         $this->assertDebugLogContainsExactly('RequeueJob is requeueing', 3);
+    }
+
+    /**
+     * Test DI service injection works in tasks
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesJobWithDIService()
+    {
+        $this->skipIf(version_compare(Configure::version(), '4.2', '<'), 'DI Container is only available since CakePHP 4.2');
+        $config = [
+            'queue' => 'default',
+            'url' => 'file:///' . TMP . DS . 'queue',
+            'receiveTimeout' => 100,
+        ];
+        Configure::write('Queue', ['default' => $config]);
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        QueueManager::setConfig('default', $config);
+        QueueManager::push(LogToDebugWithServiceJob::class);
+        QueueManager::drop('default');
+
+        $this->exec('queue worker --max-jobs=1 --processor=processor-name --logger=debug --verbose');
+
+        $this->assertDebugLogContains('Debug job was run with service infotext');
     }
 }
