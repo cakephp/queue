@@ -87,7 +87,10 @@ Usage
 Defining Jobs
 -------------
 
-Create a Job class::
+Workloads are defined as 'jobs'. Job classes can recieve dependencies from your
+application's dependency injection container in their constructor just like
+Controllers or Commands. Jobs are responsible for processing queue messages.
+A simple job that logs received messages would look like::
 
     <?php
     // src/Job/ExampleJob.php
@@ -144,7 +147,7 @@ The job **may** also return a null value, which is interpreted as
 ``Processor::ACK``. Failure to respond with a valid type will result in an
 interpreted message failure and requeue of the message.
 
-Properties:
+Job Properties:
 
 - ``maxAttempts``: The maximum number of times the job may be requeued as a result
   of an exception or by explicitly returning ``Processor::REQUEUE``. If
