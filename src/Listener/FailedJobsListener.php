@@ -16,7 +16,6 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Listener;
 
-use Cake\Event\EventInterface;
 use Cake\Event\EventListenerInterface;
 use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\ORM\Locator\LocatorAwareTrait;
@@ -39,10 +38,10 @@ class FailedJobsListener implements EventListenerInterface
     }
 
     /**
-     * @param \Cake\Event\EventInterface $event EventInterface
+     * @param object $event EventInterface.
      * @return void
      */
-    public function storeFailedJob(EventInterface $event): void
+    public function storeFailedJob($event): void
     {
         /** @var \Cake\Queue\Job\Message $jobMessage */
         $jobMessage = $event->getSubject();
