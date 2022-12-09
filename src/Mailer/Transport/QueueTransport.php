@@ -86,7 +86,7 @@ class QueueTransport extends \Cake\Mailer\AbstractTransport
         return [
             'transport' => $this->getConfig('transport'),
             'config' => $this->getConfig(),
-            'emailMessage' => serialize($message),
+            'emailMessage' => json_encode($message),
         ];
     }
 }

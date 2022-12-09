@@ -37,14 +37,19 @@ class SendMailJob implements JobInterface
             /** @var \Cake\Mailer\AbstractTransport $transport */
             $transport = $this->getTransport($transportClassName, $config);
 
-            $emailMessage = unserialize($message->getArgument('emailMessage'));
+            $emailMessage = new \Cake\Mailer\Message();
+            $data = json_decode($message->getArgument('emailMessage'), true);
+            if (!is_array($data)) {
+                throw new \InvalidArgumentException('Email Message cannot be decoded.');
+            }
+            $emailMessage->createFromArray($data);
             $result = $transport->send($emailMessage);
         } catch (\Exception $e) {
             Log::error(sprintf('An error has occurred processing message: %s', $e->getMessage()));
-        } finally {
-            if (!$result) {
-                return Processor::REJECT;
-            }
+        }
+
+        if (!$result) {
+            return Processor::REJECT;
         }
 
         return Processor::ACK;

@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Job;
 
+use Cake\Mailer\Mailer;
 use Cake\Mailer\Transport\DebugTransport;
 use Cake\Queue\Job\Message;
 use Cake\Queue\Job\SendMailJob;
@@ -63,6 +64,20 @@ class SendMailJobTest extends TestCase
     }
 
     /**
+     * Test execute with attachments method
+     *
+     * @return void
+     */
+    public function testExecuteWithAttachments()
+    {
+        $emailMessage = clone $this->message;
+        $emailMessage->addAttachments(['test.txt' => ROOT . 'files' . DS . 'test.txt']);
+        $message = $this->createMessage(DebugTransport::class, [], $emailMessage);
+        $actual = $this->job->execute($message);
+        $this->assertSame(Processor::ACK, $actual);
+    }
+
+    /**
      * Test execute method with invalid transport
      *
      * @return void
@@ -86,6 +101,13 @@ class SendMailJobTest extends TestCase
         $this->assertSame(Processor::REJECT, $actual);
     }
 
+    public function testExecuteNoAbstractTransport()
+    {
+        $message = $this->createMessage(Mailer::class, [], $this->message);
+        $actual = $this->job->execute($message);
+        $this->assertSame(Processor::REJECT, $actual);
+    }
+
     /**
      * Create a simple message for testing.
      *
@@ -98,7 +120,7 @@ class SendMailJobTest extends TestCase
             'data' => [
                 'transport' => $transport,
                 'config' => $config,
-                'emailMessage' => serialize($emailMessage),
+                'emailMessage' => json_encode($emailMessage),
 
             ],
         ];

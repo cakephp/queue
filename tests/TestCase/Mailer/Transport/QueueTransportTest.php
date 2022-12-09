@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Queue\Test\TestCase\Job;
 
 use Cake\Queue\Mailer\Transport\QueueTransport;
+use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
 
 class QueueTransportTest extends TestCase
@@ -28,26 +29,17 @@ class QueueTransportTest extends TestCase
      */
     public function testSend()
     {
+        QueueManager::setConfig('default', [
+            'queue' => 'default',
+            'url' => 'null:',
+        ]);
         $message = (new \Cake\Mailer\Message())
             ->setFrom('from@example.com')
             ->setTo('to@example.com')
             ->setSubject('Sample Subject');
 
-        $transport = $this
-            ->getMockBuilder(QueueTransport::class)->onlyMethods(['enqueueJob'])
-            ->getMock();
-        $expectedData = [
-            'transport' => 'Cake\Mailer\Transport\MailTransport',
-            'config' => [
-                'options' => [],
-                'transport' => 'Cake\Mailer\Transport\MailTransport',
-            ],
-            'emailMessage' => serialize($message),
-        ];
-        $expectedOptions = [];
-        $transport->expects($this->once())
-            ->method('enqueueJob')
-            ->with($expectedData, $expectedOptions);
+        $transport = new QueueTransport();
+
         $result = $transport->send($message);
 
         $headers = $message->getHeadersString(
@@ -66,5 +58,6 @@ class QueueTransportTest extends TestCase
 
         $expected = ['headers' => $headers, 'message' => 'Message has been enqueued'];
         $this->assertEquals($expected, $result);
+        QueueManager::drop('default');
     }
 }
