@@ -19,8 +19,11 @@ namespace Cake\Queue;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
+use Cake\Core\ContainerInterface;
 use Cake\Core\PluginApplicationInterface;
 use Cake\Queue\Command\JobCommand;
+use Cake\Queue\Command\PurgeFailedCommand;
+use Cake\Queue\Command\RequeueCommand;
 use Cake\Queue\Command\WorkerCommand;
 
 /**
@@ -78,6 +81,22 @@ class Plugin extends BasePlugin
 
         return $commands
             ->add('queue worker', WorkerCommand::class)
-            ->add('worker', WorkerCommand::class);
+            ->add('worker', WorkerCommand::class)
+            ->add('queue requeue', RequeueCommand::class)
+            ->add('queue purge_failed', PurgeFailedCommand::class);
+    }
+
+    /**
+     * Add DI container to Worker command
+     *
+     * @param \Cake\Core\ContainerInterface $container The DI container
+     * @return void
+     */
+    public function services(ContainerInterface $container): void
+    {
+        $container->add(ContainerInterface::class, $container);
+        $container
+            ->add(WorkerCommand::class)
+            ->addArgument(ContainerInterface::class);
     }
 }

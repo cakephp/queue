@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Queue;
 
 use BadMethodCallException;
+use Cake\Cache\Cache;
 use Cake\Core\App;
 use Cake\Log\Log;
 use Enqueue\Client\Message as ClientMessage;
@@ -119,6 +120,16 @@ class QueueManager
             }
         }
 
+        if (!empty($config['uniqueCache'])) {
+            $cacheDefaults = [
+                'duration' => '+24 hours',
+            ];
+
+            $cacheConfig = array_merge($cacheDefaults, $config['uniqueCache']);
+
+            Cache::setConfig('Cake/Queue.queueUnique', $cacheConfig);
+        }
+
         /** @psalm-suppress InvalidPropertyAssignmentValue */
         static::$_config[$key] = $config;
     }
@@ -209,13 +220,44 @@ class QueueManager
 
         $name = $options['config'] ?? 'default';
 
-        $config = static::getConfig($name);
+        $config = static::getConfig($name) + [
+            'logger' => null,
+        ];
+
+        $logger = $config['logger'] ? Log::engine($config['logger']) : null;
+
+        /** @psalm-suppress InvalidPropertyFetch */
+        if (!empty($class::$shouldBeUnique)) {
+            if (!Cache::getConfig('Cake/Queue.queueUnique')) {
+                throw new InvalidArgumentException(
+                    "$class::\$shouldBeUnique is set to `true` but `uniqueCache` configuration is missing."
+                );
+            }
+
+            $uniqueId = static::getUniqueId($class, $method, $data);
+
+            if (Cache::read($uniqueId, 'Cake/Queue.queueUnique')) {
+                if ($logger) {
+                    $logger->debug(
+                        "An identical instance of $class already exists on the queue. This push will be ignored."
+                    );
+                }
+
+                return;
+            }
+        }
+
         $queue = $options['queue'] ?? $config['queue'] ?? 'default';
 
         $message = new ClientMessage([
             'class' => [$class, $method],
             'args' => [$data],
             'data' => $data,
+            'requeueOptions' => [
+                'config' => $name,
+                'priority' => $options['priority'] ?? null,
+                'queue' => $queue,
+            ],
         ]);
 
         if (isset($options['delay'])) {
@@ -232,5 +274,31 @@ class QueueManager
 
         $client = static::engine($name);
         $client->sendEvent($queue, $message);
+
+        /** @psalm-suppress InvalidPropertyFetch */
+        if (!empty($class::$shouldBeUnique)) {
+            $uniqueId = static::getUniqueId($class, $method, $data);
+
+            Cache::add($uniqueId, true, 'Cake/Queue.queueUnique');
+        }
+    }
+
+    /**
+     * @param string $class Class name
+     * @param string $method Method name
+     * @param array $data Message data
+     * @return string
+     */
+    public static function getUniqueId(string $class, string $method, array $data): string
+    {
+        sort($data);
+
+        $hashInput = implode([
+            $class,
+            $method,
+            json_encode($data),
+        ]);
+
+        return hash('md5', $hashInput);
     }
 }

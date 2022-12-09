@@ -8,6 +8,7 @@ use Cake\Queue\Consumption\LimitAttemptsExtension;
 use Cake\Queue\Job\JobInterface;
 use Cake\Queue\Job\Message;
 use Interop\Queue\Processor;
+use RuntimeException;
 
 class MaxAttemptsIsThreeJob implements JobInterface
 {
@@ -23,7 +24,7 @@ class MaxAttemptsIsThreeJob implements JobInterface
         if (!$succeedAt || $succeedAt > $attemptNumber) {
             Log::debug('MaxAttemptsIsThreeJob is requeueing');
 
-            return Processor::REQUEUE;
+            throw new RuntimeException('example MaxAttemptsIsThreeJob exception message');
         }
 
         Log::debug('MaxAttemptsIsThreeJob was run');

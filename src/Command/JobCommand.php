@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Queue\Command;
 
 use Bake\Command\SimpleBakeCommand;
+use Cake\Console\Arguments;
 use Cake\Console\ConsoleOptionParser;
 
 class JobCommand extends SimpleBakeCommand
@@ -48,6 +49,20 @@ class JobCommand extends SimpleBakeCommand
     }
 
     /**
+     * @inheritDoc
+     */
+    public function templateData(Arguments $arguments): array
+    {
+        $parentData = parent::templateData($arguments);
+
+        $data = [
+            'isUnique' => $arguments->getOption('unique'),
+        ];
+
+        return array_merge($parentData, $data);
+    }
+
+    /**
      * Gets the option parser instance and configures it.
      *
      * @param \Cake\Console\ConsoleOptionParser $parser The parser to update.
@@ -61,6 +76,11 @@ class JobCommand extends SimpleBakeCommand
             ->setDescription('Bake a queue job class.')
             ->addArgument('name', [
                 'help' => 'The name of the queue job class to create.',
+            ])
+            ->addOption('unique', [
+                'help' => 'Whether there should be only one instance of a job on the queue at a time.',
+                'boolean' => true,
+                'default' => false,
             ]);
     }
 }

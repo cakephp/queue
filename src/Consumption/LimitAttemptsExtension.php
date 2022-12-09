@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Cake\Queue\Consumption;
 
+use Cake\Event\EventDispatcherTrait;
 use Cake\Queue\Job\Message;
 use Enqueue\Consumption\Context\MessageResult;
 use Enqueue\Consumption\MessageResultExtensionInterface;
@@ -11,6 +12,8 @@ use Interop\Queue\Processor;
 
 class LimitAttemptsExtension implements MessageResultExtensionInterface
 {
+    use EventDispatcherTrait;
+
     /**
      * The property key used to set the number of times a message was attempted.
      *
@@ -41,7 +44,7 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
      */
     public function onResult(MessageResult $context): void
     {
-        if ($context->getResult() !== Processor::REQUEUE) {
+        if ($context->getResult() != Processor::REQUEUE) {
             return;
         }
 
@@ -58,8 +61,18 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
         $attemptNumber = $message->getProperty(self::ATTEMPTS_PROPERTY, 0) + 1;
 
         if ($attemptNumber >= $maxAttempts) {
+            $originalResult = $context->getResult();
+
             $context->changeResult(
                 Result::reject(sprintf('The maximum number of %d allowed attempts was reached.', $maxAttempts))
+            );
+
+            $exception = $originalResult instanceof Result ? $originalResult->getReason() : null;
+
+            $this->dispatchEvent(
+                'Consumption.LimitAttemptsExtension.failed',
+                ['exception' => $exception, 'logger' => $context->getLogger()],
+                $jobMessage
             );
 
             return;

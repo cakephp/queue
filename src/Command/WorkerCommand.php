@@ -21,9 +21,12 @@ use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
+use Cake\Core\ContainerInterface;
 use Cake\Log\Log;
 use Cake\Queue\Consumption\LimitAttemptsExtension;
 use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
+use Cake\Queue\Consumption\RemoveUniqueJobIdFromCacheExtension;
+use Cake\Queue\Listener\FailedJobsListener;
 use Cake\Queue\Queue\Processor;
 use Cake\Queue\QueueManager;
 use DateTime;
@@ -39,6 +42,20 @@ use Psr\Log\NullLogger;
  */
 class WorkerCommand extends Command
 {
+    /**
+     * @var \Cake\Core\ContainerInterface|null
+     */
+    protected $container;
+
+    /**
+     * @param \Cake\Core\ContainerInterface|null $container DI container instance
+     */
+    public function __construct(?ContainerInterface $container = null)
+    {
+        parent::__construct();
+        $this->container = $container;
+    }
+
     /**
      * Get the command name.
      *
@@ -109,9 +126,14 @@ class WorkerCommand extends Command
      */
     protected function getQueueExtension(Arguments $args, LoggerInterface $logger): ExtensionInterface
     {
+        $limitAttempsExtension = new LimitAttemptsExtension((int)$args->getOption('max-attempts') ?: null);
+
+        $limitAttempsExtension->getEventManager()->on(new FailedJobsListener());
+
         $extensions = [
             new LoggerExtension($logger),
-            new LimitAttemptsExtension((int)$args->getOption('max-attempts') ?: null),
+            $limitAttempsExtension,
+            new RemoveUniqueJobIdFromCacheExtension('Cake/Queue.queueUnique'),
         ];
 
         if (!is_null($args->getOption('max-jobs'))) {
@@ -151,7 +173,7 @@ class WorkerCommand extends Command
     public function execute(Arguments $args, ConsoleIo $io)
     {
         $logger = $this->getLogger($args);
-        $processor = new Processor($logger);
+        $processor = new Processor($logger, $this->container);
         $extension = $this->getQueueExtension($args, $logger);
 
         $config = (string)$args->getOption('config');

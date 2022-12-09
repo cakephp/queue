@@ -34,6 +34,15 @@ class {{ name }}Job implements JobInterface
      */
     public static $maxAttempts = 3;
 
+{% if isUnique %}
+    /**
+     * Whether there should be only one instance of a job on the queue at a time. (optional property)
+     * 
+     * @var bool
+     */
+    public static $shouldBeUnique = true;
+
+{% endif %}
     /**
      * Executes logic for {{ name }}Job
      *

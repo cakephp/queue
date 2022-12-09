@@ -153,7 +153,7 @@ class ProcessorTest extends TestCase
         $processor->getEventManager()->setEventList($events);
 
         $result = $processor->process($queueMessage, $context);
-        $this->assertSame(InteropProcessor::REQUEUE, $result);
+        $this->assertEquals(InteropProcessor::REQUEUE, $result);
     }
 
     /**

@@ -16,8 +16,10 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Queue;
 
+use Cake\Core\ContainerInterface;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Queue\Job\Message;
+use Enqueue\Consumption\Result;
 use Error;
 use Exception;
 use Interop\Queue\Context;
@@ -37,13 +39,20 @@ class Processor implements InteropProcessor
     protected $logger;
 
     /**
+     * @var \Cake\Core\ContainerInterface|null
+     */
+    protected $container;
+
+    /**
      * Processor constructor
      *
-     * @param \Psr\Log\LoggerInterface $logger Logger instance.
+     * @param \Psr\Log\LoggerInterface|null $logger Logger instance.
+     * @param \Cake\Core\ContainerInterface|null $container DI container instance
      */
-    public function __construct(?LoggerInterface $logger = null)
+    public function __construct(?LoggerInterface $logger = null, ?ContainerInterface $container = null)
     {
         $this->logger = $logger ?: new NullLogger();
+        $this->container = $container;
     }
 
     /**
@@ -57,7 +66,7 @@ class Processor implements InteropProcessor
     {
         $this->dispatchEvent('Processor.message.seen', ['queueMessage' => $message]);
 
-        $jobMessage = new Message($message, $context);
+        $jobMessage = new Message($message, $context, $this->container);
         try {
             $jobMessage->getCallable();
         } catch (RuntimeException | Error $e) {
@@ -78,7 +87,7 @@ class Processor implements InteropProcessor
                 'exception' => $e,
             ]);
 
-            return InteropProcessor::REQUEUE;
+            return Result::requeue(sprintf('Exception occurred while processing message: %s', (string)$e));
         }
 
         if ($response === InteropProcessor::ACK) {

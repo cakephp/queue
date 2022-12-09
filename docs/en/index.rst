@@ -41,10 +41,11 @@ The following configuration should be present in the config array of your **conf
     'Queue' => [
         'default' => [
             // A DSN for your configured backend. default: null
-            'url' => 'redis:',
+            // Can contain protocol/port/username/password or be null if the backend defaults to localhost
+            'url' => 'redis://myusername:mypassword@example.com:1000',
 
             // The queue that will be used for sending messages. default: default
-            // This can be overriden when queuing or processing messages
+            // This can be overridden when queuing or processing messages
             'queue' => 'default',
 
             // The name of a configured logger, default: null
@@ -55,6 +56,19 @@ The following configuration should be present in the config array of your **conf
 
             // The amount of time in milliseconds to sleep if no jobs are currently available. default: 10000
             'receiveTimeout' => 10000,
+
+            // Whether to store failed jobs in the queue_failed_jobs table. default: false
+            'storeFailedJobs' => true,
+
+            // (optional) The cache configuration for storing unique job ids. `duration`
+            // should be greater than the maximum length of time any job can be expected
+            // to remain on the queue. Otherwise, duplicate jobs may be
+            // possible. Defaults to +24 hours. Note that `File` engine is only suitable
+            // for local development.
+            // See https://book.cakephp.org/4/en/core-libraries/caching.html#configuring-cache-engines.
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
         ]
     ],
     // ...
@@ -62,13 +76,31 @@ The following configuration should be present in the config array of your **conf
 The ``Queue`` config key can contain one or more queue configurations. Each of
 these is used for interacting with a different queuing backend.
 
+If ``storeFailedJobs`` is set to ``true``, make sure to run the plugin migrations to create the ``queue_failed_jobs`` table.
+
+Install the migrations plugin:
+
+.. code-block:: bash
+
+    composer require cakephp/migrations:"^3.1"
+
+Run the migrations:
+
+.. code-block:: bash
+
+    bin/cake migrations migrate --plugin Cake/Queue
+
+
 Usage
 =====
 
 Defining Jobs
 -------------
 
-Create a Job class::
+Workloads are defined as 'jobs'. Job classes can recieve dependencies from your
+application's dependency injection container in their constructor just like
+Controllers or Commands. Jobs are responsible for processing queue messages.
+A simple job that logs received messages would look like::
 
     <?php
     // src/Job/ExampleJob.php
@@ -91,6 +123,13 @@ Create a Job class::
          * @var int|null
          */
         public static $maxAttempts = 3;
+
+        /**
+         * Whether there should be only one instance of a job on the queue at a time. (optional property)
+         * 
+         * @var bool
+         */
+        public static $shouldBeUnique = false;
 
         public function execute(Message $message): ?string
         {
@@ -125,13 +164,19 @@ The job **may** also return a null value, which is interpreted as
 ``Processor::ACK``. Failure to respond with a valid type will result in an
 interpreted message failure and requeue of the message.
 
-Properties:
+Job Properties:
 
 - ``maxAttempts``: The maximum number of times the job may be requeued as a result
   of an exception or by explicitly returning ``Processor::REQUEUE``. If
   provided, this value will override the value provided in the worker command
   line option ``--max-attempts``. If a value is not provided by the job or by
   the command line option, the job may be requeued an infinite number of times.
+- ``shouldBeUnique``: If ``true``, only one instance of the job, identified by
+  it's class, method, and data, will be allowed to be present on the queue at a
+  time. Subsequent pushes will be silently dropped. This is useful for
+  idempotent operations where consecutive job executions have no benefit. For
+  example, refreshing calculated data. If ``true``, the ``uniqueCache``
+  configuration must be set.
 
 Queueing
 --------
@@ -265,6 +310,62 @@ This shell can take a few different options:
   - Max Iterations
   - Max Runtime
   - Runtime: Time since the worker started, the worker will finish when Runtime is over Max Runtime value
+
+Failed Jobs
+===========
+
+By default, jobs that throw an exception are requeued indefinitely. However, if
+``maxAttempts`` is configured on the job class or via a command line argument, a
+job will be considered failed if a ``Processor::REQUEUE`` response is received
+after processing (typically due to an exception being thrown) and there are no
+remaining attempts. The job will then be rejected and added to the
+``queue_failed_jobs`` table and can be requeued manually.
+
+Your chosen transport may offer a dead-letter queue feature. While Failed Jobs
+has a similar purpose, it specifically captures jobs that return a
+``Processor::REQUEUE`` response and does not handle other failure cases. It is
+agnostic of transport and only supports database persistence.
+
+The following options passed when originally queueing the job will be preserved:
+``config``, ``queue``, and ``priority``.
+
+Requeue Failed Jobs
+-------------------
+
+Push jobs back onto the queue and remove them from the ``queue_failed_jobs``
+table. If a job fails to requeue it is not guaranteed that the job was not run.
+ 
+.. code-block:: bash
+
+    bin/cake queue requeue
+
+Optional filters:
+
+- ``--id``: Requeue job by the ID of the ``FailedJob``
+- ``--class``: Requeue jobs by the job class
+- ``--queue``: Requeue jobs by the queue the job was received on
+- ``--config``: Requeue jobs by the config used to queue the job
+
+If no filters are provided then all failed jobs will be requeued.
+
+Purge Failed Jobs
+------------------
+
+Delete jobs from the ``queue_failed_jobs`` table.
+
+.. code-block:: bash
+
+    bin/cake queue purge_failed
+
+Optional filters:
+
+- ``--id``: Purge job by the ID of the ``FailedJob``
+- ``--class``: Purge jobs by the job class
+- ``--queue``: Purge jobs by the queue the job was received on
+- ``--config``: Purge jobs by the config used to queue the job
+
+If no filters are provided then all failed jobs will be purged.
+
 
 Worker Events
 =============

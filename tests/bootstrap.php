@@ -15,6 +15,7 @@ declare(strict_types=1);
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
+use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Routing\Router;
 
@@ -44,6 +45,25 @@ define('CACHE', sys_get_temp_dir() . DS . 'cache' . DS);
 if (!defined('CONFIG')) {
     define('CONFIG', ROOT . DS . 'config' . DS);
 }
+
+// phpcs:disable
+@mkdir(CACHE);
+@mkdir(CACHE . 'views');
+@mkdir(CACHE . 'models');
+// phpcs:enable
+
+Cache::setConfig([
+    '_cake_core_' => [
+        'engine' => 'File',
+        'prefix' => 'cake_core_',
+        'serialize' => true,
+    ],
+    '_cake_model_' => [
+        'engine' => 'File',
+        'prefix' => 'cake_model_',
+        'serialize' => true,
+    ],
+]);
 
 Configure::write('debug', true);
 Configure::write('App', [
