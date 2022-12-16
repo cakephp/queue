@@ -58,8 +58,23 @@ class SendMailJobTest extends TestCase
      */
     public function testExecute()
     {
+        $job = $this->getMockBuilder(SendMailJob::class)
+            ->onlyMethods(['getTransport'])
+            ->getMock();
         $message = $this->createMessage(DebugTransport::class, [], $this->message);
-        $actual = $this->job->execute($message);
+        $emailMessage = new \Cake\Mailer\Message();
+        $data = json_decode($message->getArgument('emailMessage'), true);
+        $emailMessage->createFromArray($data);
+        $transport = $this->getMockBuilder(DebugTransport::class)->getMock();
+        $transport->expects($this->once())
+            ->method('send')
+            ->with($emailMessage)
+            ->willReturn(['message' => 'test', 'headers' => []]);
+        $job->expects($this->once())
+            ->method('getTransport')
+            ->with(DebugTransport::class, [])
+            ->willReturn($transport);
+        $actual = $job->execute($message);
         $this->assertSame(Processor::ACK, $actual);
     }
 
