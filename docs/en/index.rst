@@ -178,10 +178,10 @@ Job Properties:
   example, refreshing calculated data. If ``true``, the ``uniqueCache``
   configuration must be set.
 
-Queueing
---------
+Queueing Jobs
+-------------
 
-Queue the messages using the included `Queue\QueueManager` class::
+You can enqueue jobs using ``Cake\Queue\QueueManager``::
 
     use App\Job\ExampleJob;
     use Cake\Queue\QueueManager;
@@ -239,8 +239,8 @@ The following keys are valid for use within the ``options`` array:
   - description: The name of a queue to use
   - type: string
 
-Queuing Mailer Actions
-----------------------
+Queueing Mailer Actions
+-----------------------
 
 Mailer actions can be queued by adding the ``Queue\Mailer\QueueTrait`` to the
 mailer class. The following example shows how to setup the trait within a mailer
@@ -286,6 +286,41 @@ The exposed ``QueueTrait::push()`` method has a similar signature to
 ``Mailer::send()``, and also supports an ``$options`` array argument. The
 options this array holds are the same options as those available for
 ``QueueManager::push()``.
+
+Delivering E-mail via Queue Jobs
+--------------------------------
+
+If your application isn't using Mailers but you still want to deliver email via
+queue jobs, you can use the ``QueueTransport``. In your application's
+``EmailTransport`` configuration add a transport::
+
+    // in app/config.php
+    use Cake\Queue\Mailer\Transport\QueueTransport;
+
+    return [
+        // ... other configuration
+        'EmailTransport' => [
+            'queue' => [
+                'className' => QueueTransport::class,
+                // The transport to use inside the queue job.
+                'transport' => MailTransport::class,
+                'config' => [
+                    // Configuration for MailTransport.
+                ]
+            ]
+        ],
+        'Email' => [
+            'default' => [
+                // Connect the default email profile to deliver
+                // by queue jobs.
+                'transport' => 'queue',
+            ]
+        ]
+    ];
+
+With this configuration in place, any time you send an email with the ``default``
+email profile CakePHP will generate a queue message. Once that queue message is
+processed the ``MailTransport`` will be used to deliver the email messages.
 
 Run the worker
 ==============
