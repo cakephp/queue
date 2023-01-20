@@ -18,7 +18,10 @@ namespace Cake\Queue\Job;
 
 use Cake\Log\Log;
 use Cake\Mailer\AbstractTransport;
+use Cake\Mailer\Message as CakeMessage;
 use Cake\Queue\Queue\Processor;
+use Exception;
+use InvalidArgumentException;
 
 /**
  * SendMailJob class to be used by QueueTransport to enqueue emails
@@ -37,14 +40,14 @@ class SendMailJob implements JobInterface
             /** @var \Cake\Mailer\AbstractTransport $transport */
             $transport = $this->getTransport($transportClassName, $config);
 
-            $emailMessage = new \Cake\Mailer\Message();
+            $emailMessage = new CakeMessage();
             $data = json_decode($message->getArgument('emailMessage'), true);
             if (!is_array($data)) {
-                throw new \InvalidArgumentException('Email Message cannot be decoded.');
+                throw new InvalidArgumentException('Email Message cannot be decoded.');
             }
             $emailMessage->createFromArray($data);
             $result = $transport->send($emailMessage);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error(sprintf('An error has occurred processing message: %s', $e->getMessage()));
         }
 
@@ -70,13 +73,13 @@ class SendMailJob implements JobInterface
             !class_exists($transportClassName) ||
             !method_exists($transportClassName, 'send')
         ) {
-            throw new \InvalidArgumentException(sprintf('Transport class name is not valid: %s', $transportClassName));
+            throw new InvalidArgumentException(sprintf('Transport class name is not valid: %s', $transportClassName));
         }
 
         $transport = new $transportClassName($config);
 
         if (!($transport instanceof AbstractTransport)) {
-            throw new \InvalidArgumentException('Provided class does not extend AbstractTransport.');
+            throw new InvalidArgumentException('Provided class does not extend AbstractTransport.');
         }
 
         return $transport;

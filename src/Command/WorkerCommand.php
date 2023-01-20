@@ -45,14 +45,13 @@ class WorkerCommand extends Command
     /**
      * @var \Cake\Core\ContainerInterface|null
      */
-    protected $container;
+    protected ?ContainerInterface $container = null;
 
     /**
      * @param \Cake\Core\ContainerInterface|null $container DI container instance
      */
     public function __construct(?ContainerInterface $container = null)
     {
-        parent::__construct();
         $this->container = $container;
     }
 
@@ -168,9 +167,9 @@ class WorkerCommand extends Command
     /**
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Cake\Console\ConsoleIo $io ConsoleIo
-     * @return int|void|null
+     * @return int
      */
-    public function execute(Arguments $args, ConsoleIo $io)
+    public function execute(Arguments $args, ConsoleIo $io): int
     {
         $logger = $this->getLogger($args);
         $processor = new Processor($logger, $this->container);
@@ -202,5 +201,7 @@ class WorkerCommand extends Command
 
         $client->bindTopic($queue, $processor, $processorName);
         $client->consume($extension);
+
+        return self::CODE_SUCCESS;
     }
 }

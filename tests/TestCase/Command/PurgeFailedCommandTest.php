@@ -16,7 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Command;
 
-use Cake\TestSuite\ConsoleIntegrationTestTrait;
+use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use TestApp\Job\LogToDebugJob;
 
@@ -29,15 +29,9 @@ class PurgeFailedCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
 
-    protected $fixtures = [
+    protected array $fixtures = [
         'plugin.Cake/Queue.FailedJobs',
     ];
-
-    public function setUp(): void
-    {
-        parent::setUp();
-        $this->useCommandRunner();
-    }
 
     public function testFailedJobsAreDeleted()
     {

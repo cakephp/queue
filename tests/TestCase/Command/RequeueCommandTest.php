@@ -16,11 +16,11 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Command;
 
+use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Queue\QueueManager;
 use Cake\Queue\Test\TestCase\DebugLogTrait;
-use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use TestApp\Job\LogToDebugJob;
 
@@ -34,14 +34,13 @@ class RequeueCommandTest extends TestCase
     use ConsoleIntegrationTestTrait;
     use DebugLogTrait;
 
-    protected $fixtures = [
+    protected array $fixtures = [
         'plugin.Cake/Queue.FailedJobs',
     ];
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->useCommandRunner();
 
         Log::setConfig('debug', [
             'className' => 'Array',
@@ -74,7 +73,6 @@ class RequeueCommandTest extends TestCase
         $this->assertDebugLogContainsExactly('MaxAttemptsIsThreeJob is requeueing', 0);
 
         $this->cleanupConsoleTrait();
-        $this->useCommandRunner();
         $this->exec('queue requeue --queue default', ['y']);
 
         $this->assertOutputContains('Requeueing 2 jobs.');
@@ -95,7 +93,6 @@ class RequeueCommandTest extends TestCase
         $this->assertDebugLogContainsExactly('MaxAttemptsIsThreeJob is requeueing', 0);
 
         $this->cleanupConsoleTrait();
-        $this->useCommandRunner();
         $this->exec('queue requeue --queue default', ['n']);
 
         $this->assertOutputNotContains('Requeueing');
@@ -116,7 +113,6 @@ class RequeueCommandTest extends TestCase
         $this->assertDebugLogContainsExactly('MaxAttemptsIsThreeJob was run', 0);
 
         $this->cleanupConsoleTrait();
-        $this->useCommandRunner();
         $this->exec('queue requeue 1,2 -f');
 
         $this->assertOutputContains('Requeueing 2 jobs.');
@@ -136,7 +132,6 @@ class RequeueCommandTest extends TestCase
         $this->assertDebugLogContainsExactly('Debug job was run', 0);
 
         $this->cleanupConsoleTrait();
-        $this->useCommandRunner();
         $class = LogToDebugJob::class;
         $this->exec("queue requeue --class {$class} --queue default -f");
 
@@ -163,7 +158,6 @@ class RequeueCommandTest extends TestCase
         $this->assertDebugLogContainsExactly('Debug job was run', 0);
 
         $this->cleanupConsoleTrait();
-        $this->useCommandRunner();
         $this->exec('queue requeue --queue alternate_queue -f');
 
         $this->assertOutputContains('Requeueing 1 jobs.');
@@ -190,7 +184,6 @@ class RequeueCommandTest extends TestCase
         $this->assertDebugLogContainsExactly('Debug job was run', 0);
 
         $this->cleanupConsoleTrait();
-        $this->useCommandRunner();
         $this->exec('queue requeue --config alternate_config -f');
 
         $this->assertOutputContains('Requeueing 1 jobs.');

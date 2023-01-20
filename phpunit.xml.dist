@@ -4,22 +4,31 @@
     colors="true"
     bootstrap="tests/bootstrap.php"
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
-  <!-- Only collect coverage for src/ -->
-  <coverage>
-    <include>
-      <directory suffix=".php">./src/</directory>
-    </include>
-  </coverage>
-  <testsuites>
-    <testsuite name="queue">
-      <directory>tests/TestCase</directory>
-    </testsuite>
-  </testsuites>
-  <listeners>
-    <listener class="Cake\TestSuite\Fixture\FixtureInjector">
-      <arguments>
-        <object class="Cake\TestSuite\Fixture\FixtureManager"/>
-      </arguments>
-    </listener>
-  </listeners>
+    <testsuites>
+        <testsuite name="queue">
+            <directory>tests/TestCase</directory>
+        </testsuite>
+    </testsuites>
+
+    <extensions>
+        <extension class="Cake\TestSuite\Fixture\PHPUnitExtension"/>
+    </extensions>
+
+    <!-- Only collect coverage for src/ -->
+    <coverage>
+        <include>
+            <directory suffix=".php">./src/</directory>
+        </include>
+    </coverage>
+
+    <php>
+        <ini name="memory_limit" value="-1"/>
+        <env name="FIXTURE_SCHEMA_METADATA" value="./tests/schema.php"/>
+        <!-- Postgres
+        <env name="DB_URL" value="postgres://root@localhost/cake_test_db"/>
+        -->
+        <!-- Mysql
+        <env name="DB_URL" value="mysql://root@localhost/cake_test_db"/>
+        -->
+    </php>
 </phpunit>

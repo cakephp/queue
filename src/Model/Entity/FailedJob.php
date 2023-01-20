@@ -16,7 +16,9 @@ use Cake\ORM\Entity;
  * @property string|null $priority
  * @property string|null $queue
  * @property string|null $exception
- * @property \Cake\I18n\FrozenTime|null $created
+ * @property \Cake\I18n\DateTime|null $created
+ *
+ * @property array $decoded_data
  */
 class FailedJob extends Entity
 {
@@ -31,7 +33,7 @@ class FailedJob extends Entity
      *
      * @var array<string, bool>
      */
-    protected $_accessible = [
+    protected array $_accessible = [
         'class' => true,
         'method' => true,
         'data' => true,
@@ -44,6 +46,7 @@ class FailedJob extends Entity
 
     /**
      * @return array
+     * @see \Cake\Queue\Model\Entity\FailedJob::$decoded_data
      */
     protected function _getDecodedData(): array
     {

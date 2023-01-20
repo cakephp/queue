@@ -31,17 +31,20 @@ use RuntimeException;
 
 class Processor implements InteropProcessor
 {
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<\Cake\Queue\Queue\Processor>
+     */
     use EventDispatcherTrait;
 
     /**
      * @var \Psr\Log\LoggerInterface
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * @var \Cake\Core\ContainerInterface|null
      */
-    protected $container;
+    protected ?ContainerInterface $container = null;
 
     /**
      * Processor constructor
@@ -60,9 +63,9 @@ class Processor implements InteropProcessor
      *
      * @param \Interop\Queue\Message $message Message.
      * @param \Interop\Queue\Context $context Context.
-     * @return string|object with __toString method implemented
+     * @return object|string with __toString method implemented
      */
-    public function process(QueueMessage $message, Context $context)
+    public function process(QueueMessage $message, Context $context): string|object
     {
         $this->dispatchEvent('Processor.message.seen', ['queueMessage' => $message]);
 
@@ -112,9 +115,9 @@ class Processor implements InteropProcessor
 
     /**
      * @param \Cake\Queue\Job\Message $message Message.
-     * @return string|object with __toString method implemented
+     * @return object|string with __toString method implemented
      */
-    public function processMessage(Message $message)
+    public function processMessage(Message $message): string|object
     {
         $callable = $message->getCallable();
         $response = $callable($message);

@@ -12,6 +12,9 @@ use Interop\Queue\Processor;
 
 class LimitAttemptsExtension implements MessageResultExtensionInterface
 {
+    /**
+     * @use \Cake\Event\EventDispatcherTrait<\Cake\Queue\Job\Message>
+     */
     use EventDispatcherTrait;
 
     /**
@@ -27,7 +30,7 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
      *
      * @var int|null
      */
-    protected $maxAttempts;
+    protected ?int $maxAttempts = null;
 
     /**
      * @param int|null $maxAttempts The maximum number of times a job may be attempted.

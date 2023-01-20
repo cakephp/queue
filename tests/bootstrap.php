@@ -18,6 +18,7 @@ declare(strict_types=1);
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Routing\Router;
+use Cake\TestSuite\Fixture\SchemaLoader;
 
 $findRoot = function ($root) {
     do {
@@ -99,3 +100,9 @@ Cake\Datasource\ConnectionManager::setConfig('test', [
 ]);
 
 Router::reload();
+
+// Create test database schema
+if (env('FIXTURE_SCHEMA_METADATA')) {
+    $loader = new SchemaLoader();
+    $loader->loadInternalFile(env('FIXTURE_SCHEMA_METADATA'), 'test');
+}

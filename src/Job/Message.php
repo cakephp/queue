@@ -22,34 +22,20 @@ use Closure;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
 use JsonSerializable;
+use ReturnTypeWillChange;
 use RuntimeException;
 
 class Message implements JsonSerializable
 {
-    /**
-     * @var \Interop\Queue\Context
-     */
-    protected $context;
+    protected Context $context;
 
-    /**
-     * @var \Interop\Queue\Message
-     */
-    protected $originalMessage;
+    protected QueueMessage $originalMessage;
 
-    /**
-     * @var array
-     */
-    protected $parsedBody;
+    protected array $parsedBody;
 
-    /**
-     * @var \Closure|null
-     */
-    protected $callable;
+    protected ?Closure $callable = null;
 
-    /**
-     * @var \Cake\Core\ContainerInterface|null
-     */
-    protected $container;
+    protected ?ContainerInterface $container = null;
 
     /**
      * @param \Interop\Queue\Message $originalMessage Queue message.
@@ -96,7 +82,7 @@ class Message implements JsonSerializable
      *
      * @return \Closure
      */
-    public function getCallable()
+    public function getCallable(): Closure
     {
         if ($this->callable) {
             return $this->callable;
@@ -139,7 +125,7 @@ class Message implements JsonSerializable
      * @param mixed $default Default value.
      * @return mixed
      */
-    public function getArgument($key = null, $default = null)
+    public function getArgument(mixed $key = null, mixed $default = null): mixed
     {
         if (array_key_exists('data', $this->parsedBody)) {
             $data = $this->parsedBody['data'];
@@ -158,7 +144,7 @@ class Message implements JsonSerializable
     /**
      * The maximum number of attempts allowed by the job.
      *
-     * @return null|int
+     * @return int|null
      */
     public function getMaxAttempts(): ?int
     {
@@ -174,7 +160,7 @@ class Message implements JsonSerializable
      * @return string
      * @psalm-suppress InvalidToString
      */
-    public function __toString()
+    public function __toString(): string
     {
         return json_encode($this);
     }
@@ -182,8 +168,8 @@ class Message implements JsonSerializable
     /**
      * @return array
      */
-    #[\ReturnTypeWillChange]
-    public function jsonSerialize()
+    #[ReturnTypeWillChange]
+    public function jsonSerialize(): array
     {
         return $this->parsedBody;
     }

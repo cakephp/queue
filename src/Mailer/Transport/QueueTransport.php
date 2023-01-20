@@ -16,19 +16,20 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Mailer\Transport;
 
+use Cake\Mailer\AbstractTransport;
 use Cake\Mailer\Message;
 use Cake\Mailer\Transport\MailTransport;
 use Cake\Queue\Job\SendMailJob;
 use Cake\Queue\QueueManager;
 
-class QueueTransport extends \Cake\Mailer\AbstractTransport
+class QueueTransport extends AbstractTransport
 {
     /**
      * Default config for this class
      *
      * @var array<string, mixed>
      */
-    protected $_defaultConfig = [
+    protected array $_defaultConfig = [
         'options' => [],
         'transport' => MailTransport::class,
     ];

@@ -22,7 +22,7 @@ use Cake\Console\ConsoleOptionParser;
 
 class JobCommand extends SimpleBakeCommand
 {
-    public $pathFragment = 'Job/';
+    public string $pathFragment = 'Job/';
 
     /**
      * @inheritDoc

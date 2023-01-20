@@ -17,8 +17,9 @@ declare(strict_types=1);
 namespace Cake\Queue\Test\TestCase\Job;
 
 use Cake\Mailer\Mailer;
+use Cake\Mailer\Message as CakeMessage;
 use Cake\Mailer\Transport\DebugTransport;
-use Cake\Queue\Job\Message;
+use Cake\Queue\Job\Message as QueueJobMessage;
 use Cake\Queue\Job\SendMailJob;
 use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
@@ -27,15 +28,9 @@ use Enqueue\Null\NullMessage;
 
 class SendMailJobTest extends TestCase
 {
-    /**
-     * @var \Cake\Queue\Job\SendMailJob
-     */
-    protected $job;
+    protected SendMailJob $job;
 
-    /**
-     * @var \Cake\Mailer\Message
-     */
-    protected $message;
+    protected CakeMessage $message;
 
     /**
      * @inheritDoc
@@ -45,7 +40,7 @@ class SendMailJobTest extends TestCase
         parent::setUp();
 
         $this->job = new SendMailJob();
-        $this->message = (new \Cake\Mailer\Message())
+        $this->message = (new CakeMessage())
             ->setFrom('from@example.com')
             ->setTo('to@example.com')
             ->setSubject('Sample Subject');
@@ -62,7 +57,7 @@ class SendMailJobTest extends TestCase
             ->onlyMethods(['getTransport'])
             ->getMock();
         $message = $this->createMessage(DebugTransport::class, [], $this->message);
-        $emailMessage = new \Cake\Mailer\Message();
+        $emailMessage = new CakeMessage();
         $data = json_decode($message->getArgument('emailMessage'), true);
         $emailMessage->createFromArray($data);
         $transport = $this->getMockBuilder(DebugTransport::class)->getMock();
@@ -128,7 +123,7 @@ class SendMailJobTest extends TestCase
      *
      * @return \Cake\Queue\Job\Message
      */
-    protected function createMessage($transport, $config, $emailMessage): Message
+    protected function createMessage($transport, $config, $emailMessage): QueueJobMessage
     {
         $messageBody = [
             'class' => ['Queue\\Job\\SendMailJob', 'execute'],
@@ -142,8 +137,7 @@ class SendMailJobTest extends TestCase
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
         $originalMessage = new NullMessage(json_encode($messageBody));
-        $message = new Message($originalMessage, $context);
 
-        return $message;
+        return new QueueJobMessage($originalMessage, $context);
     }
 }

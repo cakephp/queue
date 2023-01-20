@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Job;
 
+use Cake\Mailer\Message;
 use Cake\Queue\Mailer\Transport\QueueTransport;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
@@ -33,7 +34,7 @@ class QueueTransportTest extends TestCase
             'queue' => 'default',
             'url' => 'null:',
         ]);
-        $message = (new \Cake\Mailer\Message())
+        $message = (new Message())
             ->setFrom('from@example.com')
             ->setTo('to@example.com')
             ->setSubject('Sample Subject');

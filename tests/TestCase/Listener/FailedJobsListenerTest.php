@@ -28,11 +28,13 @@ use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
+use RuntimeException;
+use stdClass;
 use TestApp\Job\LogToDebugJob;
 
 class FailedJobsListenerTest extends TestCase
 {
-    protected $fixtures = [
+    protected array $fixtures = [
         'plugin.Cake/Queue.FailedJobs',
     ];
 
@@ -106,7 +108,7 @@ class FailedJobsListenerTest extends TestCase
     {
         return [
             [['exception' => 'some message'], '`logger` was not defined on Consumption.LimitAttemptsExtension.failed event'],
-            [['exception' => 'some message', 'logger' => new \stdClass()], '`logger` is not an instance of `LoggerInterface` on Consumption.LimitAttemptsExtension.failed event.'],
+            [['exception' => 'some message', 'logger' => new stdClass()], '`logger` is not an instance of `LoggerInterface` on Consumption.LimitAttemptsExtension.failed event.'],
         ];
     }
 
@@ -161,7 +163,7 @@ class FailedJobsListenerTest extends TestCase
             $eventData
         );
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage($exceptionMessage);
 
         EventManager::instance()->on($failedJobsListener);

@@ -32,14 +32,14 @@ class QueueManager
      *
      * @var array
      */
-    protected static $_config = [];
+    protected static array $_config = [];
 
     /**
      * Queue clients
      *
      * @var array
      */
-    protected static $_clients = [];
+    protected static array $_clients = [];
 
     /**
      * This method can be used to define configuration adapters for an application.
@@ -72,13 +72,13 @@ class QueueManager
      * QueueManager::setConfig($arrayOfConfig);
      * ```
      *
-     * @param string|array $key The name of the configuration, or an array of multiple configs.
+     * @param array|string $key The name of the configuration, or an array of multiple configs.
      * @param array $config An array of name => configuration data for adapter.
      * @throws \BadMethodCallException When trying to modify an existing config.
      * @throws \LogicException When trying to store an invalid structured config array.
      * @return void
      */
-    public static function setConfig($key, $config = null): void
+    public static function setConfig(string|array $key, ?array $config = null): void
     {
         if ($config === null) {
             if (!is_array($key)) {
@@ -140,7 +140,7 @@ class QueueManager
      * @param string $key The name of the configuration.
      * @return mixed Configuration data at the named key or null if the key does not exist.
      */
-    public static function getConfig(string $key)
+    public static function getConfig(string $key): mixed
     {
         return static::$_config[$key] ?? null;
     }
@@ -188,7 +188,7 @@ class QueueManager
     /**
      * Push a single job onto the queue.
      *
-     * @param string|string[] $className The classname of a job that implements the
+     * @param array<string>|string $className The classname of a job that implements the
      *   \Cake\Queue\Job\JobInterface. The class will be constructed by
      *   \Cake\Queue\Processor and have the execute method invoked.
      * @param array $data An array of data that will be passed to the job.
@@ -209,7 +209,7 @@ class QueueManager
      *      string 'default' if empty.
      * @return void
      */
-    public static function push($className, array $data = [], array $options = []): void
+    public static function push(string|array $className, array $data = [], array $options = []): void
     {
         [$class, $method] = is_array($className) ? $className : [$className, 'execute'];
 

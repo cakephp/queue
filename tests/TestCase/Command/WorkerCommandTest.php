@@ -16,12 +16,12 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Command;
 
+use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
 use Cake\Log\Log;
 use Cake\Queue\QueueManager;
 use Cake\Queue\Test\test_app\src\Job\LogToDebugWithServiceJob;
 use Cake\Queue\Test\TestCase\DebugLogTrait;
-use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 use TestApp\Job\LogToDebugJob;
 use TestApp\Job\RequeueJob;
@@ -36,12 +36,6 @@ class WorkerCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
     use DebugLogTrait;
-
-    public function setUp(): void
-    {
-        parent::setUp();
-        $this->useCommandRunner();
-    }
 
     /**
      * Test that command description prints out

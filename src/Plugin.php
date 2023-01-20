@@ -25,6 +25,7 @@ use Cake\Queue\Command\JobCommand;
 use Cake\Queue\Command\PurgeFailedCommand;
 use Cake\Queue\Command\RequeueCommand;
 use Cake\Queue\Command\WorkerCommand;
+use InvalidArgumentException;
 
 /**
  * Plugin for Queue
@@ -33,17 +34,13 @@ class Plugin extends BasePlugin
 {
     /**
      * Plugin name.
-     *
-     * @var string
      */
-    protected $name = 'Cake/Queue';
+    protected ?string $name = 'Cake/Queue';
 
     /**
      * Load routes or not
-     *
-     * @var bool
      */
-    protected $routesEnabled = false;
+    protected bool $routesEnabled = false;
 
     /**
      * Load the Queue configuration
@@ -54,7 +51,7 @@ class Plugin extends BasePlugin
     public function bootstrap(PluginApplicationInterface $app): void
     {
         if (!Configure::read('Queue')) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Missing `Queue` configuration key, please check the CakePHP Queue documentation' .
                 ' to complete the plugin setup.'
             );

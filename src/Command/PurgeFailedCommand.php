@@ -74,7 +74,7 @@ class PurgeFailedCommand extends Command
      * @param \Cake\Console\ConsoleIo $io ConsoleIo
      * @return void
      */
-    public function execute(Arguments $args, ConsoleIo $io)
+    public function execute(Arguments $args, ConsoleIo $io): void
     {
         /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
         $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="dev-master@">
+  <file src="src/Model/Table/FailedJobsTable.php">
+    <LessSpecificImplementedReturnType occurrences="4">
+      <code>\Cake\Queue\Model\Entity\FailedJob[]|\Cake\Datasource\ResultSetInterface</code>
+      <code>\Cake\Queue\Model\Entity\FailedJob[]|\Cake\Datasource\ResultSetInterface</code>
+      <code>\Cake\Queue\Model\Entity\FailedJob[]|\Cake\Datasource\ResultSetInterface|false</code>
+      <code>\Cake\Queue\Model\Entity\FailedJob[]|\Cake\Datasource\ResultSetInterface|false</code>
+    </LessSpecificImplementedReturnType>
+  </file>
+</files>

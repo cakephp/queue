@@ -41,7 +41,7 @@ class FailedJobsListener implements EventListenerInterface
      * @param object $event EventInterface.
      * @return void
      */
-    public function storeFailedJob($event): void
+    public function storeFailedJob(object $event): void
     {
         /** @var \Cake\Queue\Job\Message $jobMessage */
         $jobMessage = $event->getSubject();

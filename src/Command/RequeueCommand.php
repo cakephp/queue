@@ -76,12 +76,12 @@ class RequeueCommand extends Command
      * @param \Cake\Console\ConsoleIo $io ConsoleIo
      * @return void
      */
-    public function execute(Arguments $args, ConsoleIo $io)
+    public function execute(Arguments $args, ConsoleIo $io): void
     {
         /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
         $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
 
-        $jobsToRequeue = $failedJobsTable->find();
+        $jobsToRequeueQuery = $failedJobsTable->find();
 
         if ($args->hasArgument('ids')) {
             $idsArg = $args->getArgument('ids');
@@ -89,23 +89,23 @@ class RequeueCommand extends Command
             if ($idsArg !== null) {
                 $ids = explode(',', $idsArg);
 
-                $jobsToRequeue->whereInList('id', $ids);
+                $jobsToRequeueQuery->whereInList('id', $ids);
             }
         }
 
         if ($args->hasOption('class')) {
-            $jobsToRequeue->where(['class' => $args->getOption('class')]);
+            $jobsToRequeueQuery->where(['class' => $args->getOption('class')]);
         }
 
         if ($args->hasOption('queue')) {
-            $jobsToRequeue->where(['queue' => $args->getOption('queue')]);
+            $jobsToRequeueQuery->where(['queue' => $args->getOption('queue')]);
         }
 
         if ($args->hasOption('config')) {
-            $jobsToRequeue->where(['config' => $args->getOption('config')]);
+            $jobsToRequeueQuery->where(['config' => $args->getOption('config')]);
         }
 
-        $requeueingCount = $jobsToRequeue->count();
+        $requeueingCount = $jobsToRequeueQuery->count();
 
         if (!$requeueingCount) {
             $io->out('0 jobs found.');
@@ -126,6 +126,8 @@ class RequeueCommand extends Command
         $succeededCount = 0;
         $failedCount = 0;
 
+        /** @var array<\Cake\Queue\Model\Entity\FailedJob> $jobsToRequeue */
+        $jobsToRequeue = $jobsToRequeueQuery->all();
         foreach ($jobsToRequeue as $failedJob) {
             $io->verbose("Requeueing FailedJob with ID {$failedJob->id}.");
             try {

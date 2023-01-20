@@ -21,12 +21,12 @@ class LimitConsumedMessagesExtension implements PreConsumeExtensionInterface, Po
     /**
      * @var int
      */
-    protected $messageLimit;
+    protected int $messageLimit;
 
     /**
      * @var int
      */
-    protected $messageConsumed = 0;
+    protected int $messageConsumed = 0;
 
     /**
      * @param int $messageLimit The number of messages to process before exiting.

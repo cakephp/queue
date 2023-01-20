@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Test\TestCase\Job;
 
+use BadMethodCallException;
 use Cake\Mailer\Exception\MissingMailerException;
 use Cake\Mailer\Mailer;
 use Cake\Queue\Job\MailerJob;
@@ -122,7 +123,7 @@ class MailerJobTest extends TestCase
                 $this->equalTo($this->args),
                 $this->equalTo($this->headers)
             )
-            ->willThrowException(new \BadMethodCallException('Welcome is not a valid method'));
+            ->willThrowException(new BadMethodCallException('Welcome is not a valid method'));
 
         $this->job->expects($this->once())
             ->method('getMailer')

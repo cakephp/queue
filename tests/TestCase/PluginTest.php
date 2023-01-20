@@ -7,6 +7,7 @@ use Cake\Core\Configure;
 use Cake\Queue\Plugin;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
+use InvalidArgumentException;
 use TestApp\Application;
 
 class PluginTest extends TestCase
@@ -18,7 +19,7 @@ class PluginTest extends TestCase
      */
     public function testBootstrapNoConfig()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Missing `Queue` configuration key, please check the CakePHP Queue documentation to complete the plugin setup');
         Configure::delete('Queue');
         $plugin = new Plugin();

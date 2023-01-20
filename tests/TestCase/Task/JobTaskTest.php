@@ -17,8 +17,8 @@ declare(strict_types=1);
 namespace Cake\Queue\Test\TestCase\Task;
 
 use Cake\Command\Command;
+use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Queue\QueueManager;
-use Cake\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\TestSuite\StringCompareTrait;
 use Cake\TestSuite\TestCase;
 
@@ -45,7 +45,6 @@ class JobTaskTest extends TestCase
         parent::setUp();
 
         $this->comparisonDir = dirname(dirname(__DIR__)) . DS . 'comparisons' . DS;
-        $this->useCommandRunner();
         QueueManager::drop('default');
     }
 
