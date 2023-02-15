@@ -21,13 +21,13 @@ use Cake\Event\EventDispatcherTrait;
 use Cake\Queue\Job\Message;
 use Enqueue\Consumption\Result;
 use Error;
-use Exception;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use Throwable;
 
 class Processor implements InteropProcessor
 {
@@ -80,7 +80,7 @@ class Processor implements InteropProcessor
 
         try {
             $response = $this->processMessage($jobMessage);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logger->debug(sprintf('Message encountered exception: %s', $e->getMessage()));
             $this->dispatchEvent('Processor.message.exception', [
                 'message' => $jobMessage,
