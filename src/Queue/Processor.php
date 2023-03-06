@@ -91,7 +91,7 @@ class Processor implements InteropProcessor
         }
 
         if ($response === InteropProcessor::ACK) {
-            $this->logger->debug('Message processed sucessfully');
+            $this->logger->debug('Message processed successfully');
             $this->dispatchEvent('Processor.message.success', ['message' => $jobMessage]);
 
             return InteropProcessor::ACK;
