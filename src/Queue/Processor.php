@@ -81,13 +81,15 @@ class Processor implements InteropProcessor
         try {
             $response = $this->processMessage($jobMessage);
         } catch (Throwable $e) {
+            $message->setProperty('jobException', $e);
+
             $this->logger->debug(sprintf('Message encountered exception: %s', $e->getMessage()));
             $this->dispatchEvent('Processor.message.exception', [
                 'message' => $jobMessage,
                 'exception' => $e,
             ]);
 
-            return Result::requeue(sprintf('Exception occurred while processing message: %s', (string)$e));
+            return Result::requeue('Exception occurred while processing message');
         }
 
         if ($response === InteropProcessor::ACK) {
