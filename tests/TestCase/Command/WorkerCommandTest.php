@@ -299,4 +299,31 @@ class WorkerCommandTest extends TestCase
 
         $this->assertDebugLogContains('Debug job was run with service infotext');
     }
+
+    /**
+     * Test that queue will process when a unique cache is configured.
+     *
+     * @runInSeparateProcess
+     */
+    public function testQueueProcessesWithUniqueCacheConfigured()
+    {
+        $config = [
+            'queue' => 'default',
+            'url' => 'file:///' . TMP . DS . 'queue',
+            'receiveTimeout' => 100,
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
+        ];
+        Configure::write('Queue', ['default' => $config]);
+
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        $this->exec('queue worker --max-jobs=1 --logger=debug --verbose');
+
+        $this->assertDebugLogContains('Consumption has started');
+    }
 }

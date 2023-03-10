@@ -130,10 +130,12 @@ class WorkerCommand extends Command
 
         $limitAttempsExtension->getEventManager()->on(new FailedJobsListener());
 
+        $configKey = (string)$args->getOption('config');
+        $config = QueueManager::getConfig($configKey);
+
         $extensions = [
             new LoggerExtension($logger),
             $limitAttempsExtension,
-            new RemoveUniqueJobIdFromCacheExtension('Cake/Queue.queueUnique'),
         ];
 
         if (!is_null($args->getOption('max-jobs'))) {
@@ -144,6 +146,10 @@ class WorkerCommand extends Command
         if (!is_null($args->getOption('max-runtime'))) {
             $endTime = new DateTime(sprintf('+%d seconds', (int)$args->getOption('max-runtime')));
             $extensions[] = new LimitConsumptionTimeExtension($endTime);
+        }
+
+        if (isset($config['uniqueCacheKey'])) {
+            $extensions[] = new RemoveUniqueJobIdFromCacheExtension($config['uniqueCacheKey']);
         }
 
         return new ChainExtension($extensions);
@@ -172,15 +178,15 @@ class WorkerCommand extends Command
      */
     public function execute(Arguments $args, ConsoleIo $io)
     {
-        $logger = $this->getLogger($args);
-        $processor = new Processor($logger, $this->container);
-        $extension = $this->getQueueExtension($args, $logger);
-
         $config = (string)$args->getOption('config');
         if (!Configure::check(sprintf('Queue.%s', $config))) {
             $io->error(sprintf('Configuration key "%s" was not found', $config));
             $this->abort();
         }
+
+        $logger = $this->getLogger($args);
+        $processor = new Processor($logger, $this->container);
+        $extension = $this->getQueueExtension($args, $logger);
 
         $hasListener = Configure::check(sprintf('Queue.%s.listener', $config));
         if ($hasListener) {
