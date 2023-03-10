@@ -86,4 +86,18 @@ class JobTaskTest extends TestCase
             file_get_contents($this->generatedFile)
         );
     }
+
+    public function testMainWithMaxAttempts()
+    {
+        $this->generatedFile = APP . 'Job' . DS . 'UploadJob.php';
+
+        $this->exec('bake job upload --max-attempts 3');
+        $this->assertExitCode(Command::CODE_SUCCESS);
+        $this->assertFileExists($this->generatedFile);
+        $this->assertOutputContains('Creating file ' . $this->generatedFile);
+        $this->assertSameAsFile(
+            $this->comparisonDir . 'JobTaskWithMaxAttempts.php',
+            file_get_contents($this->generatedFile)
+        );
+    }
 }

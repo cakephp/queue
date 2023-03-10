@@ -118,7 +118,7 @@ A simple job that logs received messages would look like::
         use LogTrait;
 
         /**
-         * The maximum number of times the job may be attempted.
+         * The maximum number of times the job may be attempted. (optional property)
          * 
          * @var int|null
          */
