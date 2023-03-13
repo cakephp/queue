@@ -27,13 +27,15 @@ use Interop\Queue\Processor;
  */
 class {{ name }}Job implements JobInterface
 {
+{% if maxAttempts %}
     /**
      * The maximum number of times the job may be attempted.
      * 
      * @var int|null
      */
-    public static $maxAttempts = 3;
+    public static $maxAttempts = {{ maxAttempts }};
 
+{% endif %}
 {% if isUnique %}
     /**
      * Whether there should be only one instance of a job on the queue at a time. (optional property)
