@@ -44,33 +44,66 @@ class QueueManagerTest extends TestCase
     {
         parent::tearDown();
 
+        $cacheKey = QueueManager::getConfig('test')['uniqueCacheKey'] ?? null;
+        if ($cacheKey) {
+            Cache::clear($cacheKey);
+            Cache::drop($cacheKey);
+        }
+
         QueueManager::drop('test');
         Log::drop('test');
 
         // delete file based queues
         array_map('unlink', glob($this->fsQueuePath . DS . '*'));
-
-        if (Cache::getConfig('Cake/Queue.queueUnique')) {
-            Cache::clear('Cake/Queue.queueUnique');
-            Cache::drop('Cake/Queue.queueUnique');
-        }
     }
 
     public function testSetConfig()
     {
-        $result = QueueManager::setConfig('test', [
+        QueueManager::setConfig('test', [
             'url' => 'null:',
         ]);
-        $this->assertNull($result);
 
         $config = QueueManager::getConfig('test');
         $this->assertSame('null:', $config['url']);
     }
 
-    public function testSetConfigInvalidValue()
+    public function testSetMultipleConfigs()
+    {
+        QueueManager::setConfig('test', [
+            'url' => 'null:',
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
+            'logger' => 'debug',
+        ]);
+
+        QueueManager::setConfig('other', [
+            'url' => 'null:',
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
+            'logger' => 'debug',
+        ]);
+
+        $testConfig = QueueManager::getConfig('test');
+        $this->assertSame('null:', $testConfig['url']);
+
+        $otherConfig = QueueManager::getConfig('other');
+        $this->assertSame('null:', $otherConfig['url']);
+
+        QueueManager::drop('other');
+    }
+
+    public function testSetConfigWithInvalidConfigValue()
     {
         $this->expectException(LogicException::class);
         QueueManager::setConfig('test', null);
+    }
+
+    public function testSetConfigInvalidKeyValue()
+    {
+        $this->expectException(LogicException::class);
+        QueueManager::setConfig(['test' => []], 'default');
     }
 
     public function testSetConfigNoUrl()
