@@ -19,6 +19,7 @@ use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Routing\Router;
 use Cake\TestSuite\Fixture\SchemaLoader;
+use function Cake\Core\env;
 
 $findRoot = function ($root) {
     do {
@@ -34,7 +35,6 @@ $root = $findRoot(__FILE__);
 unset($findRoot);
 chdir($root);
 
-require_once 'vendor/cakephp/cakephp/src/basics.php';
 require_once 'vendor/autoload.php';
 
 define('CORE_PATH', $root . DS . 'vendor' . DS . 'cakephp' . DS . 'cakephp' . DS);

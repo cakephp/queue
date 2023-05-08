@@ -12,7 +12,7 @@ use Cake\Validation\Validator;
  * @method \Cake\Queue\Model\Entity\FailedJob newEmptyEntity()
  * @method \Cake\Queue\Model\Entity\FailedJob newEntity(array $data, array $options = [])
  * @method \Cake\Queue\Model\Entity\FailedJob[] newEntities(array $data, array $options = [])
- * @method \Cake\Queue\Model\Entity\FailedJob get($primaryKey, $options = [])
+ * @method \Cake\Queue\Model\Entity\FailedJob get(mixed $primaryKey, array|string $finder = 'all', \Psr\SimpleCache\CacheInterface|string|null $cache = null, \Closure|string|null $cacheKey = null, ...$args)
  * @method \Cake\Queue\Model\Entity\FailedJob findOrCreate($search, ?callable $callback = null, $options = [])
  * @method \Cake\Queue\Model\Entity\FailedJob patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
  * @method \Cake\Queue\Model\Entity\FailedJob[] patchEntities(iterable $entities, array $data, array $options = [])
