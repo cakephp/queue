@@ -24,8 +24,8 @@ use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
-use Exception;
 use Interop\Queue\Processor as InteropProcessor;
+use TestApp\TestProcessor;
 
 class ProcessorTest extends TestCase
 {
@@ -36,7 +36,7 @@ class ProcessorTest extends TestCase
      *
      * @return array
      */
-    public function dataProviderTestProcess(): array
+    public static function dataProviderTestProcess(): array
     {
         return [
             'ack' => ['processReturnAck', InteropProcessor::ACK, 'Message processed sucessfully', 'Processor.message.success'],
@@ -60,7 +60,7 @@ class ProcessorTest extends TestCase
     public function testProcess($jobMethod, $expected, $logMessage, $dispatchedEvent)
     {
         $messageBody = [
-            'class' => [static::class, $jobMethod],
+            'class' => [TestProcessor::class, $jobMethod],
             'args' => [],
         ];
         $connectionFactory = new NullConnectionFactory();
@@ -140,7 +140,7 @@ class ProcessorTest extends TestCase
     {
         $method = 'processAndThrowException';
         $messageBody = [
-            'class' => [static::class, $method],
+            'class' => [TestProcessor::class, $method],
             'data' => ['sample_data' => 'a value', 'key' => md5($method)],
         ];
         $connectionFactory = new NullConnectionFactory();
@@ -195,7 +195,7 @@ class ProcessorTest extends TestCase
     public function testProcessMessage()
     {
         $messageBody = [
-            'class' => [static::class, 'processReturnAck'],
+            'class' => [TestProcessor::class, 'processReturnAck'],
             'args' => [],
         ];
         $connectionFactory = new NullConnectionFactory();
@@ -206,83 +206,6 @@ class ProcessorTest extends TestCase
 
         $result = $processor->processMessage($message);
         $this->assertSame(InteropProcessor::ACK, $result);
-        $this->assertNotEmpty(static::$lastProcessMessage);
-    }
-
-    /**
-     * Job to be used in test testProcessMessageCallableIsString
-     *
-     * @param \Cake\Queue\Job\Message $message The message to process
-     * @return null
-     */
-    public static function processReturnNull(Message $message)
-    {
-        static::$lastProcessMessage = $message;
-
-        return null;
-    }
-
-    /**
-     * Job to be used in test testProcessMessageCallableIsString
-     *
-     * @param Message $message The message to process
-     * @return null
-     * @throws Exception
-     */
-    public static function processAndThrowException(Message $message)
-    {
-        throw new Exception('Something went wrong');
-    }
-
-    /**
-     * Job to be used in test testProcessMessageCallableIsString
-     *
-     * @param \Cake\Queue\Message $message The message to process
-     * @return null
-     */
-    public static function processReturnReject(Message $message)
-    {
-        static::$lastProcessMessage = $message;
-
-        return InteropProcessor::REJECT;
-    }
-
-    /**
-     * Job to be used in test testProcessMessageCallableIsString
-     *
-     * @param \Cake\Queue\Message $message The message to process
-     * @return null
-     */
-    public static function processReturnAck(Message $message)
-    {
-        static::$lastProcessMessage = $message;
-
-        return InteropProcessor::ACK;
-    }
-
-    /**
-     * Job to be used in test testProcessMessageCallableIsString
-     *
-     * @param \Cake\Queue\Message $message The message to process
-     * @return null
-     */
-    public static function processReturnRequeue(Message $message)
-    {
-        static::$lastProcessMessage = $message;
-
-        return InteropProcessor::REQUEUE;
-    }
-
-    /**
-     * Job to be used in test testProcessMessageCallableIsString
-     *
-     * @param \Cake\Queue\Message $message The message to process
-     * @return null
-     */
-    public static function processReturnString(Message $message)
-    {
-        static::$lastProcessMessage = $message;
-
-        return 'invalid value';
+        $this->assertNotEmpty(TestProcessor::$lastProcessMessage);
     }
 }

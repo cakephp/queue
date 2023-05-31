@@ -104,7 +104,7 @@ class FailedJobsListenerTest extends TestCase
      *
      * @return array[]
      */
-    public function storeFailedJobExceptionDataProvider()
+    public static function storeFailedJobExceptionDataProvider()
     {
         return [
             [['exception' => 'some message'], '`logger` was not defined on Consumption.LimitAttemptsExtension.failed event'],

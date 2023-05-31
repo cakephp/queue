@@ -60,7 +60,7 @@ class WorkerCommandTest extends TestCase
             ],
         ]);
         $this->exec('queue worker --max-runtime=0');
-        $this->assertEmpty($this->getActualOutput());
+        $this->assertEmpty($this->output());
     }
 
     /**
@@ -78,7 +78,7 @@ class WorkerCommandTest extends TestCase
             ],
         ]);
         $this->exec('queue worker --max-runtime=0');
-        $this->assertEmpty($this->getActualOutput());
+        $this->assertEmpty($this->output());
     }
 
     /**
@@ -146,7 +146,7 @@ class WorkerCommandTest extends TestCase
      *
      * @return array
      */
-    public function dataProviderCallableTypes(): array
+    public static function dataProviderCallableTypes(): array
     {
         return [
             'Job Class' => [LogToDebugJob::class],
