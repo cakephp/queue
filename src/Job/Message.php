@@ -158,7 +158,6 @@ class Message implements JsonSerializable
 
     /**
      * @return string
-     * @psalm-suppress InvalidToString
      */
     public function __toString(): string
     {
