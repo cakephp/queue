@@ -25,6 +25,7 @@ use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
 use TestApp\Job\LogToDebugJob;
 use TestApp\Job\UniqueJob;
+use TypeError;
 
 /**
  * QueueManager test
@@ -102,7 +103,7 @@ class QueueManagerTest extends TestCase
 
     public function testSetConfigInvalidKeyValue()
     {
-        $this->expectException(LogicException::class);
+        $this->expectException(TypeError::class);
         QueueManager::setConfig(['test' => []], 'default');
     }
 
