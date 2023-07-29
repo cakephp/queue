@@ -11,7 +11,7 @@ The plugin consists of a CakePHP shell wrapper and Queueing libraries for the [p
 
 ## Installation
 
-You can install this plugin into your CakePHP application using [Composer](http://getcomposer.org).
+You can install this plugin into your CakePHP application using [Composer](https://getcomposer.org).
 
 Run the following command
 ```sh

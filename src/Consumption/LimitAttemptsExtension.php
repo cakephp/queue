@@ -64,13 +64,11 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
         $attemptNumber = $message->getProperty(self::ATTEMPTS_PROPERTY, 0) + 1;
 
         if ($attemptNumber >= $maxAttempts) {
-            $originalResult = $context->getResult();
-
             $context->changeResult(
                 Result::reject(sprintf('The maximum number of %d allowed attempts was reached.', $maxAttempts))
             );
 
-            $exception = $originalResult instanceof Result ? $originalResult->getReason() : null;
+            $exception = (string)$message->getProperty('jobException');
 
             $this->dispatchEvent(
                 'Consumption.LimitAttemptsExtension.failed',

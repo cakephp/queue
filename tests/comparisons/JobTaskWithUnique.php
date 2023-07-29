@@ -13,13 +13,6 @@ use Interop\Queue\Processor;
 class UploadJob implements JobInterface
 {
     /**
-     * The maximum number of times the job may be attempted.
-     * 
-     * @var int|null
-     */
-    public static $maxAttempts = 3;
-
-    /**
      * Whether there should be only one instance of a job on the queue at a time. (optional property)
      * 
      * @var bool
