@@ -26,9 +26,10 @@ class RemoveUniqueJobIdFromCacheExtensionTest extends TestCase
 
         QueueManager::drop('default');
 
-        if (Cache::getConfig('Cake/Queue.queueUnique')) {
-            Cache::clear('Cake/Queue.queueUnique');
-            Cache::drop('Cake/Queue.queueUnique');
+        $cacheKey = QueueManager::getConfig('default')['uniqueCacheKey'] ?? null;
+        if ($cacheKey) {
+            Cache::clear($cacheKey);
+            Cache::drop($cacheKey);
         }
     }
 
@@ -39,14 +40,14 @@ class RemoveUniqueJobIdFromCacheExtensionTest extends TestCase
         QueueManager::push(UniqueJob::class, []);
 
         $uniqueId = QueueManager::getUniqueId(UniqueJob::class, 'execute', []);
-        $this->assertTrue(Cache::read($uniqueId, 'Cake/Queue.queueUnique'));
+        $this->assertTrue(Cache::read($uniqueId, 'Cake/Queue.queueUnique.default'));
 
         $consume();
 
-        $this->assertNull(Cache::read($uniqueId, 'Cake/Queue.queueUnique'));
+        $this->assertNull(Cache::read($uniqueId, 'Cake/Queue.queueUnique.default'));
     }
 
-    protected function setupQueue($extensionArgs = [])
+    protected function setupQueue()
     {
         Log::setConfig('debug', [
             'className' => 'Array',
@@ -68,7 +69,7 @@ class RemoveUniqueJobIdFromCacheExtensionTest extends TestCase
 
         $extension = new ChainExtension([
             new LimitConsumedMessagesExtension(1),
-            new RemoveUniqueJobIdFromCacheExtension('Cake/Queue.queueUnique'),
+            new RemoveUniqueJobIdFromCacheExtension('Cake/Queue.queueUnique.default'),
         ]);
 
         return function () use ($client, $extension) {

@@ -2,17 +2,17 @@
 declare(strict_types=1);
 
 /**
- * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
- * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
+ * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
  *
  * Licensed under The MIT License
  * For full copyright and license information, please see the LICENSE.txt
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
- * @link http://cakephp.org CakePHP(tm) Project
+ * @copyright Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org)
+ * @link https://cakephp.org CakePHP(tm) Project
  * @since 0.1.0
- * @license http://www.opensource.org/licenses/mit-license.php MIT License
+ * @license https://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Cake\Queue\Test\TestCase;
 
@@ -25,6 +25,7 @@ use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
 use TestApp\Job\LogToDebugJob;
 use TestApp\Job\UniqueJob;
+use TypeError;
 
 /**
  * QueueManager test
@@ -44,33 +45,66 @@ class QueueManagerTest extends TestCase
     {
         parent::tearDown();
 
+        $cacheKey = QueueManager::getConfig('test')['uniqueCacheKey'] ?? null;
+        if ($cacheKey) {
+            Cache::clear($cacheKey);
+            Cache::drop($cacheKey);
+        }
+
         QueueManager::drop('test');
         Log::drop('test');
 
         // delete file based queues
         array_map('unlink', glob($this->fsQueuePath . DS . '*'));
-
-        if (Cache::getConfig('Cake/Queue.queueUnique')) {
-            Cache::clear('Cake/Queue.queueUnique');
-            Cache::drop('Cake/Queue.queueUnique');
-        }
     }
 
     public function testSetConfig()
     {
-        $result = QueueManager::setConfig('test', [
+        QueueManager::setConfig('test', [
             'url' => 'null:',
         ]);
-        $this->assertNull($result);
 
         $config = QueueManager::getConfig('test');
         $this->assertSame('null:', $config['url']);
     }
 
-    public function testSetConfigInvalidValue()
+    public function testSetMultipleConfigs()
+    {
+        QueueManager::setConfig('test', [
+            'url' => 'null:',
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
+            'logger' => 'debug',
+        ]);
+
+        QueueManager::setConfig('other', [
+            'url' => 'null:',
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
+            'logger' => 'debug',
+        ]);
+
+        $testConfig = QueueManager::getConfig('test');
+        $this->assertSame('null:', $testConfig['url']);
+
+        $otherConfig = QueueManager::getConfig('other');
+        $this->assertSame('null:', $otherConfig['url']);
+
+        QueueManager::drop('other');
+    }
+
+    public function testSetConfigWithInvalidConfigValue()
     {
         $this->expectException(LogicException::class);
         QueueManager::setConfig('test', null);
+    }
+
+    public function testSetConfigInvalidKeyValue()
+    {
+        $this->expectException(TypeError::class);
+        QueueManager::setConfig(['test' => []], 'default');
     }
 
     public function testSetConfigNoUrl()

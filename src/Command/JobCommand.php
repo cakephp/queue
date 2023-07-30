@@ -55,8 +55,11 @@ class JobCommand extends SimpleBakeCommand
     {
         $parentData = parent::templateData($arguments);
 
+        $maxAttempts = $arguments->getOption('max-attempts');
+
         $data = [
             'isUnique' => $arguments->getOption('unique'),
+            'maxAttempts' => $maxAttempts ? (int)$maxAttempts : null,
         ];
 
         return array_merge($parentData, $data);
@@ -76,6 +79,10 @@ class JobCommand extends SimpleBakeCommand
             ->setDescription('Bake a queue job class.')
             ->addArgument('name', [
                 'help' => 'The name of the queue job class to create.',
+            ])
+            ->addOption('max-attempts', [
+                'help' => 'The maximum number of times the job may be attempted.',
+                'default' => null,
             ])
             ->addOption('unique', [
                 'help' => 'Whether there should be only one instance of a job on the queue at a time.',

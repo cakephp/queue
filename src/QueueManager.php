@@ -89,10 +89,11 @@ class QueueManager
             }
 
             return;
+        } elseif (is_array($key)) {
+            throw new LogicException('If config is not null, key must be a string.');
         }
 
         if (isset(static::$_config[$key])) {
-            /** @psalm-suppress PossiblyInvalidArgument */
             throw new BadMethodCallException(sprintf('Cannot reconfigure existing key `%s`', $key));
         }
 
@@ -127,10 +128,11 @@ class QueueManager
 
             $cacheConfig = array_merge($cacheDefaults, $config['uniqueCache']);
 
-            Cache::setConfig('Cake/Queue.queueUnique', $cacheConfig);
+            $config['uniqueCacheKey'] = "Cake/Queue.queueUnique.{$key}";
+
+            Cache::setConfig($config['uniqueCacheKey'], $cacheConfig);
         }
 
-        /** @psalm-suppress InvalidPropertyAssignmentValue */
         static::$_config[$key] = $config;
     }
 
@@ -228,7 +230,7 @@ class QueueManager
 
         /** @psalm-suppress InvalidPropertyFetch */
         if (!empty($class::$shouldBeUnique)) {
-            if (!Cache::getConfig('Cake/Queue.queueUnique')) {
+            if (empty($config['uniqueCache'])) {
                 throw new InvalidArgumentException(
                     "$class::\$shouldBeUnique is set to `true` but `uniqueCache` configuration is missing."
                 );
@@ -236,7 +238,7 @@ class QueueManager
 
             $uniqueId = static::getUniqueId($class, $method, $data);
 
-            if (Cache::read($uniqueId, 'Cake/Queue.queueUnique')) {
+            if (Cache::read($uniqueId, $config['uniqueCacheKey'])) {
                 if ($logger) {
                     $logger->debug(
                         "An identical instance of $class already exists on the queue. This push will be ignored."
@@ -279,7 +281,7 @@ class QueueManager
         if (!empty($class::$shouldBeUnique)) {
             $uniqueId = static::getUniqueId($class, $method, $data);
 
-            Cache::add($uniqueId, true, 'Cake/Queue.queueUnique');
+            Cache::add($uniqueId, true, $config['uniqueCacheKey']);
         }
     }
 
