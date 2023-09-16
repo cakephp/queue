@@ -13,7 +13,7 @@ FROM ghcr.io/cakephp/docs-builder:runtime as runtime
 # Configure search index script
 ENV LANGS="en"
 ENV SEARCH_SOURCE="/usr/share/nginx/html"
-ENV SEARCH_URL_PREFIX="/queue/1"
+ENV SEARCH_URL_PREFIX="/queue/2"
 
 COPY --from=builder /data/docs /data/docs
 COPY --from=builder /data/website /data/website

@@ -45,4 +45,4 @@ Additionally, you will need to configure the ``default`` queue configuration in 
 
 ## Documentation
 
-Full documentation of the plugin can be found on the [CakePHP Cookbook](https://book.cakephp.org/queue/1/).
+Full documentation of the plugin can be found on the [CakePHP Cookbook](https://book.cakephp.org/queue/2/).
