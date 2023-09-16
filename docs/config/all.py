@@ -10,10 +10,10 @@ from cakephpsphinx.config.all import *
 #
 
 # The full version, including alpha/beta/rc tags.
-release = '1.x'
+release = '2.x'
 
 # The search index version.
-search_version = 'queue-1'
+search_version = 'queue-2'
 
 # The marketing display name for the book.
 version_name = ''
@@ -23,7 +23,8 @@ project = 'CakePHP Queue'
 
 # Other versions that display in the version picker menu.
 version_list = [
-    {'name': '1.x', 'number': '/queue/1/', 'title': '1.x', 'current': True},
+    {'name': '1.x', 'number': '/queue/1/', 'title': '1.x'},
+    {'name': '2.x', 'number': '/queue/2/', 'title': '2.x', 'current': True},
 ]
 
 # Languages available.
@@ -34,7 +35,7 @@ languages = ['en']
 branch = 'master'
 
 # Current version being built
-version = '1.x'
+version = '2.x'
 
 show_root_link = True
 
