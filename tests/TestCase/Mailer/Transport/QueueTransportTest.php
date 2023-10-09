@@ -22,6 +22,18 @@ use Cake\TestSuite\TestCase;
 
 class QueueTransportTest extends TestCase
 {
+    private $fsQueuePath = TMP . DS . 'queue';
+
+    private function getFsQueueUrl(): string
+    {
+        return 'file:///' . $this->fsQueuePath;
+    }
+
+    private function getFsQueueFile(): string
+    {
+        return $this->getFsQueueUrl() . DS . 'enqueue.app.default';
+    }
+
     /**
      * Test send
      *
@@ -31,7 +43,7 @@ class QueueTransportTest extends TestCase
     {
         QueueManager::setConfig('default', [
             'queue' => 'default',
-            'url' => 'null:',
+            'url' => $this->getFsQueueUrl(),
         ]);
         $message = (new \Cake\Mailer\Message())
             ->setFrom('from@example.com')
@@ -58,6 +70,23 @@ class QueueTransportTest extends TestCase
 
         $expected = ['headers' => $headers, 'message' => 'Message has been enqueued'];
         $this->assertEquals($expected, $result);
+
+        $fsQueueFile = $this->getFsQueueFile();
+        $this->assertFileExists($fsQueueFile);
+
+        $content = file_get_contents($fsQueueFile);
+        $this->assertStringContainsString('MailTransport', $content);
+
         QueueManager::drop('default');
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        $fsQueueFile = $this->getFsQueueFile();
+        if (file_exists($fsQueueFile)) {
+            unlink($fsQueueFile);
+        }
     }
 }
