@@ -142,7 +142,7 @@ class QueueTransportTest extends TestCase
         QueueManager::drop('default');
     }
 
-    protected function tearDown(): void
+    public function tearDown(): void
     {
         parent::tearDown();
 
