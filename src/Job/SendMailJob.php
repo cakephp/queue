@@ -18,6 +18,7 @@ namespace Cake\Queue\Job;
 
 use Cake\Log\Log;
 use Cake\Mailer\AbstractTransport;
+use Cake\Mailer\TransportFactory;
 use Cake\Queue\Queue\Processor;
 
 /**
@@ -65,12 +66,15 @@ class SendMailJob implements JobInterface
      */
     protected function getTransport(string $transportClassName, array $config): AbstractTransport
     {
+        if ($transportClassName === '') {
+            throw new \InvalidArgumentException('Transport class name is empty.');
+        }
+
         if (
-            empty($transportClassName) ||
             !class_exists($transportClassName) ||
             !method_exists($transportClassName, 'send')
         ) {
-            throw new \InvalidArgumentException(sprintf('Transport class name is not valid: %s', $transportClassName));
+            return TransportFactory::get($transportClassName);
         }
 
         $transport = new $transportClassName($config);

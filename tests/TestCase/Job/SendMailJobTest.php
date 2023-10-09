@@ -18,6 +18,7 @@ namespace Cake\Queue\Test\TestCase\Job;
 
 use Cake\Mailer\Mailer;
 use Cake\Mailer\Transport\DebugTransport;
+use Cake\Mailer\TransportFactory;
 use Cake\Queue\Job\Message;
 use Cake\Queue\Job\SendMailJob;
 use Cake\Queue\Queue\Processor;
@@ -76,6 +77,32 @@ class SendMailJobTest extends TestCase
             ->willReturn($transport);
         $actual = $job->execute($message);
         $this->assertSame(Processor::ACK, $actual);
+    }
+
+    /**
+     * Test execute method with transport name
+     *
+     * @return void
+     */
+    public function testExecuteTransportName()
+    {
+        $job = new SendMailJob();
+        $message = $this->createMessage('foo', [], $this->message);
+        $emailMessage = new \Cake\Mailer\Message();
+        $data = json_decode($message->getArgument('emailMessage'), true);
+        $emailMessage->createFromArray($data);
+
+        $transport = $this->getMockBuilder(DebugTransport::class)->getMock();
+        $transport->expects($this->once())
+            ->method('send')
+            ->with($emailMessage)
+            ->willReturn(['message' => 'test', 'headers' => []]);
+        TransportFactory::getRegistry()->set('foo', $transport);
+
+        $actual = $job->execute($message);
+        $this->assertSame(Processor::ACK, $actual);
+
+        TransportFactory::drop('foo');
     }
 
     /**
