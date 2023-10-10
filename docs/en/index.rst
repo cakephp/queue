@@ -299,14 +299,15 @@ queue jobs, you can use the ``QueueTransport``. In your application's
 
     return [
         // ... other configuration
-        'EmailTransport' => [
+        'EmailTransport' => [            
+            'default' => [
+                'className' => MailTransport::class,
+                // Configuration for MailTransport.
+            ]
             'queue' => [
                 'className' => QueueTransport::class,
-                // The transport to use inside the queue job.
-                'transport' => MailTransport::class,
-                'config' => [
-                    // Configuration for MailTransport.
-                ]
+                // The transport name to use inside the queue job.
+                'transport' => 'default',
             ]
         ],
         'Email' => [
@@ -320,7 +321,7 @@ queue jobs, you can use the ``QueueTransport``. In your application's
 
 With this configuration in place, any time you send an email with the ``default``
 email profile CakePHP will generate a queue message. Once that queue message is
-processed the ``MailTransport`` will be used to deliver the email messages.
+processed the default ``MailTransport`` will be used to deliver the email messages.
 
 Run the worker
 ==============
