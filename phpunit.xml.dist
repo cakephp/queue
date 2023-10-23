@@ -7,12 +7,12 @@
   <!-- Only collect coverage for src/ -->
   <coverage>
     <include>
-      <directory suffix=".php">./src/</directory>
+      <directory suffix=".php">src/</directory>
     </include>
   </coverage>
   <testsuites>
     <testsuite name="queue">
-      <directory>tests/TestCase</directory>
+      <directory>tests/TestCase/</directory>
     </testsuite>
   </testsuites>
   <listeners>
