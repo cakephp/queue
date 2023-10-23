@@ -11,17 +11,17 @@ use Cake\Validation\Validator;
  *
  * @method \Cake\Queue\Model\Entity\FailedJob newEmptyEntity()
  * @method \Cake\Queue\Model\Entity\FailedJob newEntity(array $data, array $options = [])
- * @method \Cake\Queue\Model\Entity\FailedJob[] newEntities(array $data, array $options = [])
+ * @method array<\Cake\Queue\Model\Entity\FailedJob> newEntities(array $data, array $options = [])
  * @method \Cake\Queue\Model\Entity\FailedJob get($primaryKey, $options = [])
  * @method \Cake\Queue\Model\Entity\FailedJob findOrCreate($search, ?callable $callback = null, $options = [])
  * @method \Cake\Queue\Model\Entity\FailedJob patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
- * @method \Cake\Queue\Model\Entity\FailedJob[] patchEntities(iterable $entities, array $data, array $options = [])
+ * @method array<\Cake\Queue\Model\Entity\FailedJob> patchEntities(iterable $entities, array $data, array $options = [])
  * @method \Cake\Queue\Model\Entity\FailedJob|false save(\Cake\Datasource\EntityInterface $entity, $options = [])
  * @method \Cake\Queue\Model\Entity\FailedJob saveOrFail(\Cake\Datasource\EntityInterface $entity, $options = [])
- * @method \Cake\Queue\Model\Entity\FailedJob[]|\Cake\Datasource\ResultSetInterface|false saveMany(iterable $entities, $options = [])
- * @method \Cake\Queue\Model\Entity\FailedJob[]|\Cake\Datasource\ResultSetInterface saveManyOrFail(iterable $entities, $options = [])
- * @method \Cake\Queue\Model\Entity\FailedJob[]|\Cake\Datasource\ResultSetInterface|false deleteMany(iterable $entities, $options = [])
- * @method \Cake\Queue\Model\Entity\FailedJob[]|\Cake\Datasource\ResultSetInterface deleteManyOrFail(iterable $entities, $options = [])
+ * @method iterable<\Cake\Queue\Model\Entity\FailedJob>|false saveMany(iterable $entities, $options = [])
+ * @method iterable<\Cake\Queue\Model\Entity\FailedJob> saveManyOrFail(iterable $entities, $options = [])
+ * @method iterable<\Cake\Queue\Model\Entity\FailedJob>|false deleteMany(iterable $entities, $options = [])
+ * @method iterable<\Cake\Queue\Model\Entity\FailedJob> deleteManyOrFail(iterable $entities, $options = [])
  * @mixin \Cake\ORM\Behavior\TimestampBehavior
  */
 class FailedJobsTable extends Table
