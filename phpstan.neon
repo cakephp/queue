@@ -1,7 +1,11 @@
 parameters:
-	level: 6
+	level: 8
 	checkMissingIterableValueType: false
+	checkGenericClassInNonGenericObjectType: false
 	bootstrapFiles:
 		- tests/bootstrap.php
 	paths:
 		- src/
+	ignoreErrors:
+		- '#Parameter \#1 \$callback of static method Closure::fromCallable\(\) expects callable\(\): mixed, array\{mixed, string\} given.#'
+		- '#Method Cake\\Queue\\Job\\Message::getTarget\(\) should return array\{class-string, string\} but returns non-empty-array.#'
