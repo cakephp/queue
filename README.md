@@ -5,7 +5,7 @@
 [![Coverage Status](https://img.shields.io/codecov/c/github/cakephp/queue/master.svg?style=flat-square)](https://codecov.io/github/cakephp/queue?branch=master)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/queue.svg?style=flat-square)](https://packagist.org/packages/cakephp/queue)
 
-This is a Queue system for CakePHP 4.
+This is a Queue system for CakePHP.
 
 The plugin consists of a CakePHP shell wrapper and Queueing libraries for the [php-queue](https://php-enqueue.github.io) queue library.
 
@@ -34,7 +34,7 @@ bin/cake plugin load Cake/Queue
 
 Or you can manually add the loading statement in the **src/Application.php** file of your application:
 ```php
-public function bootstrap()
+public function bootstrap(): void
 {
     parent::bootstrap();
     $this->addPlugin('Cake/Queue');

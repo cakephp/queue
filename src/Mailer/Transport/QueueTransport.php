@@ -86,7 +86,7 @@ class QueueTransport extends AbstractTransport
     {
         return [
             'transport' => $this->getConfig('transport'),
-            'config' => $this->getConfig(),
+            'config' => is_array($this->getConfig('config')) ? $this->getConfig('config') : $this->getConfig(),
             'emailMessage' => json_encode($message),
         ];
     }

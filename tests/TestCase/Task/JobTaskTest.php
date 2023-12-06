@@ -36,6 +36,11 @@ class JobTaskTest extends TestCase
     protected $generatedFile = '';
 
     /**
+     * @var string
+     */
+    protected $comparisonDir = '';
+
+    /**
      * setup method
      *
      * @return void

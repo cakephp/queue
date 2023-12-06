@@ -17,8 +17,9 @@ declare(strict_types=1);
 namespace Cake\Queue\Test\TestCase\Job;
 
 use Cake\Mailer\Mailer;
-use Cake\Mailer\Message as CakeMessage;
+use Cake\Mailer\Message as MailerMessage;
 use Cake\Mailer\Transport\DebugTransport;
+use Cake\Mailer\TransportFactory;
 use Cake\Queue\Job\Message as QueueJobMessage;
 use Cake\Queue\Job\SendMailJob;
 use Cake\Queue\Queue\Processor;
@@ -30,7 +31,7 @@ class SendMailJobTest extends TestCase
 {
     protected SendMailJob $job;
 
-    protected CakeMessage $message;
+    protected MailerMessage $message;
 
     /**
      * @inheritDoc
@@ -40,7 +41,7 @@ class SendMailJobTest extends TestCase
         parent::setUp();
 
         $this->job = new SendMailJob();
-        $this->message = (new CakeMessage())
+        $this->message = (new MailerMessage())
             ->setFrom('from@example.com')
             ->setTo('to@example.com')
             ->setSubject('Sample Subject');
@@ -57,7 +58,7 @@ class SendMailJobTest extends TestCase
             ->onlyMethods(['getTransport'])
             ->getMock();
         $message = $this->createMessage(DebugTransport::class, [], $this->message);
-        $emailMessage = new CakeMessage();
+        $emailMessage = new MailerMessage();
         $data = json_decode($message->getArgument('emailMessage'), true);
         $emailMessage->createFromArray($data);
         $transport = $this->getMockBuilder(DebugTransport::class)->getMock();
@@ -71,6 +72,32 @@ class SendMailJobTest extends TestCase
             ->willReturn($transport);
         $actual = $job->execute($message);
         $this->assertSame(Processor::ACK, $actual);
+    }
+
+    /**
+     * Test execute method with transport name
+     *
+     * @return void
+     */
+    public function testExecuteTransportName()
+    {
+        $job = new SendMailJob();
+        $message = $this->createMessage('foo', [], $this->message);
+        $emailMessage = new MailerMessage();
+        $data = json_decode($message->getArgument('emailMessage'), true);
+        $emailMessage->createFromArray($data);
+
+        $transport = $this->getMockBuilder(DebugTransport::class)->getMock();
+        $transport->expects($this->once())
+            ->method('send')
+            ->with($emailMessage)
+            ->willReturn(['message' => 'test', 'headers' => []]);
+        TransportFactory::getRegistry()->set('foo', $transport);
+
+        $actual = $job->execute($message);
+        $this->assertSame(Processor::ACK, $actual);
+
+        TransportFactory::drop('foo');
     }
 
     /**
