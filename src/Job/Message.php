@@ -108,6 +108,7 @@ class Message implements JsonSerializable
      */
     public function getTarget(): array
     {
+        /** @var array|null $target */
         $target = $this->parsedBody['class'] ?? null;
 
         if (!is_array($target) || count($target) !== 2) {
@@ -161,7 +162,7 @@ class Message implements JsonSerializable
      */
     public function __toString(): string
     {
-        return json_encode($this);
+        return (string)json_encode($this);
     }
 
     /**

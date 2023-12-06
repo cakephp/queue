@@ -18,7 +18,8 @@ namespace Cake\Queue\Job;
 
 use Cake\Log\Log;
 use Cake\Mailer\AbstractTransport;
-use Cake\Mailer\Message as CakeMessage;
+use Cake\Mailer\Message as MailerMessage;
+use Cake\Mailer\TransportFactory;
 use Cake\Queue\Queue\Processor;
 use Exception;
 use InvalidArgumentException;
@@ -40,7 +41,7 @@ class SendMailJob implements JobInterface
             /** @var \Cake\Mailer\AbstractTransport $transport */
             $transport = $this->getTransport($transportClassName, $config);
 
-            $emailMessage = new CakeMessage();
+            $emailMessage = new MailerMessage();
             $data = json_decode($message->getArgument('emailMessage'), true);
             if (!is_array($data)) {
                 throw new InvalidArgumentException('Email Message cannot be decoded.');
@@ -68,12 +69,15 @@ class SendMailJob implements JobInterface
      */
     protected function getTransport(string $transportClassName, array $config): AbstractTransport
     {
+        if ($transportClassName === '') {
+            throw new InvalidArgumentException('Transport class name is empty.');
+        }
+
         if (
-            empty($transportClassName) ||
             !class_exists($transportClassName) ||
             !method_exists($transportClassName, 'send')
         ) {
-            throw new InvalidArgumentException(sprintf('Transport class name is not valid: %s', $transportClassName));
+            return TransportFactory::get($transportClassName);
         }
 
         $transport = new $transportClassName($config);
