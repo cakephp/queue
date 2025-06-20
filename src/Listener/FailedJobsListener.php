@@ -83,7 +83,7 @@ class FailedJobsListener implements EventListenerInterface
                 throw new RuntimeException(
                     sprintf('`logger` was not defined on %s event.', $event->getName()),
                     0,
-                    $e
+                    $e,
                 );
             }
 
@@ -91,7 +91,7 @@ class FailedJobsListener implements EventListenerInterface
                 throw new RuntimeException(
                     sprintf('`logger` is not an instance of `LoggerInterface` on %s event.', $event->getName()),
                     0,
-                    $e
+                    $e,
                 );
             }
 

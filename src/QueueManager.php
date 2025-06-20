@@ -20,8 +20,8 @@ use BadMethodCallException;
 use Cake\Cache\Cache;
 use Cake\Core\App;
 use Cake\Log\Log;
+use Cake\Queue\Enqueue\SimpleClient;
 use Enqueue\Client\Message as ClientMessage;
-use Enqueue\SimpleClient\SimpleClient;
 use InvalidArgumentException;
 use LogicException;
 
@@ -162,7 +162,7 @@ class QueueManager
      * Get a queueing engine
      *
      * @param string $name Key name of a configured adapter to get.
-     * @return \Enqueue\SimpleClient\SimpleClient
+     * @return \Cake\Queue\Enqueue\SimpleClient
      */
     public static function engine(string $name): SimpleClient
     {
@@ -232,7 +232,7 @@ class QueueManager
         if (!empty($class::$shouldBeUnique)) {
             if (empty($config['uniqueCache'])) {
                 throw new InvalidArgumentException(
-                    "$class::\$shouldBeUnique is set to `true` but `uniqueCache` configuration is missing."
+                    "$class::\$shouldBeUnique is set to `true` but `uniqueCache` configuration is missing.",
                 );
             }
 
@@ -241,7 +241,7 @@ class QueueManager
             if (Cache::read($uniqueId, $config['uniqueCacheKey'])) {
                 if ($logger) {
                     $logger->debug(
-                        "An identical instance of $class already exists on the queue. This push will be ignored."
+                        "An identical instance of $class already exists on the queue. This push will be ignored.",
                     );
                 }
 

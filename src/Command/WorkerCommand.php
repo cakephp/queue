@@ -110,7 +110,7 @@ class WorkerCommand extends Command
             'short' => 'a',
         ]);
         $parser->setDescription(
-            'Runs a queue worker that consumes from the named queue.'
+            'Runs a queue worker that consumes from the named queue.',
         );
 
         return $parser;

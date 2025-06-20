@@ -71,7 +71,7 @@ class MailerJobTest extends TestCase
             ->with(
                 $this->equalTo('welcome'),
                 $this->equalTo($this->args),
-                $this->equalTo($this->headers)
+                $this->equalTo($this->headers),
             )
             ->willReturn(['Message sent']);
 
@@ -79,7 +79,7 @@ class MailerJobTest extends TestCase
             ->method('getMailer')
             ->with(
                 $this->equalTo('SampleTest'),
-                $this->equalTo($this->mailerConfig)
+                $this->equalTo($this->mailerConfig),
             )->willReturn($this->mailer);
 
         $message = $this->createMessage();
@@ -101,7 +101,7 @@ class MailerJobTest extends TestCase
             ->method('getMailer')
             ->with(
                 $this->equalTo('SampleTest'),
-                $this->equalTo($this->mailerConfig)
+                $this->equalTo($this->mailerConfig),
             )->willThrowException(new MissingMailerException('Missing mailer for testExecuteMissingMailerException'));
 
         $message = $this->createMessage();
@@ -121,7 +121,7 @@ class MailerJobTest extends TestCase
             ->with(
                 $this->equalTo('welcome'),
                 $this->equalTo($this->args),
-                $this->equalTo($this->headers)
+                $this->equalTo($this->headers),
             )
             ->willThrowException(new BadMethodCallException('Welcome is not a valid method'));
 
@@ -129,7 +129,7 @@ class MailerJobTest extends TestCase
             ->method('getMailer')
             ->with(
                 $this->equalTo('SampleTest'),
-                $this->equalTo($this->mailerConfig)
+                $this->equalTo($this->mailerConfig),
             )->willReturn($this->mailer);
 
         $message = $this->createMessage();

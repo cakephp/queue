@@ -22,9 +22,12 @@
     },
     "require": {
         "php": ">=8.1",
-        "cakephp/cakephp": "dev-5.next as 5.1.0",
-        "enqueue/simple-client": "^0.10",
-        "psr/log": "^3.0"
+        "cakephp/cakephp": "^5.1.0",
+        "psr/log": "^3.0",
+        "enqueue/enqueue": "^0.10",
+        "queue-interop/amqp-interop": "^0.8.2",
+        "queue-interop/queue-interop": "^0.8",
+        "symfony/config": "^5.4|^6.0|^7.0"
     },
     "require-dev": {
         "cakephp/bake": "dev-3.next",

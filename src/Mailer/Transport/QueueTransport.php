@@ -54,7 +54,7 @@ class QueueTransport extends AbstractTransport
                 'returnPath',
                 'cc',
                 'bcc',
-            ]
+            ],
         );
 
         return ['headers' => $headers, 'message' => 'Message has been enqueued'];
@@ -72,7 +72,7 @@ class QueueTransport extends AbstractTransport
         QueueManager::push(
             [SendMailJob::class, 'execute'],
             $data,
-            $options
+            $options,
         );
     }
 

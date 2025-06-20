@@ -114,7 +114,7 @@ class Message implements JsonSerializable
         if (!is_array($target) || count($target) !== 2) {
             throw new RuntimeException(sprintf(
                 'Message class should be in the form `[class, method]` got `%s`',
-                json_encode($target)
+                json_encode($target),
             ));
         }
 

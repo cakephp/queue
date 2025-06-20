@@ -67,7 +67,7 @@ class QueueTransportTest extends TestCase
                 'returnPath',
                 'cc',
                 'bcc',
-            ]
+            ],
         );
 
         $expected = ['headers' => $headers, 'message' => 'Message has been enqueued'];
@@ -93,7 +93,7 @@ class QueueTransportTest extends TestCase
             'queue' => 'default',
             'url' => $this->getFsQueueUrl(),
         ]);
-        $message = (new Message());
+        $message = new Message();
 
         $transport = new QueueTransport([
             'transport' => SmtpTransport::class,
@@ -124,7 +124,7 @@ class QueueTransportTest extends TestCase
             'queue' => 'default',
             'url' => $this->getFsQueueUrl(),
         ]);
-        $message = (new Message());
+        $message = new Message();
 
         $transport = new QueueTransport([
             'transport' => SmtpTransport::class,

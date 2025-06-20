@@ -79,7 +79,7 @@ class LimitConsumedMessagesExtension implements PreConsumeExtensionInterface, Po
             $logger->debug(sprintf(
                 '[LimitConsumedMessagesExtension] Message consumption is interrupted since the message limit ' .
                 'reached. limit: "%s"',
-                $this->messageLimit
+                $this->messageLimit,
             ));
 
             return true;

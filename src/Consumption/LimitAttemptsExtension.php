@@ -65,7 +65,7 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
 
         if ($attemptNumber >= $maxAttempts) {
             $context->changeResult(
-                Result::reject(sprintf('The maximum number of %d allowed attempts was reached.', $maxAttempts))
+                Result::reject(sprintf('The maximum number of %d allowed attempts was reached.', $maxAttempts)),
             );
 
             $exception = (string)$message->getProperty('jobException');
@@ -73,7 +73,7 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
             $this->dispatchEvent(
                 'Consumption.LimitAttemptsExtension.failed',
                 ['exception' => $exception, 'logger' => $context->getLogger()],
-                $jobMessage
+                $jobMessage,
             );
 
             return;
@@ -88,7 +88,7 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
         $producer->send($consumer->getQueue(), $newMessage);
 
         $context->changeResult(
-            Result::reject('A copy of the message was sent with an incremented attempt count.')
+            Result::reject('A copy of the message was sent with an incremented attempt count.'),
         );
     }
 }

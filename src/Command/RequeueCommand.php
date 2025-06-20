@@ -138,7 +138,7 @@ class RequeueCommand extends Command
                         'config' => $failedJob->config,
                         'priority' => $failedJob->priority,
                         'queue' => $failedJob->queue,
-                    ]
+                    ],
                 );
 
                 $failedJobsTable->deleteOrFail($failedJob);

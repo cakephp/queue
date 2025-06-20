@@ -73,7 +73,7 @@ class JobTaskTest extends TestCase
         $this->assertOutputContains('Creating file ' . $this->generatedFile);
         $this->assertSameAsFile(
             $this->comparisonDir . 'JobTask.php',
-            file_get_contents($this->generatedFile)
+            file_get_contents($this->generatedFile),
         );
     }
 
@@ -87,7 +87,7 @@ class JobTaskTest extends TestCase
         $this->assertOutputContains('Creating file ' . $this->generatedFile);
         $this->assertSameAsFile(
             $this->comparisonDir . 'JobTaskWithUnique.php',
-            file_get_contents($this->generatedFile)
+            file_get_contents($this->generatedFile),
         );
     }
 
@@ -101,7 +101,7 @@ class JobTaskTest extends TestCase
         $this->assertOutputContains('Creating file ' . $this->generatedFile);
         $this->assertSameAsFile(
             $this->comparisonDir . 'JobTaskWithMaxAttempts.php',
-            file_get_contents($this->generatedFile)
+            file_get_contents($this->generatedFile),
         );
     }
 }
