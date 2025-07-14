@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -14,6 +15,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
+
 namespace Cake\Queue\Test\TestCase\Job;
 
 use Cake\Queue\Job\Message;
@@ -31,7 +33,7 @@ class MessageTest extends TestCase
      *
      * @return void
      */
-    public function testConstructorAndGetters()
+    public function testConstructorAndGetters(): void
     {
         $callable = ['TestApp\WelcomeMailer', 'welcome'];
         $time = 'sample data ' . time();
@@ -69,7 +71,7 @@ class MessageTest extends TestCase
      *
      * @return void
      */
-    public function testLegacyArguments()
+    public function testLegacyArguments(): void
     {
         $callable = ['TestApp\WelcomeMailer', 'welcome'];
         $args = [
@@ -98,7 +100,7 @@ class MessageTest extends TestCase
      *
      * @return void
      */
-    public function testGetCallableInvalidClass()
+    public function testGetCallableInvalidClass(): void
     {
         $parsedBody = [
             'class' => ['Trash', 'trash'],
@@ -120,7 +122,7 @@ class MessageTest extends TestCase
      *
      * @return void
      */
-    public function testGetCallableInvalidType()
+    public function testGetCallableInvalidType(): void
     {
         $parsedBody = [
             'class' => ['TestApp\WelcomeMailer', 'trash', 'oops'],
