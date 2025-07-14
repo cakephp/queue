@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -14,6 +15,7 @@ declare(strict_types=1);
  * @since         0.1.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
+
 namespace Cake\Queue\Job;
 
 use Cake\Core\ContainerInterface;
@@ -96,7 +98,7 @@ class Message implements JsonSerializable
      *
      * @return \Closure
      */
-    public function getCallable()
+    public function getCallable(): Closure
     {
         if ($this->callable) {
             return $this->callable;
@@ -140,7 +142,7 @@ class Message implements JsonSerializable
      * @param mixed $default Default value.
      * @return mixed
      */
-    public function getArgument($key = null, $default = null)
+    public function getArgument(mixed $key = null, mixed $default = null)
     {
         if (array_key_exists('data', $this->parsedBody)) {
             $data = $this->parsedBody['data'];
@@ -175,7 +177,7 @@ class Message implements JsonSerializable
      * @return string
      * @psalm-suppress InvalidToString
      */
-    public function __toString()
+    public function __toString(): string
     {
         return (string)json_encode($this);
     }
@@ -184,7 +186,7 @@ class Message implements JsonSerializable
      * @return array
      */
     #[\ReturnTypeWillChange]
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->parsedBody;
     }
