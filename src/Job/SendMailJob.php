@@ -49,7 +49,7 @@ class SendMailJob implements JobInterface
             Log::error(sprintf('An error has occurred processing message: %s', $e->getMessage()));
         }
 
-        if (!$result) {
+        if (empty($result)) {
             return Processor::REJECT;
         }
 

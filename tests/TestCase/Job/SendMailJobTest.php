@@ -57,7 +57,7 @@ class SendMailJobTest extends TestCase
      *
      * @return void
      */
-    public function testExecute()
+    public function testExecute(): void
     {
         $job = $this->getMockBuilder(SendMailJob::class)
             ->onlyMethods(['getTransport'])
@@ -84,7 +84,7 @@ class SendMailJobTest extends TestCase
      *
      * @return void
      */
-    public function testExecuteTransportName()
+    public function testExecuteTransportName(): void
     {
         $job = new SendMailJob();
         $message = $this->createMessage('foo', [], $this->message);
@@ -110,7 +110,7 @@ class SendMailJobTest extends TestCase
      *
      * @return void
      */
-    public function testExecuteWithAttachments()
+    public function testExecuteWithAttachments(): void
     {
         $emailMessage = clone $this->message;
         $emailMessage->addAttachments(['test.txt' => ROOT . 'files' . DS . 'test.txt']);
@@ -124,7 +124,7 @@ class SendMailJobTest extends TestCase
      *
      * @return void
      */
-    public function testExecuteInvalidTransport()
+    public function testExecuteInvalidTransport(): void
     {
         $message = $this->createMessage('WrongTransport', [], $this->message);
         $actual = $this->job->execute($message);
@@ -136,14 +136,14 @@ class SendMailJobTest extends TestCase
      *
      * @return void
      */
-    public function testExecuteUnserializableMessage()
+    public function testExecuteUnserializableMessage(): void
     {
         $message = $this->createMessage(DebugTransport::class, [], 'unserializable');
         $actual = $this->job->execute($message);
         $this->assertSame(Processor::REJECT, $actual);
     }
 
-    public function testExecuteNoAbstractTransport()
+    public function testExecuteNoAbstractTransport(): void
     {
         $message = $this->createMessage(Mailer::class, [], $this->message);
         $actual = $this->job->execute($message);
