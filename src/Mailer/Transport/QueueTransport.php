@@ -36,7 +36,6 @@ class QueueTransport extends AbstractTransport
 
     /**
      * @inheritDoc
-     * @return array<string, string>
      */
     public function send(Message $message): array
     {

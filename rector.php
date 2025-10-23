@@ -7,6 +7,7 @@ use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\ClassMethod\RemoveNullTagValueNodeRector;
 use Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector;
 use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
+use Rector\TypeDeclarationDocblocks\Rector\ClassMethod\DocblockReturnArrayFromDirectArrayInstanceRector;
 use Rector\ValueObject\PhpVersion;
 
 return RectorConfig::configure()
@@ -21,6 +22,9 @@ return RectorConfig::configure()
         MakeInheritedMethodVisibilitySameAsParentRector::class,
         RemoveNullTagValueNodeRector::class,
         RemoveUselessReturnTagRector::class,
+        DocblockReturnArrayFromDirectArrayInstanceRector::class => [
+            __DIR__ . '/src/Mailer/Transport/QueueTransport.php',
+        ],
     ])
     ->withParallel()
     ->withPreparedSets(
