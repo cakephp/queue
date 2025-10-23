@@ -22,7 +22,6 @@ use Closure;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
 use JsonSerializable;
-use ReturnTypeWillChange;
 use RuntimeException;
 
 class Message implements JsonSerializable
@@ -122,7 +121,12 @@ class Message implements JsonSerializable
     public function getArgument(mixed $key = null, mixed $default = null): mixed
     {
         // support old jobs that still use args key
-        $data = $this->parsedBody['data'] ?? $this->parsedBody['args'][0];
+        if (array_key_exists('data', $this->parsedBody)) {
+            $data = $this->parsedBody['data'];
+        } else {
+            // support old jobs that still use args key
+            $data = $this->parsedBody['args'][0];
+        }
 
         if ($key === null) {
             return $data;
@@ -156,7 +160,6 @@ class Message implements JsonSerializable
      *
      * @return array<string, mixed>
      */
-    #[ReturnTypeWillChange]
     public function jsonSerialize(): array
     {
         return $this->parsedBody;
