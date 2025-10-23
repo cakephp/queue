@@ -12,24 +12,15 @@ use Enqueue\Consumption\MessageResultExtensionInterface;
 class RemoveUniqueJobIdFromCacheExtension implements MessageResultExtensionInterface
 {
     /**
-     * Cache engine name.
-     *
-     * @var string
-     */
-    protected string $cache;
-
-    /**
      * @param string $cache Cache engine name.
-     * @return void
      */
-    public function __construct(string $cache)
-    {
-        $this->cache = $cache;
+    public function __construct(
+        protected readonly string $cache,
+    ) {
     }
 
     /**
      * @param \Enqueue\Consumption\Context\MessageResult $context The result of the message after it was processed.
-     * @return void
      */
     public function onResult(MessageResult $context): void
     {

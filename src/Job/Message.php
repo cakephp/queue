@@ -27,31 +27,25 @@ use RuntimeException;
 
 class Message implements JsonSerializable
 {
-    protected Context $context;
-
-    protected QueueMessage $originalMessage;
-
     protected array $parsedBody;
 
     protected ?Closure $callable = null;
-
-    protected ?ContainerInterface $container = null;
 
     /**
      * @param \Interop\Queue\Message $originalMessage Queue message.
      * @param \Interop\Queue\Context $context Context.
      * @param \Cake\Core\ContainerInterface|null $container DI container instance
      */
-    public function __construct(QueueMessage $originalMessage, Context $context, ?ContainerInterface $container = null)
-    {
-        $this->context = $context;
-        $this->originalMessage = $originalMessage;
+    public function __construct(
+        protected readonly QueueMessage $originalMessage,
+        protected readonly Context $context,
+        protected readonly ?ContainerInterface $container = null,
+    ) {
         $this->parsedBody = json_decode($originalMessage->getBody(), true);
-        $this->container = $container;
     }
 
     /**
-     * @return \Interop\Queue\Context
+     * Get the queue context.
      */
     public function getContext(): Context
     {
@@ -59,7 +53,7 @@ class Message implements JsonSerializable
     }
 
     /**
-     * @return \Interop\Queue\Message
+     * Get the original queue message.
      */
     public function getOriginalMessage(): QueueMessage
     {
@@ -67,7 +61,9 @@ class Message implements JsonSerializable
     }
 
     /**
-     * @return array
+     * Get the parsed message body.
+     *
+     * @return array<string, mixed>
      */
     public function getParsedBody(): array
     {
@@ -79,12 +75,10 @@ class Message implements JsonSerializable
      *
      * Supported callables include:
      * - array of [class, method]. The class will be constructed with no constructor parameters.
-     *
-     * @return \Closure
      */
     public function getCallable(): Closure
     {
-        if ($this->callable) {
+        if ($this->callable instanceof Closure) {
             return $this->callable;
         }
 
@@ -124,16 +118,11 @@ class Message implements JsonSerializable
     /**
      * @param mixed $key Key
      * @param mixed $default Default value.
-     * @return mixed
      */
     public function getArgument(mixed $key = null, mixed $default = null): mixed
     {
-        if (array_key_exists('data', $this->parsedBody)) {
-            $data = $this->parsedBody['data'];
-        } else {
-            // support old jobs that still use args key
-            $data = $this->parsedBody['args'][0];
-        }
+        // support old jobs that still use args key
+        $data = $this->parsedBody['data'] ?? $this->parsedBody['args'][0];
 
         if ($key === null) {
             return $data;
@@ -144,8 +133,6 @@ class Message implements JsonSerializable
 
     /**
      * The maximum number of attempts allowed by the job.
-     *
-     * @return int|null
      */
     public function getMaxAttempts(): ?int
     {
@@ -157,7 +144,7 @@ class Message implements JsonSerializable
     }
 
     /**
-     * @return string
+     * Convert the message to a string representation.
      */
     public function __toString(): string
     {
@@ -165,7 +152,9 @@ class Message implements JsonSerializable
     }
 
     /**
-     * @return array
+     * Serialize the message to JSON.
+     *
+     * @return array<string, mixed>
      */
     #[ReturnTypeWillChange]
     public function jsonSerialize(): array

@@ -29,7 +29,6 @@ class MailerJob implements JobInterface
      * Constructs and dispatches the event from a job message
      *
      * @param \Cake\Queue\Job\Message $message job message
-     * @return string|null
      */
     public function execute(Message $message): ?string
     {
@@ -41,13 +40,13 @@ class MailerJob implements JobInterface
 
         try {
             $mailer = $this->getMailer($mailerName, $mailerConfig);
-        } catch (MissingMailerException $e) {
+        } catch (MissingMailerException $missingMailerException) {
             return Processor::REJECT;
         }
 
         try {
             $mailer->send($action, $args, $headers);
-        } catch (BadMethodCallException $e) {
+        } catch (BadMethodCallException $badMethodCallException) {
             return Processor::REJECT;
         }
 

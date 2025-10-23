@@ -42,8 +42,6 @@ class JobTaskTest extends TestCase
 
     /**
      * setup method
-     *
-     * @return void
      */
     public function setUp(): void
     {

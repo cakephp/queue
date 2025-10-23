@@ -24,20 +24,21 @@ use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
 use InvalidArgumentException;
 use LogicException;
+use Psr\Log\LoggerInterface;
 
 class QueueManager
 {
     /**
      * Configuration sets.
      *
-     * @var array
+     * @var array<string, array<string, mixed>>
      */
     protected static array $_config = [];
 
     /**
      * Queue clients
      *
-     * @var array
+     * @var array<string, \Enqueue\SimpleClient\SimpleClient>
      */
     protected static array $_clients = [];
 
@@ -72,11 +73,10 @@ class QueueManager
      * QueueManager::setConfig($arrayOfConfig);
      * ```
      *
-     * @param array|string $key The name of the configuration, or an array of multiple configs.
-     * @param array $config An array of name => configuration data for adapter.
+     * @param array<string, array<string, mixed>>|string $key The name of the configuration, or an array of multiple configs.
+     * @param array<string, mixed>|null $config An array of name => configuration data for adapter.
      * @throws \BadMethodCallException When trying to modify an existing config.
      * @throws \LogicException When trying to store an invalid structured config array.
-     * @return void
      */
     public static function setConfig(string|array $key, ?array $config = null): void
     {
@@ -84,6 +84,7 @@ class QueueManager
             if (!is_array($key)) {
                 throw new LogicException('If config is null, key must be an array.');
             }
+
             foreach ($key as $name => $settings) {
                 static::setConfig($name, $settings);
             }
@@ -126,9 +127,9 @@ class QueueManager
                 'duration' => '+24 hours',
             ];
 
-            $cacheConfig = array_merge($cacheDefaults, $config['uniqueCache']);
+            $cacheConfig = [...$cacheDefaults, ...$config['uniqueCache']];
 
-            $config['uniqueCacheKey'] = "Cake/Queue.queueUnique.{$key}";
+            $config['uniqueCacheKey'] = 'Cake/Queue.queueUnique.' . $key;
 
             Cache::setConfig($config['uniqueCacheKey'], $cacheConfig);
         }
@@ -140,9 +141,9 @@ class QueueManager
      * Reads existing configuration.
      *
      * @param string $key The name of the configuration.
-     * @return mixed Configuration data at the named key or null if the key does not exist.
+     * @return array<string, mixed>|null Configuration data at the named key or null if the key does not exist.
      */
-    public static function getConfig(string $key): mixed
+    public static function getConfig(string $key): ?array
     {
         return static::$_config[$key] ?? null;
     }
@@ -150,7 +151,7 @@ class QueueManager
     /**
      * Get the configured queue keys.
      *
-     * @return array List of configured queue configuration keys.
+     * @return array<int, string> List of configured queue configuration keys.
      */
     public static function configured(): array
     {
@@ -161,7 +162,6 @@ class QueueManager
      * Remove a configured queue adapter.
      *
      * @param string $key The config name to drop.
-     * @return void
      */
     public static function drop(string $key): void
     {
@@ -172,7 +172,6 @@ class QueueManager
      * Get a queueing engine
      *
      * @param string $name Key name of a configured adapter to get.
-     * @return \Enqueue\SimpleClient\SimpleClient
      */
     public static function engine(string $name): SimpleClient
     {
@@ -190,7 +189,7 @@ class QueueManager
         static::$_clients[$name] = new SimpleClient($config['url'], $logger);
         static::$_clients[$name]->setupBroker();
 
-        if (!is_null($config['receiveTimeout'])) {
+        if ($config['receiveTimeout'] !== null) {
             static::$_clients[$name]->getQueueConsumer()->setReceiveTimeout($config['receiveTimeout']);
         }
 
@@ -200,11 +199,11 @@ class QueueManager
     /**
      * Push a single job onto the queue.
      *
-     * @param array<string>|string $className The classname of a job that implements the
+     * @param array<int, string>|string $className The classname of a job that implements the
      *   \Cake\Queue\Job\JobInterface. The class will be constructed by
      *   \Cake\Queue\Processor and have the execute method invoked.
-     * @param array $data An array of data that will be passed to the job.
-     * @param array $options An array of options for publishing the job:
+     * @param array<string, mixed> $data An array of data that will be passed to the job.
+     * @param array<string, mixed> $options An array of options for publishing the job:
      *   - `config` - A queue config name. Defaults to 'default'.
      *   - `delay` - Time (in integer seconds) to delay message, after which it
      *      will be processed. Not all message brokers accept this. Default `null`.
@@ -219,7 +218,6 @@ class QueueManager
      *      - `\Enqueue\Client\MessagePriority::VERY_HIGH`
      *   - `queue` - The name of a queue to use, from queue `config` array or
      *      string 'default' if empty.
-     * @return void
      */
     public static function push(string|array $className, array $data = [], array $options = []): void
     {
@@ -227,7 +225,7 @@ class QueueManager
 
         $class = App::className($class, 'Job', 'Job');
         if (is_null($class)) {
-            throw new InvalidArgumentException("`$class` class does not exist.");
+            throw new InvalidArgumentException(sprintf('`%s` class does not exist.', $class));
         }
 
         $name = $options['config'] ?? 'default';
@@ -241,16 +239,19 @@ class QueueManager
         if (!empty($class::$shouldBeUnique)) {
             if (empty($config['uniqueCache'])) {
                 throw new InvalidArgumentException(
-                    "$class::\$shouldBeUnique is set to `true` but `uniqueCache` configuration is missing.",
+                    $class . '::$shouldBeUnique is set to `true` but `uniqueCache` configuration is missing.',
                 );
             }
 
             $uniqueId = static::getUniqueId($class, $method, $data);
 
             if (Cache::read($uniqueId, $config['uniqueCacheKey'])) {
-                if ($logger) {
+                if ($logger instanceof LoggerInterface) {
                     $logger->debug(
-                        "An identical instance of $class already exists on the queue. This push will be ignored.",
+                        sprintf(
+                            'An identical instance of %s already exists on the queue. This push will be ignored.',
+                            $class,
+                        ),
                     );
                 }
 
@@ -294,16 +295,15 @@ class QueueManager
     }
 
     /**
-     * @param string $class Class name
+     * @param class-string $class Class name
      * @param string $method Method name
-     * @param array $data Message data
-     * @return string
+     * @param array<string, mixed> $data Message data
      */
     public static function getUniqueId(string $class, string $method, array $data): string
     {
         sort($data);
 
-        $hashInput = implode([
+        $hashInput = implode('', [
             $class,
             $method,
             json_encode($data),

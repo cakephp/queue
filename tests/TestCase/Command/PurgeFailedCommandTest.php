@@ -73,7 +73,7 @@ class PurgeFailedCommandTest extends TestCase
     public function testFailedJobsAreDeletedByClass()
     {
         $class = LogToDebugJob::class;
-        $this->exec("queue purge_failed --class {$class} -f");
+        $this->exec(sprintf('queue purge_failed --class %s -f', $class));
 
         $this->assertOutputContains('Deleting 2 jobs.');
         $this->assertOutputContains('2 jobs deleted.');

@@ -37,8 +37,6 @@ trait QueueTestTrait
      * This is automatically called after each test via the #[After] attribute.
      * It drops all QueueManager configs and their associated cache configs,
      * and resets all log configurations.
-     *
-     * @return void
      */
     #[After]
     public function cleanupQueueManagerConfigs(): void
@@ -49,7 +47,7 @@ trait QueueTestTrait
             $queueConfig = QueueManager::getConfig($config);
             if ($queueConfig && isset($queueConfig['uniqueCacheKey'])) {
                 $cacheKey = $queueConfig['uniqueCacheKey'];
-                if (Cache::configured($cacheKey)) {
+                if (Cache::configured()) {
                     Cache::drop($cacheKey);
                 }
             }
@@ -65,13 +63,12 @@ trait QueueTestTrait
      * Assert that a message was found in debug logs
      *
      * @param string $expected The message to search for in logs
-     * @return void
      */
     protected function assertDebugLogContains($expected): void
     {
         $found = $this->debugLogCount($expected);
 
-        $this->assertGreaterThanOrEqual(1, $found, "Did not find `{$expected}` in logs.");
+        $this->assertGreaterThanOrEqual(1, $found, sprintf('Did not find `%s` in logs.', $expected));
     }
 
     /**
@@ -79,13 +76,12 @@ trait QueueTestTrait
      *
      * @param string $expected The message to search for in logs
      * @param int $times The exact number of times the message should appear
-     * @return void
      */
     protected function assertDebugLogContainsExactly($expected, $times): void
     {
         $found = $this->debugLogCount($expected);
 
-        $this->assertSame($times, $found, "Did not find `{$expected}` exactly {$times} times in logs.");
+        $this->assertSame($times, $found, sprintf('Did not find `%s` exactly %d times in logs.', $expected, $times));
     }
 
     /**

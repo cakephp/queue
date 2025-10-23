@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue;
 
+use Bake\Command\SimpleBakeCommand;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
@@ -46,7 +47,6 @@ class Plugin extends BasePlugin
      * Load the Queue configuration
      *
      * @param \Cake\Core\PluginApplicationInterface $app The host application
-     * @return void
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
@@ -68,11 +68,10 @@ class Plugin extends BasePlugin
      * Add console commands for the plugin.
      *
      * @param \Cake\Console\CommandCollection $commands The command collection to update
-     * @return \Cake\Console\CommandCollection
      */
     public function console(CommandCollection $commands): CommandCollection
     {
-        if (class_exists('Bake\Command\SimpleBakeCommand')) {
+        if (class_exists(SimpleBakeCommand::class)) {
             $commands->add('bake job', JobCommand::class);
         }
 
@@ -87,7 +86,6 @@ class Plugin extends BasePlugin
      * Add DI container to Worker command
      *
      * @param \Cake\Core\ContainerInterface $container The DI container
-     * @return void
      */
     public function services(ContainerInterface $container): void
     {

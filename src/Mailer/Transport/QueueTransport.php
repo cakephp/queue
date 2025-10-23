@@ -63,9 +63,8 @@ class QueueTransport extends AbstractTransport
     /**
      * Add job to queue
      *
-     * @param array $data Data to be sent to job
-     * @param array $options Job options
-     * @return void
+     * @param array<string, mixed> $data Data to be sent to job
+     * @param array<string, mixed> $options Job options
      */
     protected function enqueueJob(array $data, array $options): void
     {
@@ -80,7 +79,7 @@ class QueueTransport extends AbstractTransport
      * Prepare data for job
      *
      * @param \Cake\Mailer\Message $message Email message
-     * @return array
+     * @return array<string, mixed>
      */
     protected function prepareData(Message $message): array
     {

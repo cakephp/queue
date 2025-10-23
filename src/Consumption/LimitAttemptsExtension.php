@@ -25,25 +25,15 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
     public const ATTEMPTS_PROPERTY = 'attempts';
 
     /**
-     * The maximum number of times a job may be attempted. $maxAttempts defined on a
-     * Job will override this value.
-     *
-     * @var int|null
+     * @param int|null $maxAttempts The maximum number of times a job may be attempted. $maxAttempts defined on a Job will override this value.
      */
-    protected ?int $maxAttempts = null;
-
-    /**
-     * @param int|null $maxAttempts The maximum number of times a job may be attempted.
-     * @return void
-     */
-    public function __construct(?int $maxAttempts = null)
-    {
-        $this->maxAttempts = $maxAttempts;
+    public function __construct(
+        protected readonly ?int $maxAttempts = null,
+    ) {
     }
 
     /**
      * @param \Enqueue\Consumption\Context\MessageResult $context The result of the message after it was processed.
-     * @return void
      */
     public function onResult(MessageResult $context): void
     {

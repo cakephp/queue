@@ -109,6 +109,7 @@ class SendMailJobTest extends TestCase
     {
         $emailMessage = clone $this->message;
         $emailMessage->addAttachments(['test.txt' => ROOT . 'files' . DS . 'test.txt']);
+
         $message = $this->createMessage(DebugTransport::class, [], $emailMessage);
         $actual = $this->job->execute($message);
         $this->assertSame(Processor::ACK, $actual);
@@ -147,8 +148,6 @@ class SendMailJobTest extends TestCase
 
     /**
      * Create a simple message for testing.
-     *
-     * @return \Cake\Queue\Job\Message
      */
     protected function createMessage($transport, $config, $emailMessage): QueueJobMessage
     {

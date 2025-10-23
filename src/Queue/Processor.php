@@ -37,25 +37,13 @@ class Processor implements InteropProcessor
     use EventDispatcherTrait;
 
     /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    protected LoggerInterface $logger;
-
-    /**
-     * @var \Cake\Core\ContainerInterface|null
-     */
-    protected ?ContainerInterface $container = null;
-
-    /**
-     * Processor constructor
-     *
-     * @param \Psr\Log\LoggerInterface|null $logger Logger instance.
+     * @param \Psr\Log\LoggerInterface $logger Logger instance.
      * @param \Cake\Core\ContainerInterface|null $container DI container instance
      */
-    public function __construct(?LoggerInterface $logger = null, ?ContainerInterface $container = null)
-    {
-        $this->logger = $logger ?: new NullLogger();
-        $this->container = $container;
+    public function __construct(
+        protected readonly LoggerInterface $logger = new NullLogger(),
+        protected readonly ?ContainerInterface $container = null,
+    ) {
     }
 
     /**
@@ -84,13 +72,13 @@ class Processor implements InteropProcessor
 
         try {
             $response = $this->processMessage($jobMessage);
-        } catch (Throwable $e) {
-            $message->setProperty('jobException', $e);
+        } catch (Throwable $throwable) {
+            $message->setProperty('jobException', $throwable);
 
-            $this->logger->debug(sprintf('Message encountered exception: %s', $e->getMessage()));
+            $this->logger->debug(sprintf('Message encountered exception: %s', $throwable->getMessage()));
             $this->dispatchEvent('Processor.message.exception', [
                 'message' => $jobMessage,
-                'exception' => $e,
+                'exception' => $throwable,
                 'duration' => (int)((microtime(true) * 1000) - $startTime),
             ]);
 

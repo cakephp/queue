@@ -32,12 +32,16 @@ class MailerJobTest extends TestCase
      * @var \Cake\Mailer\Mailer|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $mailer;
+
     /**
      * @var \Cake\Queue\Job\MailerJob|\PHPUnit\Framework\MockObject\MockObject
      */
     protected $job;
+
     protected $mailerConfig;
+
     protected $headers;
+
     protected $args;
 
     /**
@@ -139,8 +143,6 @@ class MailerJobTest extends TestCase
 
     /**
      * Create a simple message for testing.
-     *
-     * @return \Cake\Queue\Job\Message
      */
     protected function createMessage(): Message
     {
@@ -157,8 +159,7 @@ class MailerJobTest extends TestCase
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
         $originalMessage = new NullMessage(json_encode($messageBody));
-        $message = new Message($originalMessage, $context);
 
-        return $message;
+        return new Message($originalMessage, $context);
     }
 }

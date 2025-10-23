@@ -28,8 +28,6 @@ class PurgeFailedCommand extends Command
 
     /**
      * Get the command name.
-     *
-     * @return string
      */
     public static function defaultName(): string
     {
@@ -38,8 +36,6 @@ class PurgeFailedCommand extends Command
 
     /**
      * Gets the option parser instance and configures it.
-     *
-     * @return \Cake\Console\ConsoleOptionParser
      */
     public function getOptionParser(): ConsoleOptionParser
     {
@@ -72,9 +68,8 @@ class PurgeFailedCommand extends Command
     /**
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Cake\Console\ConsoleIo $io ConsoleIo
-     * @return void
      */
-    public function execute(Arguments $args, ConsoleIo $io): void
+    public function execute(Arguments $args, ConsoleIo $io): int
     {
         /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
         $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
@@ -108,21 +103,23 @@ class PurgeFailedCommand extends Command
         if (!$deletingCount) {
             $io->out('0 jobs found.');
 
-            return;
+            return self::CODE_SUCCESS;
         }
 
         if (!$args->getOption('force')) {
-            $confirmed = $io->askChoice("Delete {$deletingCount} jobs?", ['y', 'n'], 'n');
+            $confirmed = $io->askChoice(sprintf('Delete %s jobs?', $deletingCount), ['y', 'n'], 'n');
 
             if ($confirmed !== 'y') {
-                return;
+                return self::CODE_SUCCESS;
             }
         }
 
-        $io->out("Deleting {$deletingCount} jobs.");
+        $io->out(sprintf('Deleting %s jobs.', $deletingCount));
 
         $failedJobsTable->deleteManyOrFail($jobsToDelete);
 
-        $io->success("{$deletingCount} jobs deleted.");
+        $io->success($deletingCount . ' jobs deleted.');
+
+        return self::CODE_SUCCESS;
     }
 }

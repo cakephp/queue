@@ -26,14 +26,8 @@ class TestCustomProcessor implements InteropProcessor
 {
     use EventDispatcherTrait;
 
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
     protected LoggerInterface $logger;
 
-    /**
-     * @var \Cake\Core\ContainerInterface|null
-     */
     protected ?ContainerInterface $container = null;
 
     /**
@@ -73,13 +67,13 @@ class TestCustomProcessor implements InteropProcessor
 
         try {
             $response = $this->processMessage($jobMessage);
-        } catch (Throwable $e) {
-            $message->setProperty('jobException', $e);
+        } catch (Throwable $throwable) {
+            $message->setProperty('jobException', $throwable);
 
-            $this->logger->debug(sprintf('Message encountered exception: %s', $e->getMessage()));
+            $this->logger->debug(sprintf('Message encountered exception: %s', $throwable->getMessage()));
             $this->dispatchEvent('Processor.message.exception', [
                 'message' => $jobMessage,
-                'exception' => $e,
+                'exception' => $throwable,
             ]);
 
             return Result::requeue('Exception occurred while processing message');

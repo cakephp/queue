@@ -46,10 +46,11 @@ class SendMailJob implements JobInterface
             if (!is_array($data)) {
                 throw new InvalidArgumentException('Email Message cannot be decoded.');
             }
+
             $emailMessage->createFromArray($data);
             $result = $transport->send($emailMessage);
-        } catch (Exception $e) {
-            Log::error(sprintf('An error has occurred processing message: %s', $e->getMessage()));
+        } catch (Exception $exception) {
+            Log::error(sprintf('An error has occurred processing message: %s', $exception->getMessage()));
         }
 
         if (!$result) {
@@ -64,7 +65,6 @@ class SendMailJob implements JobInterface
      *
      * @param string $transportClassName Transport class name
      * @param array $config Transport config
-     * @return \Cake\Mailer\AbstractTransport
      * @throws \InvalidArgumentException if empty transport class name, class does not exist or send method is not defined for class
      */
     protected function getTransport(string $transportClassName, array $config): AbstractTransport

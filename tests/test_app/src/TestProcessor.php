@@ -15,7 +15,6 @@ class TestProcessor
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param Message $message The message to process
-     * @return null
      * @throws Exception
      */
     public static function processAndThrowException(Message $message)
@@ -27,7 +26,6 @@ class TestProcessor
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Cake\Queue\Message $message The message to process
-     * @return null
      */
     public static function processReturnAck(Message $message)
     {
@@ -40,7 +38,6 @@ class TestProcessor
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Cake\Queue\Job\Message $message The message to process
-     * @return null
      */
     public static function processReturnNull(Message $message)
     {
@@ -53,7 +50,6 @@ class TestProcessor
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Cake\Queue\Message $message The message to process
-     * @return null
      */
     public static function processReturnReject(Message $message)
     {
@@ -66,7 +62,6 @@ class TestProcessor
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Cake\Queue\Message $message The message to process
-     * @return null
      */
     public static function processReturnRequeue(Message $message)
     {
@@ -79,7 +74,6 @@ class TestProcessor
      * Job to be used in test testProcessMessageCallableIsString
      *
      * @param \Cake\Queue\Message $message The message to process
-     * @return null
      */
     public static function processReturnString(Message $message)
     {

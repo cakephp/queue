@@ -142,8 +142,6 @@ class WorkerCommandTest extends TestCase
 
     /**
      * Data provider for testQueueProcessesJob method
-     *
-     * @return array
      */
     public static function dataProviderCallableTypes(): array
     {

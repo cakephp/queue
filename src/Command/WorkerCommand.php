@@ -44,22 +44,15 @@ use Psr\Log\NullLogger;
 class WorkerCommand extends Command
 {
     /**
-     * @var \Cake\Core\ContainerInterface|null
-     */
-    protected ?ContainerInterface $container = null;
-
-    /**
      * @param \Cake\Core\ContainerInterface|null $container DI container instance
      */
-    public function __construct(?ContainerInterface $container = null)
-    {
-        $this->container = $container;
+    public function __construct(
+        protected readonly ?ContainerInterface $container = null,
+    ) {
     }
 
     /**
      * Get the command name.
-     *
-     * @return string
      */
     public static function defaultName(): string
     {
@@ -68,8 +61,6 @@ class WorkerCommand extends Command
 
     /**
      * Gets the option parser instance and configures it.
-     *
-     * @return \Cake\Console\ConsoleOptionParser
      */
     public function getOptionParser(): ConsoleOptionParser
     {
@@ -122,7 +113,6 @@ class WorkerCommand extends Command
      *
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
-     * @return \Enqueue\Consumption\ExtensionInterface
      */
     protected function getQueueExtension(Arguments $args, LoggerInterface $logger): ExtensionInterface
     {
@@ -138,12 +128,12 @@ class WorkerCommand extends Command
             $limitAttempsExtension,
         ];
 
-        if (!is_null($args->getOption('max-jobs'))) {
+        if ($args->getOption('max-jobs') !== null) {
             $maxJobs = (int)$args->getOption('max-jobs');
             $extensions[] = new LimitConsumedMessagesExtension($maxJobs);
         }
 
-        if (!is_null($args->getOption('max-runtime'))) {
+        if ($args->getOption('max-runtime') !== null) {
             $endTime = new DateTime(sprintf('+%d seconds', (int)$args->getOption('max-runtime')));
             $extensions[] = new LimitConsumptionTimeExtension($endTime);
         }
@@ -159,7 +149,6 @@ class WorkerCommand extends Command
      * Creates and returns a LoggerInterface object
      *
      * @param \Cake\Console\Arguments $args Arguments
-     * @return \Psr\Log\LoggerInterface
      */
     protected function getLogger(Arguments $args): LoggerInterface
     {
@@ -177,7 +166,6 @@ class WorkerCommand extends Command
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Cake\Console\ConsoleIo $io ConsoleIo
      * @param \Psr\Log\LoggerInterface $logger Logger instance
-     * @return \Interop\Queue\Processor
      */
     protected function getProcessor(Arguments $args, ConsoleIo $io, LoggerInterface $logger): InteropProcessor
     {
@@ -187,12 +175,12 @@ class WorkerCommand extends Command
         $processorClass = $config['processor'] ?? Processor::class;
 
         if (!class_exists($processorClass)) {
-            $io->error(sprintf(sprintf('Processor class %s not found', $processorClass)));
+            $io->error(sprintf('Processor class %s not found', $processorClass));
             $this->abort();
         }
 
         if (!is_subclass_of($processorClass, InteropProcessor::class)) {
-            $io->error(sprintf(sprintf('Processor class %s must implement Interop\Queue\Processor', $processorClass)));
+            $io->error(sprintf('Processor class %s must implement Interop\Queue\Processor', $processorClass));
             $this->abort();
         }
 
@@ -202,7 +190,6 @@ class WorkerCommand extends Command
     /**
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Cake\Console\ConsoleIo $io ConsoleIo
-     * @return int
      */
     public function execute(Arguments $args, ConsoleIo $io): int
     {
@@ -231,10 +218,11 @@ class WorkerCommand extends Command
                 $processor->getEventManager()->on($listener);
             }
         }
+
         $client = QueueManager::engine($config);
         $queue = $args->getOption('queue')
             ? (string)$args->getOption('queue')
-            : Configure::read("Queue.{$config}.queue", 'default');
+            : Configure::read(sprintf('Queue.%s.queue', $config), 'default');
         $processorName = $args->getOption('processor') ? (string)$args->getOption('processor') : 'default';
 
         $client->bindTopic($queue, $processor, $processorName);

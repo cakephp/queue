@@ -30,13 +30,14 @@ $findRoot = function ($root) {
             return $root;
         }
     } while ($root !== $lastRoot);
+
     throw new Exception('Cannot find the root of the application, unable to run tests');
 };
 $root = $findRoot(__FILE__);
 unset($findRoot);
 chdir($root);
 
-require_once 'vendor/autoload.php';
+require_once $root . '/vendor/autoload.php';
 
 define('CORE_PATH', $root . DS . 'vendor' . DS . 'cakephp' . DS . 'cakephp' . DS);
 define('ROOT', $root . DS . 'tests' . DS . 'test_app' . DS);
@@ -58,6 +59,7 @@ $cache_key = '_cake_translations_';
 if (Configure::version() <= '5.1.0') {
     $cache_key = '_cake_core_';
 }
+
 Cache::setConfig([
     $cache_key => [
         'engine' => 'File',

@@ -23,6 +23,7 @@ use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
 use Error;
 use RuntimeException;
+use TestApp\WelcomeMailer;
 
 class MessageTest extends TestCase
 {
@@ -33,10 +34,10 @@ class MessageTest extends TestCase
      */
     public function testConstructorAndGetters()
     {
-        $callable = ['TestApp\WelcomeMailer', 'welcome'];
+        $callable = [WelcomeMailer::class, 'welcome'];
         $time = 'sample data ' . time();
         $id = 7;
-        $data = compact('id', 'time');
+        $data = ['id' => $id, 'time' => $time];
         $parsedBody = [
             'class' => $callable,
             'data' => $data,
@@ -71,7 +72,7 @@ class MessageTest extends TestCase
      */
     public function testLegacyArguments()
     {
-        $callable = ['TestApp\WelcomeMailer', 'welcome'];
+        $callable = [WelcomeMailer::class, 'welcome'];
         $args = [
             'first' => 1,
             'second' => 'two',
@@ -123,7 +124,7 @@ class MessageTest extends TestCase
     public function testGetCallableInvalidType()
     {
         $parsedBody = [
-            'class' => ['TestApp\WelcomeMailer', 'trash', 'oops'],
+            'class' => [WelcomeMailer::class, 'trash', 'oops'],
             'args' => [],
         ];
         $messageBody = json_encode($parsedBody);
