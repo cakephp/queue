@@ -22,6 +22,7 @@ class LimitConsumedMessagesExtension implements PreConsumeExtensionInterface, Po
 
     /**
      * @param int $messageLimit The number of messages to process before exiting.
+     * @return void
      */
     public function __construct(
         protected readonly int $messageLimit,
@@ -33,6 +34,7 @@ class LimitConsumedMessagesExtension implements PreConsumeExtensionInterface, Po
      * The consumption could be interrupted at this step.
      *
      * @param \Enqueue\Consumption\Context\PreConsume $context The PreConsume context.
+     * @return void
      */
     public function onPreConsume(PreConsume $context): void
     {
@@ -47,6 +49,7 @@ class LimitConsumedMessagesExtension implements PreConsumeExtensionInterface, Po
      * The consumption could be interrupted at this point.
      *
      * @param \Enqueue\Consumption\Context\PostConsume $context The PostConsume context.
+     * @return void
      */
     public function onPostConsume(PostConsume $context): void
     {
@@ -61,6 +64,7 @@ class LimitConsumedMessagesExtension implements PreConsumeExtensionInterface, Po
      * Check if the consumer should be stopped.
      *
      * @param \Psr\Log\LoggerInterface $logger The logger where messages will be logged.
+     * @return bool
      */
     protected function shouldBeStopped(LoggerInterface $logger): bool
     {

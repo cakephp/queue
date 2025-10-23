@@ -29,6 +29,9 @@ class PurgeFailedCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
 
+    /**
+     * @var string[]
+     */
     protected array $fixtures = [
         'plugin.Cake/Queue.FailedJobs',
     ];

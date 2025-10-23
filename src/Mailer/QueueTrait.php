@@ -31,8 +31,9 @@ trait QueueTrait
      * @param string $action The name of the mailer action to trigger.
      * @param array $args Arguments to pass to the triggered mailer action.
      * @param array $headers Headers to set.
-     * @param array $options an array of options for publishing the job
+     * @param array<string, mixed> $options an array of options for publishing the job
      * @throws \Cake\Mailer\Exception\MissingActionException
+     * @return void
      */
     public function push(string $action, array $args = [], array $headers = [], array $options = []): void
     {

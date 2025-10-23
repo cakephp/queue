@@ -39,6 +39,8 @@ class ProcessorTest extends TestCase
 
     /**
      * Data provider for testProcess method
+     *
+     * @return array<string, string[]>
      */
     public static function dataProviderTestProcess(): array
     {

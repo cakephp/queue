@@ -77,6 +77,7 @@ class QueueManager
      * @param array<string, mixed>|null $config An array of name => configuration data for adapter.
      * @throws \BadMethodCallException When trying to modify an existing config.
      * @throws \LogicException When trying to store an invalid structured config array.
+     * @return void
      */
     public static function setConfig(string|array $key, ?array $config = null): void
     {
@@ -162,6 +163,7 @@ class QueueManager
      * Remove a configured queue adapter.
      *
      * @param string $key The config name to drop.
+     * @return void
      */
     public static function drop(string $key): void
     {
@@ -172,6 +174,7 @@ class QueueManager
      * Get a queueing engine
      *
      * @param string $name Key name of a configured adapter to get.
+     * @return \Enqueue\SimpleClient\SimpleClient
      */
     public static function engine(string $name): SimpleClient
     {

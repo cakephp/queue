@@ -34,6 +34,9 @@ class RequeueCommandTest extends TestCase
     use ConsoleIntegrationTestTrait;
     use QueueTestTrait;
 
+    /**
+     * @var string[]
+     */
     protected array $fixtures = [
         'plugin.Cake/Queue.FailedJobs',
     ];

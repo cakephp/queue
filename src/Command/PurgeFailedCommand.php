@@ -28,6 +28,8 @@ class PurgeFailedCommand extends Command
 
     /**
      * Get the command name.
+     *
+     * @return string
      */
     public static function defaultName(): string
     {
@@ -36,6 +38,8 @@ class PurgeFailedCommand extends Command
 
     /**
      * Gets the option parser instance and configures it.
+     *
+     * @return \Cake\Console\ConsoleOptionParser
      */
     public function getOptionParser(): ConsoleOptionParser
     {
@@ -68,6 +72,7 @@ class PurgeFailedCommand extends Command
     /**
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Cake\Console\ConsoleIo $io ConsoleIo
+     * @return int
      */
     public function execute(Arguments $args, ConsoleIo $io): int
     {

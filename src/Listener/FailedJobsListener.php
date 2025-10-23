@@ -39,6 +39,7 @@ class FailedJobsListener implements EventListenerInterface
 
     /**
      * @param \Cake\Event\EventInterface $event EventInterface.
+     * @return void
      */
     public function storeFailedJob(object $event): void
     {

@@ -66,6 +66,7 @@ class SendMailJob implements JobInterface
      * @param string $transportClassName Transport class name
      * @param array $config Transport config
      * @throws \InvalidArgumentException if empty transport class name, class does not exist or send method is not defined for class
+     * @return \Cake\Mailer\AbstractTransport
      */
     protected function getTransport(string $transportClassName, array $config): AbstractTransport
     {

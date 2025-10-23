@@ -46,6 +46,7 @@ class FailedJob extends Entity
 
     /**
      * @see \Cake\Queue\Model\Entity\FailedJob::$decoded_data
+     * @return array<string, mixed>
      */
     protected function _getDecodedData(): array
     {

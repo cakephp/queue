@@ -26,6 +26,9 @@ use RuntimeException;
 
 class Message implements JsonSerializable
 {
+    /**
+     * @var array<string, mixed>
+     */
     protected array $parsedBody;
 
     protected ?Closure $callable = null;
@@ -45,6 +48,8 @@ class Message implements JsonSerializable
 
     /**
      * Get the queue context.
+     *
+     * @return \Interop\Queue\Context
      */
     public function getContext(): Context
     {
@@ -53,6 +58,8 @@ class Message implements JsonSerializable
 
     /**
      * Get the original queue message.
+     *
+     * @return \Interop\Queue\Message
      */
     public function getOriginalMessage(): QueueMessage
     {
@@ -74,6 +81,8 @@ class Message implements JsonSerializable
      *
      * Supported callables include:
      * - array of [class, method]. The class will be constructed with no constructor parameters.
+     *
+     * @return \Closure
      */
     public function getCallable(): Closure
     {
@@ -117,6 +126,7 @@ class Message implements JsonSerializable
     /**
      * @param mixed $key Key
      * @param mixed $default Default value.
+     * @return mixed
      */
     public function getArgument(mixed $key = null, mixed $default = null): mixed
     {
@@ -137,6 +147,8 @@ class Message implements JsonSerializable
 
     /**
      * The maximum number of attempts allowed by the job.
+     *
+     * @return int|null
      */
     public function getMaxAttempts(): ?int
     {
@@ -149,6 +161,8 @@ class Message implements JsonSerializable
 
     /**
      * Convert the message to a string representation.
+     *
+     * @return string
      */
     public function __toString(): string
     {

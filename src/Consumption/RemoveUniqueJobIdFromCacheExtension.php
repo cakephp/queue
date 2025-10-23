@@ -13,6 +13,7 @@ class RemoveUniqueJobIdFromCacheExtension implements MessageResultExtensionInter
 {
     /**
      * @param string $cache Cache engine name.
+     * @return void
      */
     public function __construct(
         protected readonly string $cache,
@@ -21,6 +22,7 @@ class RemoveUniqueJobIdFromCacheExtension implements MessageResultExtensionInter
 
     /**
      * @param \Enqueue\Consumption\Context\MessageResult $context The result of the message after it was processed.
+     * @return void
      */
     public function onResult(MessageResult $context): void
     {

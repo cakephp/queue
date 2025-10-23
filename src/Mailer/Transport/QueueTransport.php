@@ -36,6 +36,7 @@ class QueueTransport extends AbstractTransport
 
     /**
      * @inheritDoc
+     * @return array<string, string>
      */
     public function send(Message $message): array
     {
@@ -65,6 +66,7 @@ class QueueTransport extends AbstractTransport
      *
      * @param array<string, mixed> $data Data to be sent to job
      * @param array<string, mixed> $options Job options
+     * @return void
      */
     protected function enqueueJob(array $data, array $options): void
     {

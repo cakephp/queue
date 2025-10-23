@@ -26,6 +26,7 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
 
     /**
      * @param int|null $maxAttempts The maximum number of times a job may be attempted. $maxAttempts defined on a Job will override this value.
+     * @return void
      */
     public function __construct(
         protected readonly ?int $maxAttempts = null,
@@ -34,6 +35,7 @@ class LimitAttemptsExtension implements MessageResultExtensionInterface
 
     /**
      * @param \Enqueue\Consumption\Context\MessageResult $context The result of the message after it was processed.
+     * @return void
      */
     public function onResult(MessageResult $context): void
     {

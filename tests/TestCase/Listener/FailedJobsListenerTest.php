@@ -39,6 +39,9 @@ class FailedJobsListenerTest extends TestCase
 {
     use QueueTestTrait;
 
+    /**
+     * @var string[]
+     */
     protected array $fixtures = [
         'plugin.Cake/Queue.FailedJobs',
     ];

@@ -37,6 +37,8 @@ trait QueueTestTrait
      * This is automatically called after each test via the #[After] attribute.
      * It drops all QueueManager configs and their associated cache configs,
      * and resets all log configurations.
+     *
+     * @return void
      */
     #[After]
     public function cleanupQueueManagerConfigs(): void
@@ -63,6 +65,7 @@ trait QueueTestTrait
      * Assert that a message was found in debug logs
      *
      * @param string $expected The message to search for in logs
+     * @return void
      */
     protected function assertDebugLogContains($expected): void
     {
@@ -76,6 +79,7 @@ trait QueueTestTrait
      *
      * @param string $expected The message to search for in logs
      * @param int $times The exact number of times the message should appear
+     * @return void
      */
     protected function assertDebugLogContainsExactly($expected, $times): void
     {
@@ -90,7 +94,7 @@ trait QueueTestTrait
      * @param string $search The message to search for
      * @return int The number of times the message was found
      */
-    protected function debugLogCount($search)
+    protected function debugLogCount($search): int
     {
         $log = Log::engine('debug');
         $found = 0;

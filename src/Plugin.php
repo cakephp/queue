@@ -47,6 +47,7 @@ class Plugin extends BasePlugin
      * Load the Queue configuration
      *
      * @param \Cake\Core\PluginApplicationInterface $app The host application
+     * @return void
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
@@ -68,6 +69,7 @@ class Plugin extends BasePlugin
      * Add console commands for the plugin.
      *
      * @param \Cake\Console\CommandCollection $commands The command collection to update
+     * @return \Cake\Console\CommandCollection
      */
     public function console(CommandCollection $commands): CommandCollection
     {
@@ -86,6 +88,7 @@ class Plugin extends BasePlugin
      * Add DI container to Worker command
      *
      * @param \Cake\Core\ContainerInterface $container The DI container
+     * @return void
      */
     public function services(ContainerInterface $container): void
     {
