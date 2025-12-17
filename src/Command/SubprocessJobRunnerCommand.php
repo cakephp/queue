@@ -20,12 +20,15 @@ use Cake\Command\Command;
 use Cake\Console\Arguments;
 use Cake\Console\ConsoleIo;
 use Cake\Core\ContainerInterface;
+use Cake\Log\Engine\ConsoleLog;
+use Cake\Log\Log;
 use Cake\Queue\Job\Message;
 use Cake\Queue\Queue\Processor;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
 use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
+use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use RuntimeException;
 use Throwable;
@@ -160,14 +163,44 @@ class SubprocessJobRunnerCommand extends Command
             }
         }
 
+        $logger = $this->configureLogging($data);
+
         $message = new Message($queueMessage, $context, $this->container);
-        $processor = new Processor(new NullLogger(), $this->container);
+        $processor = new Processor($logger, $this->container);
 
         $result = $processor->processMessage($message);
 
         // Result is string|object (with __toString)
         /** @phpstan-ignore cast.string */
         return is_string($result) ? $result : (string)$result;
+    }
+
+    /**
+     * Configure logging to use STDERR to prevent job logs from contaminating STDOUT.
+     * Reconfigures all CakePHP loggers to write to STDERR with no additional formatting.
+     *
+     * @param array<string, mixed> $data Job data
+     * @return \Psr\Log\LoggerInterface
+     */
+    protected function configureLogging(array $data): LoggerInterface
+    {
+        // Drop all existing loggers to prevent duplicate logging
+        foreach (Log::configured() as $loggerName) {
+            Log::drop($loggerName);
+        }
+
+        // Configure a single stderr logger
+        Log::setConfig('default', [
+            'className' => ConsoleLog::class,
+            'stream' => 'php://stderr',
+        ]);
+
+        $logger = Log::engine('default');
+        if (!$logger instanceof LoggerInterface) {
+            $logger = new NullLogger();
+        }
+
+        return $logger;
     }
 
     /**

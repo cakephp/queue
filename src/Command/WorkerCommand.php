@@ -173,6 +173,21 @@ class WorkerCommand extends Command
     }
 
     /**
+     * Get logger for subprocess output.
+     * Always returns a real logger for subprocess mode to show job logs.
+     *
+     * @param \Cake\Console\Arguments $args Arguments
+     * @return \Psr\Log\LoggerInterface
+     */
+    protected function getSubprocessLogger(Arguments $args): LoggerInterface
+    {
+        $loggerName = (string)$args->getOption('logger');
+        $logger = Log::engine($loggerName);
+
+        return $logger ?? new NullLogger();
+    }
+
+    /**
      * Creates and returns a Processor object
      *
      * @param \Cake\Console\Arguments $args Arguments
@@ -201,7 +216,10 @@ class WorkerCommand extends Command
         if ($args->getOption('subprocess') || ($config['subprocess']['enabled'] ?? false)) {
             $subprocessConfig = array_merge(
                 $config['subprocess'] ?? [],
-                ['enabled' => true],
+                [
+                    'enabled' => true,
+                    'logger' => $config['logger'] ?? (string)$args->getOption('logger'),
+                ],
             );
 
             if ($processorClass !== Processor::class && !is_subclass_of($processorClass, Processor::class)) {
@@ -209,7 +227,9 @@ class WorkerCommand extends Command
                 $this->abort();
             }
 
-            $processor = new SubprocessProcessor($logger, $subprocessConfig, $this->container);
+            // Use a real logger for subprocess output so logs are visible
+            $subprocessLogger = $this->getSubprocessLogger($args);
+            $processor = new SubprocessProcessor($subprocessLogger, $subprocessConfig, $this->container);
         } else {
             $processor = new $processorClass($logger, $this->container);
         }

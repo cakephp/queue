@@ -185,6 +185,7 @@ class SubprocessProcessor extends Processor
             'messageClass' => get_class($message),
             'body' => $body,
             'properties' => $properties,
+            'logger' => $this->config['logger'] ?? 'stderr',
         ];
     }
 
@@ -281,6 +282,11 @@ class SubprocessProcessor extends Processor
                         }
 
                         $errorOutput .= $chunk;
+                        // Stream subprocess logs to parent's stderr in real-time
+                        // Skip in PHPUnit test context to avoid test framework issues
+                        if (!defined('PHPUNIT_COMPOSER_INSTALL') && !defined('__PHPUNIT_PHAR__')) {
+                            fwrite(STDERR, $chunk);
+                        }
                     }
                 }
 

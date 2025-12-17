@@ -24,6 +24,7 @@ use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullMessage;
 use Interop\Queue\Processor;
 use ReflectionClass;
+use TestApp\Job\MultilineLogJob;
 use TestApp\TestProcessor;
 
 class SubprocessJobRunnerCommandTest extends TestCase
@@ -251,5 +252,68 @@ class SubprocessJobRunnerCommandTest extends TestCase
             ->with('{"success":true,"result":"ack"}');
 
         $method->invoke($command, $io, ['success' => true, 'result' => 'ack']);
+    }
+
+    /**
+     * Test that subprocess jobs with multiple log lines properly separate logs from JSON output
+     */
+    public function testLogsRedirectedToStderr(): void
+    {
+        $jobData = [
+            'messageClass' => NullMessage::class,
+            'body' => [
+                'class' => [MultilineLogJob::class, 'execute'],
+                'args' => [],
+            ],
+            'properties' => [],
+            'logger' => 'debug',
+        ];
+
+        $command = 'php ' . ROOT . 'bin/cake.php queue subprocess-runner';
+
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+
+        $process = proc_open($command, $descriptors, $pipes);
+        $this->assertIsResource($process);
+
+        // Write job data to STDIN
+        $jobDataJson = json_encode($jobData);
+        if ($jobDataJson !== false) {
+            fwrite($pipes[0], $jobDataJson);
+        }
+
+        fclose($pipes[0]);
+
+        // Read STDOUT and STDERR
+        $stdout = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+
+        proc_close($process);
+
+        // STDOUT should be valid JSON without any log messages
+        $result = json_decode($stdout, true);
+        $this->assertIsArray($result, 'STDOUT should contain valid JSON: ' . $stdout);
+        $this->assertArrayHasKey('success', $result);
+        $this->assertTrue($result['success']);
+        $this->assertSame(Processor::ACK, $result['result']);
+
+        // STDOUT should not contain any job log messages
+        $this->assertStringNotContainsString('Job execution started', $stdout);
+        $this->assertStringNotContainsString('Processing step', $stdout);
+        $this->assertStringNotContainsString('Job execution finished', $stdout);
+
+        // All log messages should be in STDERR
+        $this->assertStringContainsString('Job execution started', $stderr);
+        $this->assertStringContainsString('Processing step 1 completed', $stderr);
+        $this->assertStringContainsString('Processing step 2 completed', $stderr);
+        $this->assertStringContainsString('Processing step 3 completed', $stderr);
+        $this->assertStringContainsString('Job execution finished', $stderr);
     }
 }
