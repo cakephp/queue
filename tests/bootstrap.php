@@ -93,6 +93,13 @@ Configure::write('Queue', [
 
         // The name of a configured logger, default: null
         'logger' => 'stdout',
+
+        // Subprocess configuration for development
+        'subprocess' => [
+            'enabled' => false,
+            'timeout' => 30,
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+        ],
     ],
 ]);
 

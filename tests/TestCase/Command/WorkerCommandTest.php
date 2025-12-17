@@ -438,4 +438,70 @@ class WorkerCommandTest extends TestCase
         $this->assertDebugLogContains('Debug job was run');
         $this->assertDebugLogContains('TestCustomProcessor processing message');
     }
+
+    /**
+     * Test that queue processes job with subprocess flag
+     */
+    #[RunInSeparateProcess]
+    public function testQueueProcessesJobWithSubprocessFlag()
+    {
+        $config = [
+            'queue' => 'default',
+            'url' => 'file:///' . TMP . DS . 'queue',
+            'receiveTimeout' => 100,
+            'subprocess' => [
+                'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            ],
+        ];
+        Configure::write('Queue', ['default' => $config]);
+
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        QueueManager::setConfig('default', $config);
+        QueueManager::push(LogToDebugJob::class);
+        QueueManager::drop('default');
+
+        $this->exec('queue worker --max-jobs=1 --subprocess --logger=debug --verbose');
+
+        // In subprocess mode, logs from the job itself are isolated to the subprocess
+        // We can only verify that the parent process logged successful processing
+        $this->assertDebugLogContains('Message processed successfully');
+    }
+
+    /**
+     * Test that queue processes job with subprocess enabled in config
+     */
+    #[RunInSeparateProcess]
+    public function testQueueProcessesJobWithSubprocessConfig()
+    {
+        $config = [
+            'queue' => 'default',
+            'url' => 'file:///' . TMP . DS . 'queue',
+            'receiveTimeout' => 100,
+            'subprocess' => [
+                'enabled' => true,
+                'timeout' => 30,
+                'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            ],
+        ];
+        Configure::write('Queue', ['default' => $config]);
+
+        Log::setConfig('debug', [
+            'className' => 'Array',
+            'levels' => ['notice', 'info', 'debug'],
+        ]);
+
+        QueueManager::setConfig('default', $config);
+        QueueManager::push(LogToDebugJob::class);
+        QueueManager::drop('default');
+
+        $this->exec('queue worker --max-jobs=1 --logger=debug --verbose');
+
+        // In subprocess mode, logs from the job itself are isolated to the subprocess
+        // We can only verify that the parent process logged successful processing
+        $this->assertDebugLogContains('Message processed successfully');
+    }
 }

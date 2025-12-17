@@ -25,6 +25,7 @@ use Cake\Core\PluginApplicationInterface;
 use Cake\Queue\Command\JobCommand;
 use Cake\Queue\Command\PurgeFailedCommand;
 use Cake\Queue\Command\RequeueCommand;
+use Cake\Queue\Command\SubprocessJobRunnerCommand;
 use Cake\Queue\Command\WorkerCommand;
 use InvalidArgumentException;
 
@@ -80,6 +81,7 @@ class QueuePlugin extends BasePlugin
         return $commands
             ->add('queue worker', WorkerCommand::class)
             ->add('worker', WorkerCommand::class)
+            ->add('queue subprocess-runner', SubprocessJobRunnerCommand::class)
             ->add('queue requeue', RequeueCommand::class)
             ->add('queue purge_failed', PurgeFailedCommand::class);
     }
@@ -95,6 +97,9 @@ class QueuePlugin extends BasePlugin
         $container->add(ContainerInterface::class, $container);
         $container
             ->add(WorkerCommand::class)
+            ->addArgument(ContainerInterface::class);
+        $container
+            ->add(SubprocessJobRunnerCommand::class)
             ->addArgument(ContainerInterface::class);
     }
 }

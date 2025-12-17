@@ -99,7 +99,7 @@ class QueueManagerTest extends TestCase
     public function testSetConfigWithInvalidConfigValue()
     {
         $this->expectException(LogicException::class);
-        QueueManager::setConfig('test', null);
+        QueueManager::setConfig('test');
     }
 
     public function testSetConfigInvalidKeyValue()

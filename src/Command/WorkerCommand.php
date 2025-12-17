@@ -28,6 +28,7 @@ use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
 use Cake\Queue\Consumption\RemoveUniqueJobIdFromCacheExtension;
 use Cake\Queue\Listener\FailedJobsListener;
 use Cake\Queue\Queue\Processor;
+use Cake\Queue\Queue\SubprocessProcessor;
 use Cake\Queue\QueueManager;
 use DateTime;
 use Enqueue\Consumption\ChainExtension;
@@ -104,6 +105,11 @@ class WorkerCommand extends Command
                 . ' Maximum attempts defined on a job will override this value.',
             'default' => null,
             'short' => 'a',
+        ]);
+        $parser->addOption('subprocess', [
+            'help' => 'Execute jobs in a subprocess. Useful for development to reload code for each job.',
+            'boolean' => true,
+            'default' => false,
         ]);
         $parser->setDescription(
             'Runs a queue worker that consumes from the named queue.',
@@ -191,7 +197,23 @@ class WorkerCommand extends Command
             $this->abort();
         }
 
-        return new $processorClass($logger, $this->container);
+        $processor = new $processorClass($logger, $this->container);
+
+        if ($args->getOption('subprocess') || ($config['subprocess']['enabled'] ?? false)) {
+            $subprocessConfig = array_merge(
+                $config['subprocess'] ?? [],
+                ['enabled' => true],
+            );
+
+            if (!($processor instanceof Processor)) {
+                $io->error('Subprocess mode is only supported with the default Processor class');
+                $this->abort();
+            }
+
+            $processor = new SubprocessProcessor($logger, $subprocessConfig, $this->container);
+        }
+
+        return $processor;
     }
 
     /**

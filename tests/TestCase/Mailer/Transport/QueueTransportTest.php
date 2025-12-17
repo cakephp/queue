@@ -27,7 +27,7 @@ class QueueTransportTest extends TestCase
 {
     use QueueTestTrait;
 
-    private $fsQueuePath = TMP . DS . 'queue';
+    private string $fsQueuePath = TMP . DS . 'queue';
 
     private function getFsQueueUrl(): string
     {
@@ -41,10 +41,8 @@ class QueueTransportTest extends TestCase
 
     /**
      * Test send
-     *
-     * @return void
      */
-    public function testSend()
+    public function testSend(): void
     {
         QueueManager::setConfig('default', [
             'queue' => 'default',
@@ -87,10 +85,8 @@ class QueueTransportTest extends TestCase
 
     /**
      * Test send custom transport
-     *
-     * @return void
      */
-    public function testSendCustomTransport()
+    public function testSendCustomTransport(): void
     {
         QueueManager::setConfig('default', [
             'queue' => 'default',
@@ -118,10 +114,8 @@ class QueueTransportTest extends TestCase
 
     /**
      * Test send backwards compatibility transport config
-     *
-     * @return void
      */
-    public function testSendBcTransport()
+    public function testSendBcTransport(): void
     {
         QueueManager::setConfig('default', [
             'queue' => 'default',
