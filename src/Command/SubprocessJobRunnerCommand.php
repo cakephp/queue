@@ -24,8 +24,10 @@ use Cake\Queue\Job\Message;
 use Cake\Queue\Queue\Processor;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
+use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
 use Psr\Log\NullLogger;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -124,9 +126,6 @@ class SubprocessJobRunnerCommand extends Command
             }
 
             $input .= $chunk;
-            if ($input !== '' && strlen($chunk) < 8192) {
-                break;
-            }
         }
 
         return $input;
@@ -144,6 +143,12 @@ class SubprocessJobRunnerCommand extends Command
         $context = $connectionFactory->createContext();
 
         $messageClass = $data['messageClass'] ?? NullMessage::class;
+
+        // Validate message class for security
+        if (!class_exists($messageClass) || !is_subclass_of($messageClass, QueueMessage::class)) {
+            throw new RuntimeException(sprintf('Invalid message class: %s', $messageClass));
+        }
+
         $messageBody = json_encode($data['body']);
 
         /** @var \Interop\Queue\Message $queueMessage */

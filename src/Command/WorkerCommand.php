@@ -197,20 +197,21 @@ class WorkerCommand extends Command
             $this->abort();
         }
 
-        $processor = new $processorClass($logger, $this->container);
-
+        // Check subprocess mode before instantiating processor
         if ($args->getOption('subprocess') || ($config['subprocess']['enabled'] ?? false)) {
             $subprocessConfig = array_merge(
                 $config['subprocess'] ?? [],
                 ['enabled' => true],
             );
 
-            if (!($processor instanceof Processor)) {
+            if ($processorClass !== Processor::class && !is_subclass_of($processorClass, Processor::class)) {
                 $io->error('Subprocess mode is only supported with the default Processor class');
                 $this->abort();
             }
 
             $processor = new SubprocessProcessor($logger, $subprocessConfig, $this->container);
+        } else {
+            $processor = new $processorClass($logger, $this->container);
         }
 
         return $processor;

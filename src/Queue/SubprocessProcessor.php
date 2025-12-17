@@ -29,13 +29,36 @@ use Throwable;
 
 /**
  * Subprocess processor that executes jobs in isolated PHP processes.
+ *
+ * This processor spawns a new PHP process for each job, providing complete isolation
+ * between jobs. This is useful for development environments where code changes need
+ * to be reloaded without restarting the worker.
+ *
+ * Configuration options:
+ * - `command`: Full command to execute (default: 'php bin/cake.php queue subprocess-runner')
+ * - `timeout`: Maximum execution time in seconds (default: 300)
+ * - `maxOutputSize`: Maximum output size in bytes (default: 1048576 = 1MB)
+ *
+ * Example configuration:
+ * ```
+ * 'Queue' => [
+ *     'default' => [
+ *         'subprocess' => [
+ *             'command' => 'php bin/cake.php queue subprocess-runner',
+ *             'timeout' => 60,
+ *             'maxOutputSize' => 2097152, // 2MB
+ *         ],
+ *     ],
+ * ],
+ * ```
+ *
  * Extends Processor to reuse event handling and processing logic (DRY principle).
  */
 class SubprocessProcessor extends Processor
 {
     /**
      * @param \Psr\Log\LoggerInterface $logger Logger instance
-     * @param array<string, mixed> $config Subprocess configuration
+     * @param array<string, mixed> $config Subprocess configuration options
      * @param \Cake\Core\ContainerInterface|null $container DI container instance
      */
     public function __construct(
@@ -188,63 +211,94 @@ class SubprocessProcessor extends Processor
             throw new RuntimeException('Failed to create subprocess');
         }
 
-        $jobDataJson = json_encode($jobData);
-        if ($jobDataJson !== false) {
-            fwrite($pipes[0], $jobDataJson);
-        }
+        try {
+            $jobDataJson = json_encode($jobData);
+            if ($jobDataJson !== false) {
+                fwrite($pipes[0], $jobDataJson);
+            }
 
-        fclose($pipes[0]);
+            fclose($pipes[0]);
 
-        $output = '';
-        $errorOutput = '';
-        $startTime = time();
+            $output = '';
+            $errorOutput = '';
+            $startTime = time();
+            $maxOutputSize = $this->config['maxOutputSize'] ?? 1048576; // 1MB default
 
-        stream_set_blocking($pipes[1], false);
-        stream_set_blocking($pipes[2], false);
+            stream_set_blocking($pipes[1], false);
+            stream_set_blocking($pipes[2], false);
 
-        while (true) {
-            if ($timeout > 0 && (time() - $startTime) > $timeout) {
-                proc_terminate($process, 9);
+            while (true) {
+                if ($timeout > 0 && (time() - $startTime) > $timeout) {
+                    proc_terminate($process, 9);
+
+                    return [
+                        'success' => false,
+                        'error' => sprintf('Subprocess execution timeout after %d seconds', $timeout),
+                    ];
+                }
+
+                $read = [$pipes[1], $pipes[2]];
+                $write = null;
+                $except = null;
+                $selectResult = stream_select($read, $write, $except, 1);
+
+                if ($selectResult === false) {
+                    return [
+                        'success' => false,
+                        'error' => 'Stream select failed',
+                    ];
+                }
+
+                if (in_array($pipes[1], $read)) {
+                    $chunk = fread($pipes[1], 8192);
+                    if ($chunk !== false) {
+                        if (strlen($output) + strlen($chunk) > $maxOutputSize) {
+                            proc_terminate($process, 9);
+
+                            return [
+                            'success' => false,
+                            'error' => sprintf('Subprocess output exceeded maximum size of %d bytes', $maxOutputSize),
+                            ];
+                        }
+
+                        $output .= $chunk;
+                    }
+                }
+
+                if (in_array($pipes[2], $read)) {
+                    $chunk = fread($pipes[2], 8192);
+                    if ($chunk !== false) {
+                        if (strlen($errorOutput) + strlen($chunk) > $maxOutputSize) {
+                            proc_terminate($process, 9);
+
+                            return [
+                                'success' => false,
+                                'error' => sprintf(
+                                    'Subprocess error output exceeded maximum size of %d bytes',
+                                    $maxOutputSize,
+                                ),
+                            ];
+                        }
+
+                        $errorOutput .= $chunk;
+                    }
+                }
+
+                if (feof($pipes[1]) && feof($pipes[2])) {
+                    break;
+                }
+            }
+        } finally {
+            // Always cleanup resources
+            if (is_resource($pipes[1])) {
                 fclose($pipes[1]);
+            }
+
+            if (is_resource($pipes[2])) {
                 fclose($pipes[2]);
-                proc_close($process);
-
-                return [
-                    'success' => false,
-                    'error' => sprintf('Subprocess execution timeout after %d seconds', $timeout),
-                ];
-            }
-
-            $read = [$pipes[1], $pipes[2]];
-            $write = null;
-            $except = null;
-            $selectResult = stream_select($read, $write, $except, 1);
-
-            if ($selectResult === false) {
-                break;
-            }
-
-            if (in_array($pipes[1], $read)) {
-                $chunk = fread($pipes[1], 8192);
-                if ($chunk !== false) {
-                    $output .= $chunk;
-                }
-            }
-
-            if (in_array($pipes[2], $read)) {
-                $chunk = fread($pipes[2], 8192);
-                if ($chunk !== false) {
-                    $errorOutput .= $chunk;
-                }
-            }
-
-            if (feof($pipes[1]) && feof($pipes[2])) {
-                break;
             }
         }
 
-        fclose($pipes[1]);
-        fclose($pipes[2]);
         $exitCode = proc_close($process);
 
         if ($exitCode !== 0 && empty($output)) {
