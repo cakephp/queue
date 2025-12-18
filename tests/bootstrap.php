@@ -98,7 +98,7 @@ Configure::write('Queue', [
         'subprocess' => [
             'enabled' => false,
             'timeout' => 30,
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
         ],
     ],
 ]);

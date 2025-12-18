@@ -225,7 +225,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
         ];
         $processor = new SubprocessProcessor($logger, $config);
 
@@ -253,7 +253,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
         ];
         $processor = new SubprocessProcessor($logger, $config);
 
@@ -281,7 +281,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
         ];
         $processor = new SubprocessProcessor($logger, $config);
 
@@ -309,7 +309,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
             'timeout' => 1,
         ];
         $processor = new SubprocessProcessor($logger, $config);
@@ -344,7 +344,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => '/nonexistent/binary queue subprocess-runner',
+            'command' => '/nonexistent/binary queue subprocess_runner',
         ];
         $processor = new SubprocessProcessor($logger, $config);
 
@@ -445,7 +445,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
         ];
         $processor = new SubprocessProcessor($logger, $config);
 
@@ -468,7 +468,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
         ];
         $processor = new SubprocessProcessor($logger, $config);
 
@@ -491,7 +491,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
         ];
         $processor = new SubprocessProcessor($logger, $config);
 
@@ -574,7 +574,7 @@ class SubprocessProcessorTest extends TestCase
 
         $logger = new ArrayLog();
         $config = [
-            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
             'maxOutputSize' => 1048576, // 1MB - normal size
             'timeout' => 30,
         ];

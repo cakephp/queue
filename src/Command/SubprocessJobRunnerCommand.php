@@ -11,7 +11,7 @@ declare(strict_types=1);
  *
  * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org/)
  * @link          https://cakephp.org CakePHP(tm) Project
- * @since         0.1.0
+ * @since         2.2.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
 namespace Cake\Queue\Command;
@@ -28,6 +28,7 @@ use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
 use Interop\Queue\Message as QueueMessage;
 use Interop\Queue\Processor as InteropProcessor;
+use JsonException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use RuntimeException;
@@ -54,7 +55,7 @@ class SubprocessJobRunnerCommand extends Command
      */
     public static function defaultName(): string
     {
-        return 'queue subprocess-runner';
+        return 'queue subprocess_runner';
     }
 
     /**
@@ -68,7 +69,7 @@ class SubprocessJobRunnerCommand extends Command
     {
         $input = $this->readInput($io);
 
-        if (empty($input)) {
+        if ($input === '') {
             $this->outputResult($io, [
                 'success' => false,
                 'error' => 'No input received',
@@ -77,11 +78,12 @@ class SubprocessJobRunnerCommand extends Command
             return self::CODE_ERROR;
         }
 
-        $data = json_decode($input, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        try {
+            $data = json_decode($input, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $jsonException) {
             $this->outputResult($io, [
                 'success' => false,
-                'error' => 'Invalid JSON input: ' . json_last_error_msg(),
+                'error' => 'Invalid JSON input: ' . $jsonException->getMessage(),
             ]);
 
             return self::CODE_ERROR;

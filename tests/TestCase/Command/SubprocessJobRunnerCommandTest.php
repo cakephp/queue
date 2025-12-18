@@ -273,7 +273,7 @@ class SubprocessJobRunnerCommandTest extends TestCase
             'logger' => 'debug',
         ];
 
-        $command = 'php ' . ROOT . 'bin/cake.php queue subprocess-runner';
+        $command = 'php ' . ROOT . 'bin/cake.php queue subprocess_runner';
 
         $descriptors = [
             0 => ['pipe', 'r'],
@@ -326,7 +326,7 @@ class SubprocessJobRunnerCommandTest extends TestCase
      */
     public function testDefaultName(): void
     {
-        $this->assertSame('queue subprocess-runner', SubprocessJobRunnerCommand::defaultName());
+        $this->assertSame('queue subprocess_runner', SubprocessJobRunnerCommand::defaultName());
     }
 
     /**

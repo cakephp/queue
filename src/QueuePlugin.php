@@ -81,7 +81,7 @@ class QueuePlugin extends BasePlugin
         return $commands
             ->add('queue worker', WorkerCommand::class)
             ->add('worker', WorkerCommand::class)
-            ->add('queue subprocess-runner', SubprocessJobRunnerCommand::class)
+            ->add('queue subprocess_runner', SubprocessJobRunnerCommand::class)
             ->add('queue requeue', RequeueCommand::class)
             ->add('queue purge_failed', PurgeFailedCommand::class);
     }

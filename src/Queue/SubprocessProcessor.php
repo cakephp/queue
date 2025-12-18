@@ -11,7 +11,7 @@ declare(strict_types=1);
  *
  * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org/)
  * @link          https://cakephp.org CakePHP(tm) Project
- * @since         0.1.0
+ * @since         2.2.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
 namespace Cake\Queue\Queue;
@@ -30,7 +30,7 @@ use RuntimeException;
  * to be reloaded without restarting the worker.
  *
  * Configuration options:
- * - `command`: Full command to execute (default: 'php bin/cake.php queue subprocess-runner')
+ * - `command`: Full command to execute (default: 'php bin/cake.php queue subprocess_runner')
  * - `timeout`: Maximum execution time in seconds (default: 300)
  * - `maxOutputSize`: Maximum output size in bytes (default: 1048576 = 1MB)
  *
@@ -39,7 +39,7 @@ use RuntimeException;
  * 'Queue' => [
  *     'default' => [
  *         'subprocess' => [
- *             'command' => 'php bin/cake.php queue subprocess-runner',
+ *             'command' => 'php bin/cake.php queue subprocess_runner',
  *             'timeout' => 60,
  *             'maxOutputSize' => 2097152, // 2MB
  *         ],
@@ -134,7 +134,7 @@ class SubprocessProcessor extends Processor
      */
     protected function executeInSubprocess(array $jobData): array
     {
-        $command = $this->config['command'] ?? 'php bin/cake.php queue subprocess-runner';
+        $command = $this->config['command'] ?? 'php bin/cake.php queue subprocess_runner';
         $timeout = $this->config['timeout'] ?? 300;
 
         $descriptors = [

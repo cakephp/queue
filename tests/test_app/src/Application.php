@@ -37,7 +37,7 @@ class Application extends BaseApplication
                     'subprocess' => [
                         'enabled' => false,
                         'timeout' => 30,
-                        'command' => 'php ' . dirname(__DIR__, 2) . '/bin/cake.php queue subprocess-runner',
+                        'command' => 'php ' . dirname(__DIR__, 2) . '/bin/cake.php queue subprocess_runner',
                     ],
                 ],
             ]);

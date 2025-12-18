@@ -450,7 +450,7 @@ class WorkerCommandTest extends TestCase
             'url' => 'file:///' . TMP . DS . 'queue',
             'receiveTimeout' => 100,
             'subprocess' => [
-                'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+                'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
             ],
         ];
         Configure::write('Queue', ['default' => $config]);
@@ -484,7 +484,7 @@ class WorkerCommandTest extends TestCase
             'subprocess' => [
                 'enabled' => true,
                 'timeout' => 30,
-                'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+                'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess_runner',
             ],
         ];
         Configure::write('Queue', ['default' => $config]);
