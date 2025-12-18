@@ -502,4 +502,120 @@ class SubprocessProcessorTest extends TestCase
         /** @phpstan-ignore cast.string */
         $this->assertStringContainsString('requeue', (string)$result);
     }
+
+    /**
+     * Test subprocess with maxOutputSize limit exceeded
+     */
+    public function testSubprocessMaxOutputSizeExceeded(): void
+    {
+        $logger = new ArrayLog();
+        $config = [
+            'command' => 'php -r "echo str_repeat(\'a\', 10000);"',
+            'maxOutputSize' => 100, // Very small limit
+            'timeout' => 5,
+        ];
+        $processor = new SubprocessProcessor($logger, $config);
+
+        $reflection = new ReflectionClass($processor);
+        $method = $reflection->getMethod('executeInSubprocess');
+
+        $jobData = [
+            'messageClass' => NullMessage::class,
+            'body' => ['class' => [TestProcessor::class, 'processReturnAck'], 'args' => []],
+            'properties' => [],
+        ];
+
+        $result = $method->invoke($processor, $jobData);
+
+        $this->assertFalse($result['success']);
+        $this->assertArrayHasKey('error', $result);
+        $this->assertStringContainsString('output exceeded maximum size', $result['error']);
+    }
+
+    /**
+     * Test subprocess with maxOutputSize limit on stderr
+     */
+    public function testSubprocessMaxErrorOutputSizeExceeded(): void
+    {
+        $logger = new ArrayLog();
+        $config = [
+            'command' => 'php -r "fwrite(STDERR, str_repeat(\'e\', 10000));"',
+            'maxOutputSize' => 100, // Very small limit
+            'timeout' => 5,
+        ];
+        $processor = new SubprocessProcessor($logger, $config);
+
+        $reflection = new ReflectionClass($processor);
+        $method = $reflection->getMethod('executeInSubprocess');
+
+        $jobData = [
+            'messageClass' => NullMessage::class,
+            'body' => ['class' => [TestProcessor::class, 'processReturnAck'], 'args' => []],
+            'properties' => [],
+        ];
+
+        $result = $method->invoke($processor, $jobData);
+
+        $this->assertFalse($result['success']);
+        $this->assertArrayHasKey('error', $result);
+        $this->assertStringContainsString('error output exceeded maximum size', $result['error']);
+    }
+
+    /**
+     * Test subprocess handles normal sized output correctly
+     */
+    public function testSubprocessWithNormalOutputSize(): void
+    {
+        $messageBody = [
+            'class' => [TestProcessor::class, 'processReturnAck'],
+            'args' => [],
+        ];
+        $queueMessage = new NullMessage(json_encode($messageBody) ?: '');
+
+        $logger = new ArrayLog();
+        $config = [
+            'command' => 'php ' . ROOT . 'bin/cake.php queue subprocess-runner',
+            'maxOutputSize' => 1048576, // 1MB - normal size
+            'timeout' => 30,
+        ];
+        $processor = new SubprocessProcessor($logger, $config);
+
+        $reflection = new ReflectionClass($processor);
+        $method = $reflection->getMethod('executeInSubprocess');
+        $prepareMethod = $reflection->getMethod('prepareJobData');
+
+        $jobData = $prepareMethod->invoke($processor, $queueMessage);
+        $result = $method->invoke($processor, $jobData);
+
+        $this->assertTrue($result['success']);
+        $this->assertSame(InteropProcessor::ACK, $result['result']);
+    }
+
+    /**
+     * Test executeInSubprocess with very short timeout
+     */
+    public function testSubprocessWithVeryShortTimeout(): void
+    {
+        $logger = new ArrayLog();
+        $config = [
+            'command' => 'php -r "sleep(5);"',
+            'timeout' => 1, // 1 second timeout
+        ];
+        $processor = new SubprocessProcessor($logger, $config);
+
+        $reflection = new ReflectionClass($processor);
+        $method = $reflection->getMethod('executeInSubprocess');
+
+        $jobData = [
+            'messageClass' => NullMessage::class,
+            'body' => ['class' => [TestProcessor::class, 'processReturnAck'], 'args' => []],
+            'properties' => [],
+        ];
+
+        $result = $method->invoke($processor, $jobData);
+
+        $this->assertFalse($result['success']);
+        $this->assertArrayHasKey('error', $result);
+        $this->assertStringContainsString('timeout', $result['error']);
+    }
 }
