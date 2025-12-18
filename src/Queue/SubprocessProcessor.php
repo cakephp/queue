@@ -18,14 +18,9 @@ namespace Cake\Queue\Queue;
 
 use Cake\Core\ContainerInterface;
 use Cake\Queue\Job\Message;
-use Enqueue\Consumption\Result;
-use Error;
-use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
-use Interop\Queue\Processor as InteropProcessor;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
-use Throwable;
 
 /**
  * Subprocess processor that executes jobs in isolated PHP processes.
@@ -70,76 +65,18 @@ class SubprocessProcessor extends Processor
     }
 
     /**
-     * Process a message in a subprocess.
-     * Overrides parent to execute in subprocess, but reuses parent's event dispatching.
+     * Execute the job in a subprocess.
      *
-     * @param \Interop\Queue\Message $message Message.
-     * @param \Interop\Queue\Context $context Context.
+     * @param \Cake\Queue\Job\Message $jobMessage Job message wrapper
+     * @param \Interop\Queue\Message $queueMessage Original queue message
      * @return object|string with __toString method implemented
      */
-    public function process(QueueMessage $message, Context $context): string|object
+    protected function executeJob(Message $jobMessage, QueueMessage $queueMessage): string|object
     {
-        $this->dispatchEvent('Processor.message.seen', ['queueMessage' => $message]);
+        $jobData = $this->prepareJobData($queueMessage);
+        $subprocessResult = $this->executeInSubprocess($jobData);
 
-        $jobMessage = new Message($message, $context, $this->container);
-        try {
-            $jobMessage->getCallable();
-        } catch (RuntimeException | Error $e) {
-            $this->logger->debug('Invalid callable for message. Rejecting message from queue.');
-            $this->dispatchEvent('Processor.message.invalid', ['message' => $jobMessage]);
-
-            return InteropProcessor::REJECT;
-        }
-
-        $startTime = microtime(true) * 1000;
-        $this->dispatchEvent('Processor.message.start', ['message' => $jobMessage]);
-
-        try {
-            $jobData = $this->prepareJobData($message);
-            $subprocessResult = $this->executeInSubprocess($jobData);
-            $response = $this->handleSubprocessResult($subprocessResult, $message);
-        } catch (Throwable $throwable) {
-            $message->setProperty('jobException', $throwable);
-
-            $this->logger->debug(sprintf('Message encountered exception: %s', $throwable->getMessage()));
-            $this->dispatchEvent('Processor.message.exception', [
-                'message' => $jobMessage,
-                'exception' => $throwable,
-                'duration' => (int)((microtime(true) * 1000) - $startTime),
-            ]);
-
-            return Result::requeue('Exception occurred while processing message');
-        }
-
-        $duration = (int)((microtime(true) * 1000) - $startTime);
-
-        if ($response === InteropProcessor::ACK) {
-            $this->logger->debug('Message processed successfully');
-            $this->dispatchEvent('Processor.message.success', [
-                'message' => $jobMessage,
-                'duration' => $duration,
-            ]);
-
-            return InteropProcessor::ACK;
-        }
-
-        if ($response === InteropProcessor::REJECT) {
-            $this->logger->debug('Message processed with rejection');
-            $this->dispatchEvent('Processor.message.reject', [
-                'message' => $jobMessage,
-                'duration' => $duration,
-            ]);
-
-            return InteropProcessor::REJECT;
-        }
-
-        $this->logger->debug('Message processed with failure, requeuing');
-        $this->dispatchEvent('Processor.message.failure', [
-            'message' => $jobMessage,
-            'duration' => $duration,
-        ]);
-
-        return InteropProcessor::REQUEUE;
+        return $this->handleSubprocessResult($subprocessResult, $queueMessage);
     }
 
     /**

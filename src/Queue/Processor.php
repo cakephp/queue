@@ -71,7 +71,7 @@ class Processor implements InteropProcessor
         $this->dispatchEvent('Processor.message.start', ['message' => $jobMessage]);
 
         try {
-            $response = $this->processMessage($jobMessage);
+            $response = $this->executeJob($jobMessage, $message);
         } catch (Throwable $throwable) {
             $message->setProperty('jobException', $throwable);
 
@@ -114,6 +114,18 @@ class Processor implements InteropProcessor
         ]);
 
         return InteropProcessor::REQUEUE;
+    }
+
+    /**
+     * Execute the job and return the response.
+     *
+     * @param \Cake\Queue\Job\Message $jobMessage Job message wrapper
+     * @param \Interop\Queue\Message $queueMessage Original queue message
+     * @return object|string with __toString method implemented
+     */
+    protected function executeJob(Message $jobMessage, QueueMessage $queueMessage): string|object
+    {
+        return $this->processMessage($jobMessage);
     }
 
     /**
