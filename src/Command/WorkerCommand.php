@@ -160,29 +160,15 @@ class WorkerCommand extends Command
      * Creates and returns a LoggerInterface object
      *
      * @param \Cake\Console\Arguments $args Arguments
+     * @param bool $forceLogger Force logger creation even without verbose flag
      * @return \Psr\Log\LoggerInterface
      */
-    protected function getLogger(Arguments $args): LoggerInterface
+    protected function getLogger(Arguments $args, bool $forceLogger = false): LoggerInterface
     {
         $logger = null;
-        if (!empty($args->getOption('verbose'))) {
+        if ($forceLogger || !empty($args->getOption('verbose'))) {
             $logger = Log::engine((string)$args->getOption('logger'));
         }
-
-        return $logger ?? new NullLogger();
-    }
-
-    /**
-     * Get logger for subprocess output.
-     * Always returns a real logger for subprocess mode to show job logs.
-     *
-     * @param \Cake\Console\Arguments $args Arguments
-     * @return \Psr\Log\LoggerInterface
-     */
-    protected function getSubprocessLogger(Arguments $args): LoggerInterface
-    {
-        $loggerName = (string)$args->getOption('logger');
-        $logger = Log::engine($loggerName);
 
         return $logger ?? new NullLogger();
     }
@@ -214,6 +200,11 @@ class WorkerCommand extends Command
 
         // Check subprocess mode before instantiating processor
         if ($args->getOption('subprocess') || ($config['subprocess']['enabled'] ?? false)) {
+            if ($processorClass !== Processor::class && !is_subclass_of($processorClass, Processor::class)) {
+                $io->error('Subprocess mode is only supported with the default Processor class');
+                $this->abort();
+            }
+
             $subprocessConfig = array_merge(
                 $config['subprocess'] ?? [],
                 [
@@ -222,13 +213,7 @@ class WorkerCommand extends Command
                 ],
             );
 
-            if ($processorClass !== Processor::class && !is_subclass_of($processorClass, Processor::class)) {
-                $io->error('Subprocess mode is only supported with the default Processor class');
-                $this->abort();
-            }
-
-            // Use a real logger for subprocess output so logs are visible
-            $subprocessLogger = $this->getSubprocessLogger($args);
+            $subprocessLogger = $this->getLogger($args, forceLogger: true);
             $processor = new SubprocessProcessor($subprocessLogger, $subprocessConfig, $this->container);
         } else {
             $processor = new $processorClass($logger, $this->container);
