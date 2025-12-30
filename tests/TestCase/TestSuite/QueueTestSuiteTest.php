@@ -4,11 +4,15 @@ declare(strict_types=1);
 namespace Cake\Queue\Test\TestCase\TestSuite;
 
 use Cake\Queue\QueueManager;
+use Cake\Queue\TestSuite\Constraint\Queue\JobQueued;
 use Cake\Queue\TestSuite\QueueTrait as TestQueueTrait;
 use Cake\Queue\TestSuite\TestQueueClient;
+use Cake\Queue\TestSuite\Transport\TestConsumer;
 use Cake\Queue\TestSuite\Transport\TestContext;
+use Cake\Queue\TestSuite\Transport\TestDestination;
 use Cake\TestSuite\TestCase;
 use Enqueue\Client\MessagePriority;
+use Interop\Queue\Topic;
 use PHPUnit\Framework\AssertionFailedError;
 use TestApp\Job\LogToDebugJob;
 
@@ -597,5 +601,93 @@ class QueueTestSuiteTest extends TestCase
         $this->assertEquals(5, $jobs[0]['options']['delay']);
         $this->assertEquals(10, $jobs[0]['options']['expires']);
         $this->assertEquals(3, $jobs[0]['options']['priority']);
+    }
+
+    /**
+     * Test extractMessageBody with args fallback
+     *
+     * @return void
+     */
+    public function testExtractMessageBodyWithArgs(): void
+    {
+        $body = json_encode([
+            'class' => [LogToDebugJob::class],
+            'args' => [['test' => 'value']],
+        ]);
+
+        $context = new TestContext();
+        $destination = $context->createQueue('default');
+        $message = $context->createMessage($body);
+
+        TestQueueClient::captureMessage($destination, $message);
+
+        $jobs = $this->getQueuedJobs();
+        $this->assertEquals(['test' => 'value'], $jobs[0]['data']);
+    }
+
+    /**
+     * Test extractMessageBody with invalid JSON
+     *
+     * @return void
+     */
+    public function testExtractMessageBodyWithInvalidJson(): void
+    {
+        $context = new TestContext();
+        $destination = $context->createQueue('default');
+        $message = $context->createMessage('invalid json');
+
+        TestQueueClient::captureMessage($destination, $message);
+
+        $jobs = $this->getQueuedJobs();
+        $this->assertNull($jobs[0]['jobClass']);
+    }
+
+    /**
+     * Test createConsumer with other destination
+     *
+     * @return void
+     */
+    public function testCreateConsumerWithOtherDestination(): void
+    {
+        $context = new TestContext();
+        $destination = new TestDestination('test');
+
+        $consumer = $context->createConsumer($destination);
+
+        $this->assertInstanceOf(TestConsumer::class, $consumer);
+    }
+
+    /**
+     * Test createConsumer with Topic destination (not Queue)
+     *
+     * @return void
+     */
+    public function testCreateConsumerWithTopicOnlyDestination(): void
+    {
+        $context = new TestContext();
+        $topic = $this->createMock(Topic::class);
+        $topic->method('getTopicName')->willReturn('test-topic');
+
+        $consumer = $context->createConsumer($topic);
+
+        $this->assertInstanceOf(TestConsumer::class, $consumer);
+    }
+
+    /**
+     * Test QueueConstraintBase with at parameter
+     *
+     * @return void
+     */
+    public function testQueueConstraintBaseWithAt(): void
+    {
+        QueueManager::push(LogToDebugJob::class, []);
+        QueueManager::push(LogToDebugJob::class, []);
+
+        $constraint = new JobQueued(0);
+        $this->assertTrue($constraint->matches(LogToDebugJob::class));
+        $this->assertEquals('job #0 was queued', $constraint->toString());
+
+        $constraint = new JobQueued(99);
+        $this->assertFalse($constraint->matches(LogToDebugJob::class));
     }
 }
