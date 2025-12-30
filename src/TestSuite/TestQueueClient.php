@@ -4,14 +4,12 @@ declare(strict_types=1);
 namespace Cake\Queue\TestSuite;
 
 use Cake\Queue\QueueManager;
-use Enqueue\Client\Message as ClientMessage;
 use Enqueue\Client\Resources as ClientResources;
 use Enqueue\Resources;
 use Interop\Queue\Destination;
 use Interop\Queue\Message;
 use Interop\Queue\Queue;
 use Interop\Queue\Topic;
-use ReflectionClass;
 
 /**
  * Test Queue Client
@@ -124,34 +122,24 @@ class TestQueueClient
         }
         $queueName = $requeueOptions['queue'] ?? $queueName;
 
-        $delay = null;
-        $expires = null;
-        $priority = null;
+        $properties = $message->getProperties();
+        $delay = $properties['enqueue.delay'] ?? null;
+        $expires = $properties['enqueue.expire'] ?? null;
+        $priority = $properties['enqueue.priority'] ??
+            $producerPriority ??
+            $requeueOptions['priority'] ??
+            null;
 
-        if ($message instanceof ClientMessage) {
-            $delay = $message->getDelay();
-            $expires = $message->getExpire();
-            $priority = $message->getPriority();
-        } else {
-            $properties = $message->getProperties();
-            $delay = $properties['enqueue.delay'] ?? null;
-            $expires = $properties['enqueue.expire'] ?? null;
-            $priority = $properties['enqueue.priority'] ??
-                $producerPriority ??
-                $requeueOptions['priority'] ??
-                null;
+        if ($delay !== null) {
+            $delay = (int)$delay;
+        } elseif ($deliveryDelay !== null) {
+            $delay = (int)($deliveryDelay / 1000);
+        }
 
-            if ($delay !== null) {
-                $delay = (int)$delay;
-            } elseif ($deliveryDelay !== null) {
-                $delay = (int)($deliveryDelay / 1000);
-            }
-
-            if ($expires !== null) {
-                $expires = (int)$expires;
-            } elseif ($timeToLive !== null) {
-                $expires = (int)($timeToLive / 1000);
-            }
+        if ($expires !== null) {
+            $expires = (int)$expires;
+        } elseif ($timeToLive !== null) {
+            $expires = (int)($timeToLive / 1000);
         }
 
         static::$queuedJobs[] = [
@@ -177,28 +165,10 @@ class TestQueueClient
      */
     protected static function extractMessageBody(Message $message): array
     {
-        if ($message instanceof ClientMessage) {
-            $reflection = new ReflectionClass($message);
-            $bodyProperty = $reflection->getProperty('body');
-            $bodyProperty->setAccessible(true);
-            $body = $bodyProperty->getValue($message);
-
-            if (is_array($body)) {
-                return $body;
-            }
-
-            if (is_string($body)) {
-                $decoded = json_decode($body, true);
-                if (is_array($decoded)) {
-                    return $decoded;
-                }
-            }
-        } else {
-            $body = $message->getBody();
-            $decoded = json_decode($body, true);
-            if (is_array($decoded)) {
-                return $decoded;
-            }
+        $body = $message->getBody();
+        $decoded = json_decode($body, true);
+        if (is_array($decoded)) {
+            return $decoded;
         }
 
         return [];
