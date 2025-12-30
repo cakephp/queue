@@ -6,6 +6,7 @@ namespace Cake\Queue\Test\TestCase\TestSuite;
 use Cake\Queue\QueueManager;
 use Cake\Queue\TestSuite\QueueTrait as TestQueueTrait;
 use Cake\Queue\TestSuite\TestQueueClient;
+use Cake\Queue\TestSuite\Transport\TestContext;
 use Cake\TestSuite\TestCase;
 use Enqueue\Client\MessagePriority;
 use PHPUnit\Framework\AssertionFailedError;
@@ -407,5 +408,194 @@ class QueueTestSuiteTest extends TestCase
 
         $this->assertCount(1, $jobs);
         $this->assertEquals(3600, $jobs[0]['options']['expires']);
+    }
+
+    /**
+     * Test getQueuedJobCount
+     *
+     * @return void
+     */
+    public function testGetQueuedJobCount(): void
+    {
+        $this->assertEquals(0, TestQueueClient::getQueuedJobCount());
+
+        QueueManager::push(LogToDebugJob::class, []);
+        $this->assertEquals(1, TestQueueClient::getQueuedJobCount());
+
+        QueueManager::push(LogToDebugJob::class, []);
+        $this->assertEquals(2, TestQueueClient::getQueuedJobCount());
+    }
+
+    /**
+     * Test replaceAllClients with multiple configs
+     *
+     * @return void
+     */
+    public function testReplaceAllClientsWithMultipleConfigs(): void
+    {
+        QueueManager::setConfig('test1', ['url' => 'null:']);
+        QueueManager::setConfig('test2', ['url' => 'null:']);
+
+        TestQueueClient::replaceAllClients();
+
+        $config1 = QueueManager::getConfig('test1');
+        $config2 = QueueManager::getConfig('test2');
+
+        $this->assertNotNull($config1);
+        $this->assertNotNull($config2);
+
+        $url1 = $config1['url'];
+        $url2 = $config2['url'];
+        $transport1 = is_array($url1) ? $url1['transport'] : $url1;
+        $transport2 = is_array($url2) ? $url2['transport'] : $url2;
+
+        $this->assertEquals('test:', $transport1);
+        $this->assertEquals('test:', $transport2);
+    }
+
+    /**
+     * Test replaceAllClients handles null config gracefully
+     *
+     * @return void
+     */
+    public function testReplaceAllClientsHandlesNullConfig(): void
+    {
+        QueueManager::setConfig('test-null', ['url' => 'null:']);
+        QueueManager::drop('test-null');
+
+        TestQueueClient::replaceAllClients();
+
+        $this->assertNull(QueueManager::getConfig('test-null'));
+    }
+
+    /**
+     * Test job captured with custom method
+     *
+     * @return void
+     */
+    public function testJobCapturedWithCustomMethod(): void
+    {
+        $body = json_encode([
+            'class' => [LogToDebugJob::class, 'customMethod'],
+            'data' => ['test' => 'value'],
+        ]);
+
+        $context = new TestContext();
+        $destination = $context->createQueue('default');
+        $message = $context->createMessage($body);
+
+        TestQueueClient::captureMessage($destination, $message);
+
+        $jobs = $this->getQueuedJobs();
+        $this->assertCount(1, $jobs);
+        $this->assertEquals(LogToDebugJob::class, $jobs[0]['jobClass']);
+        $this->assertEquals('customMethod', $jobs[0]['method']);
+    }
+
+    /**
+     * Test job captured with topic destination
+     *
+     * @return void
+     */
+    public function testJobCapturedWithTopicDestination(): void
+    {
+        $body = json_encode([
+            'class' => [LogToDebugJob::class],
+            'data' => [],
+        ]);
+
+        $context = new TestContext();
+        $destination = $context->createTopic('test-topic');
+        $message = $context->createMessage($body);
+
+        TestQueueClient::captureMessage($destination, $message);
+
+        $jobs = $this->getQueuedJobs();
+        $this->assertCount(1, $jobs);
+        $this->assertEquals('test-topic', $jobs[0]['options']['queue']);
+    }
+
+    /**
+     * Test job captured with requeue options
+     *
+     * @return void
+     */
+    public function testJobCapturedWithRequeueOptions(): void
+    {
+        $body = json_encode([
+            'class' => [LogToDebugJob::class],
+            'data' => [],
+            'requeueOptions' => [
+                'config' => 'custom-config',
+                'queue' => 'custom-queue',
+                'priority' => 'high',
+            ],
+        ]);
+
+        $context = new TestContext();
+        $destination = $context->createQueue('default');
+        $message = $context->createMessage($body);
+
+        TestQueueClient::captureMessage($destination, $message);
+
+        $jobs = $this->getQueuedJobs();
+        $this->assertCount(1, $jobs);
+        $this->assertEquals('custom-config', $jobs[0]['options']['config']);
+        $this->assertEquals('custom-queue', $jobs[0]['options']['queue']);
+        $this->assertEquals('high', $jobs[0]['options']['priority']);
+    }
+
+    /**
+     * Test job captured with message properties for delay and expires
+     *
+     * @return void
+     */
+    public function testJobCapturedWithMessageProperties(): void
+    {
+        $body = json_encode([
+            'class' => [LogToDebugJob::class],
+            'data' => [],
+        ]);
+
+        $context = new TestContext();
+        $destination = $context->createQueue('default');
+        $message = $context->createMessage($body, [
+            'enqueue.delay' => '5',
+            'enqueue.expire' => '10',
+            'enqueue.priority' => '5',
+        ]);
+
+        TestQueueClient::captureMessage($destination, $message, 3000, 6000, 3);
+
+        $jobs = $this->getQueuedJobs();
+        $this->assertCount(1, $jobs);
+        $this->assertEquals(5, $jobs[0]['options']['delay']);
+        $this->assertEquals(10, $jobs[0]['options']['expires']);
+        $this->assertEquals(5, $jobs[0]['options']['priority']);
+    }
+
+    /**
+     * Test job captured with delivery delay and time to live from producer
+     *
+     * @return void
+     */
+    public function testJobCapturedWithProducerDelayAndTtl(): void
+    {
+        $body = json_encode([
+            'class' => [LogToDebugJob::class],
+            'data' => [],
+        ]);
+
+        $context = new TestContext();
+        $destination = $context->createQueue('default');
+        $message = $context->createMessage($body);
+
+        TestQueueClient::captureMessage($destination, $message, 5000, 10000, 3);
+
+        $jobs = $this->getQueuedJobs();
+        $this->assertCount(1, $jobs);
+        $this->assertEquals(5, $jobs[0]['options']['delay']);
+        $this->assertEquals(10, $jobs[0]['options']['expires']);
+        $this->assertEquals(3, $jobs[0]['options']['priority']);
     }
 }
