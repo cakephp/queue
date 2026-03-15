@@ -38,7 +38,6 @@ class SendMailJob implements JobInterface
         try {
             $transportClassName = $message->getArgument('transport');
             $config = $message->getArgument('config', []);
-            /** @var \Cake\Mailer\AbstractTransport $transport */
             $transport = $this->getTransport($transportClassName, $config);
 
             $emailMessage = new MailerMessage();

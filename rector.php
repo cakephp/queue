@@ -25,6 +25,7 @@ return RectorConfig::configure()
         DocblockReturnArrayFromDirectArrayInstanceRector::class => [
             __DIR__ . '/src/Mailer/Transport/QueueTransport.php',
         ],
+        'tests/TestCase/Queue/ProcessorTest.php',
     ])
     ->withParallel()
     ->withPreparedSets(

@@ -5,7 +5,6 @@
 /tags
 /composer.lock
 /phpunit.xml
-/phpcs.xml
 /tools
 /vendor
 *.mo
@@ -16,6 +15,7 @@ error.log
 /tests/test_app/config/TestsQueue/schema-dump-test.lock
 /tests/test_app/Plugin/TestBlog/config/Queue/*
 .phpunit.cache
+.phpcs.cache
 
 # IDE and editor specific files #
 #################################

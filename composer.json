@@ -60,8 +60,8 @@
             "@cs-check",
             "@test"
         ],
-        "cs-check": "phpcs --colors -p src/ tests/",
-        "cs-fix": "phpcbf --colors -p src/ tests/",
+        "cs-check": "phpcs",
+        "cs-fix": "phpcbf",
         "stan": "@phpstan",
         "phpstan": "tools/phpstan analyse",
         "stan-baseline": "tools/phpstan --generate-baseline",
