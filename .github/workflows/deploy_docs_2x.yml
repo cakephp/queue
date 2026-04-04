@@ -20,4 +20,6 @@ jobs:
         uses: dokku/github-action@master
         with:
           git_remote_url: 'ssh://dokku@apps.cakephp.org:22/queue-docs-2'
+          git_push_flags: '-f'
           ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+          branch: '2.x'

@@ -1,0 +1,29 @@
+{
+  "/": [
+    {
+      "text": "Getting Started",
+      "collapsed": false,
+      "items": [
+        { "text": "Installation and Configuration", "link": "/installation" },
+        { "text": "Defining and Queueing Jobs", "link": "/jobs" }
+      ]
+    },
+    {
+      "text": "Processing Work",
+      "collapsed": false,
+      "items": [
+        { "text": "Queueing Mail", "link": "/mail" },
+        { "text": "Custom Processors", "link": "/processors" },
+        { "text": "Running Workers", "link": "/workers" }
+      ]
+    },
+    {
+      "text": "Operations",
+      "collapsed": false,
+      "items": [
+        { "text": "Failed Jobs", "link": "/failed-jobs" },
+        { "text": "Worker Events", "link": "/events" }
+      ]
+    }
+  ]
+}
