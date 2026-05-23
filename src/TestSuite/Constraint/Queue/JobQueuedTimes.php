@@ -16,8 +16,6 @@ class JobQueuedTimes extends QueueConstraintBase
 {
     /**
      * Expected number of times
-     *
-     * @var int
      */
     protected int $times;
 

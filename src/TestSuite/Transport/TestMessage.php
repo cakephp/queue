@@ -14,8 +14,6 @@ class TestMessage implements Message
 {
     /**
      * Message body
-     *
-     * @var string
      */
     protected string $body;
 

@@ -21,8 +21,6 @@ class TestContext implements Context
 {
     /**
      * Cached producer instance
-     *
-     * @var \Interop\Queue\Producer|null
      */
     protected ?Producer $producer = null;
 
@@ -68,7 +66,7 @@ class TestContext implements Context
      */
     public function createProducer(): Producer
     {
-        if ($this->producer === null) {
+        if (!$this->producer instanceof Producer) {
             $this->producer = new TestProducer();
         }
 

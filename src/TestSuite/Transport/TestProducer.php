@@ -17,22 +17,16 @@ class TestProducer implements Producer
 {
     /**
      * Delivery delay
-     *
-     * @var int|null
      */
     protected ?int $deliveryDelay = null;
 
     /**
      * Time to live
-     *
-     * @var int|null
      */
     protected ?int $timeToLive = null;
 
     /**
      * Priority
-     *
-     * @var int|null
      */
     protected ?int $priority = null;
 

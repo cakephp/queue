@@ -15,8 +15,6 @@ class TestDestination implements Queue, Topic
 {
     /**
      * Destination name
-     *
-     * @var string
      */
     protected string $name;
 

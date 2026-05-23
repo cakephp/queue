@@ -96,7 +96,7 @@ trait QueueTrait
         $jobs = TestQueueClient::getQueuedJobsByClass($jobClass);
         $this->assertEmpty(
             $jobs,
-            $message ?: "Job {$jobClass} was queued unexpectedly",
+            $message ?: sprintf('Job %s was queued unexpectedly', $jobClass),
         );
     }
 
@@ -137,7 +137,7 @@ trait QueueTrait
         string $message = '',
     ): void {
         $jobs = TestQueueClient::getQueuedJobsByClass($jobClass);
-        $this->assertNotEmpty($jobs, "Job {$jobClass} was not queued");
+        $this->assertNotEmpty($jobs, sprintf('Job %s was not queued', $jobClass));
 
         $found = false;
         foreach ($jobs as $job) {
@@ -149,7 +149,7 @@ trait QueueTrait
 
         $this->assertTrue(
             $found,
-            $message ?: "Job {$jobClass} was not queued with expected data",
+            $message ?: sprintf('Job %s was not queued with expected data', $jobClass),
         );
     }
 
@@ -177,7 +177,7 @@ trait QueueTrait
 
         $this->assertTrue(
             $found,
-            $message ?: "Job {$jobClass} was not queued to queue {$queue}",
+            $message ?: sprintf('Job %s was not queued to queue %s', $jobClass, $queue),
         );
     }
 
@@ -195,7 +195,7 @@ trait QueueTrait
         string $message = '',
     ): void {
         $jobs = TestQueueClient::getQueuedJobsByClass($jobClass);
-        $this->assertNotEmpty($jobs, "Job {$jobClass} was not queued");
+        $this->assertNotEmpty($jobs, sprintf('Job %s was not queued', $jobClass));
 
         $found = false;
         foreach ($jobs as $job) {
@@ -207,7 +207,7 @@ trait QueueTrait
 
         $this->assertTrue(
             $found,
-            $message ?: "Job {$jobClass} was not queued with delay {$delay}",
+            $message ?: sprintf('Job %s was not queued with delay %d', $jobClass, $delay),
         );
     }
 
@@ -225,7 +225,7 @@ trait QueueTrait
         string $message = '',
     ): void {
         $jobs = TestQueueClient::getQueuedJobsByClass($jobClass);
-        $this->assertNotEmpty($jobs, "Job {$jobClass} was not queued");
+        $this->assertNotEmpty($jobs, sprintf('Job %s was not queued', $jobClass));
 
         $found = false;
         foreach ($jobs as $job) {
@@ -237,7 +237,7 @@ trait QueueTrait
 
         $this->assertTrue(
             $found,
-            $message ?: "Job {$jobClass} was not queued with priority {$priority}",
+            $message ?: sprintf('Job %s was not queued with priority %s', $jobClass, $priority),
         );
     }
 

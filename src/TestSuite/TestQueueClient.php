@@ -42,8 +42,6 @@ class TestQueueClient
 
     /**
      * Transport registration flag
-     *
-     * @var bool
      */
     protected static bool $registered = false;
 
@@ -120,6 +118,7 @@ class TestQueueClient
         } elseif ($destination instanceof Topic) {
             $queueName = $destination->getTopicName();
         }
+
         $queueName = $requeueOptions['queue'] ?? $queueName;
 
         $properties = $message->getProperties();

@@ -15,8 +15,6 @@ abstract class QueueConstraintBase extends Constraint
 {
     /**
      * Job index to check
-     *
-     * @var int|null
      */
     protected ?int $at = null;
 

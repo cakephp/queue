@@ -16,8 +16,6 @@ class TestConsumer implements Consumer
 {
     /**
      * Queue
-     *
-     * @var \Interop\Queue\Queue
      */
     protected Queue $queue;
 
