@@ -25,7 +25,7 @@
         "cakephp/cakephp": "^5.4.0",
         "enqueue/simple-client": "^0.10",
         "psr/log": "^3.0",
-        "ramsey/uuid": "^4.2.0"
+        "ramsey/uuid": "^4.7.0"
     },
     "require-dev": {
         "cakephp/bake": "^3.5.1",
