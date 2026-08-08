@@ -665,7 +665,7 @@ class QueueTestSuiteTest extends TestCase
     public function testCreateConsumerWithTopicOnlyDestination(): void
     {
         $context = new TestContext();
-        $topic = $this->createMock(Topic::class);
+        $topic = $this->createStub(Topic::class);
         $topic->method('getTopicName')->willReturn('test-topic');
 
         $consumer = $context->createConsumer($topic);

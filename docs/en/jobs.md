@@ -60,7 +60,7 @@ Returning any other value is treated as a failure and results in the message bei
 ## Job Properties
 
 - `maxAttempts` limits how many times a job can be retried after an exception or explicit `Processor::REQUEUE`. If unset, the worker's `--max-attempts` option applies. If neither is set, retries are unlimited.
-- `shouldBeUnique` allows only one queued copy of the same job class, method, and payload. Duplicate pushes are ignored. This requires `uniqueCache` in the queue configuration.
+- `shouldBeUnique` allows only one queued copy of the same job class, method, and payload. Duplicate pushes are ignored. This requires `uniqueCache` in the queue configuration. When the payload is a DTO, its class is also factored into the uniqueness check, so two different DTO classes with coincidentally identical data are never treated as duplicates of each other.
 
 ## Queueing Jobs
 
@@ -89,3 +89,69 @@ Supported options:
 - `expires`: expire the message after a number of seconds if it has not been consumed.
 - `priority`: one of `\Enqueue\Client\MessagePriority::VERY_LOW`, `LOW`, `NORMAL`, `HIGH`, or `VERY_HIGH`.
 - `queue`: queue name to use. Defaults to the configured queue, then `default`.
+
+## Dispatching and Receiving DTOs
+
+Instead of an array, `QueueManager::push()` also accepts a DTO object as the payload:
+
+```php
+use App\Dto\OrderDto;
+use App\Job\ProcessOrderJob;
+use Cake\Queue\QueueManager;
+
+$order = new OrderDto(id: 7, customer: 'Acme Corp');
+
+QueueManager::push(ProcessOrderJob::class, $order);
+```
+
+The DTO is serialized into the same JSON-safe array that a plain array payload would produce (via `jsonSerialize()` when the DTO implements `JsonSerializable`, otherwise its public properties), and the DTO's class name travels alongside it so the job can hydrate it back. If you only have an array at the dispatch site but still want the job to receive a typed object, pass the target class via the `dtoClass` option instead:
+
+```php
+QueueManager::push(ProcessOrderJob::class, $data, [
+    'dtoClass' => OrderDto::class,
+]);
+```
+
+A plain array push with no `dtoClass` option behaves exactly as before; the message body is unchanged.
+
+### Receiving a DTO in a job
+
+Call `Message::getDto()` to hydrate the payload back into the DTO class it was dispatched with. `getArgument()` keeps returning the raw array, so existing jobs that only read array data are unaffected:
+
+```php
+public function execute(Message $message): ?string
+{
+    $order = $message->getDto(); // OrderDto, or null if no DTO was dispatched
+    $id = $message->getArgument('id'); // the raw array is still available
+
+    return Processor::ACK;
+}
+```
+
+`getDto()` returns `null` when the message wasn't dispatched with a DTO, and also when the recorded `dtoClass` can no longer be autoloaded (e.g. the class was renamed or removed after the job was queued) — a job can always fall back to `getArgument()` in that case instead of crashing.
+
+### Supported DTO classes
+
+Hydration mirrors the DTO conventions used elsewhere in CakePHP (`#[RequestToDto]` for controllers, `SelectQuery::projectAs()` for the ORM), so the same DTO class can be reused across all three:
+
+- **Constructor reflection** — a plain class (typically `readonly`) with typed, named constructor parameters. Nested DTOs are resolved from the parameter's type hint, and arrays of DTOs via the `#[CollectionOf]` attribute:
+
+  ```php
+  use Cake\ORM\Attribute\CollectionOf;
+
+  readonly class OrderDto
+  {
+      /**
+       * @param array<int, \App\Dto\OrderItemDto> $items
+       */
+      public function __construct(
+          public int $id,
+          public string $customer,
+          #[CollectionOf(OrderItemDto::class)]
+          public array $items = [],
+      ) {
+      }
+  }
+  ```
+
+- **`createFromArray()` factory** — if the DTO class defines a static `createFromArray(array $data, bool $nested = false): static` method, it's used instead of reflection.

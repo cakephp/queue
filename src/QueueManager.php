@@ -20,6 +20,7 @@ use BadMethodCallException;
 use Cake\Cache\Cache;
 use Cake\Core\App;
 use Cake\Log\Log;
+use Cake\Queue\Dto\DtoManager;
 use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
 use InvalidArgumentException;
@@ -205,11 +206,16 @@ class QueueManager
      * @param array<int, string>|string $className The classname of a job that implements the
      *   \Cake\Queue\Job\JobInterface. The class will be constructed by
      *   \Cake\Queue\Processor and have the execute method invoked.
-     * @param array<string, mixed> $data An array of data that will be passed to the job.
+     * @param array<string, mixed>|object $data An array of data or a DTO object that will
+     *   be passed to the job. When a DTO object is given it is serialized and the class
+     *   name is stored so the job can hydrate it back via `Message::getDto()`.
      * @param array<string, mixed> $options An array of options for publishing the job:
      *   - `config` - A queue config name. Defaults to 'default'.
      *   - `delay` - Time (in integer seconds) to delay message, after which it
      *      will be processed. Not all message brokers accept this. Default `null`.
+     *   - `dtoClass` - The DTO class to hydrate the data into on the receiving side.
+     *     Only needed when `$data` is an array. Ignored when `$data` is already a DTO
+     *     object. Default `null`.
      *   - `expires` - Time (in integer seconds) after which the message expires.
      *     The message will be removed from the queue if this time is exceeded
      *     and it has not been consumed. Default `null`.
@@ -222,13 +228,22 @@ class QueueManager
      *   - `queue` - The name of a queue to use, from queue `config` array or
      *      string 'default' if empty.
      */
-    public static function push(string|array $className, array $data = [], array $options = []): void
+    public static function push(string|array $className, array|object $data = [], array $options = []): void
     {
         [$class, $method] = is_array($className) ? $className : [$className, 'execute'];
 
         $class = App::className($class, 'Job', 'Job');
         if (is_null($class)) {
             throw new InvalidArgumentException(sprintf('`%s` class does not exist.', $class));
+        }
+
+        $dtoClass = null;
+        if (is_object($data)) {
+            $dtoClass = $data::class;
+            $data = DtoManager::serialize($data);
+        } elseif (!empty($options['dtoClass'])) {
+            $dtoClass = $options['dtoClass'];
+            $data = DtoManager::serialize($data);
         }
 
         $name = $options['config'] ?? 'default';
@@ -246,7 +261,7 @@ class QueueManager
                 );
             }
 
-            $uniqueId = static::getUniqueId($class, $method, $data);
+            $uniqueId = static::getUniqueId($class, $method, $data, $dtoClass);
 
             if (Cache::read($uniqueId, $config['uniqueCacheKey'])) {
                 if ($logger instanceof LoggerInterface) {
@@ -264,7 +279,7 @@ class QueueManager
 
         $queue = $options['queue'] ?? $config['queue'] ?? 'default';
 
-        $message = new ClientMessage([
+        $body = [
             'class' => [$class, $method],
             'args' => [$data],
             'data' => $data,
@@ -273,7 +288,12 @@ class QueueManager
                 'priority' => $options['priority'] ?? null,
                 'queue' => $queue,
             ],
-        ]);
+        ];
+        if ($dtoClass !== null) {
+            $body['dtoClass'] = $dtoClass;
+        }
+
+        $message = new ClientMessage($body);
 
         if (isset($options['delay'])) {
             $message->setDelay($options['delay']);
@@ -291,7 +311,7 @@ class QueueManager
         $client->sendEvent($queue, $message);
 
         if (!empty($class::$shouldBeUnique)) {
-            $uniqueId = static::getUniqueId($class, $method, $data);
+            $uniqueId = static::getUniqueId($class, $method, $data, $dtoClass);
 
             Cache::add($uniqueId, true, $config['uniqueCacheKey']);
         }
@@ -301,14 +321,18 @@ class QueueManager
      * @param class-string $class Class name
      * @param string $method Method name
      * @param array<string, mixed> $data Message data
+     * @param class-string|null $dtoClass The DTO class the data was dispatched with, if any. Two
+     *   dispatches with identical `$data` but different `$dtoClass` are treated as distinct so a
+     *   coincidental structural match between unrelated DTOs does not collapse into one dedupe entry.
      */
-    public static function getUniqueId(string $class, string $method, array $data): string
+    public static function getUniqueId(string $class, string $method, array $data, ?string $dtoClass = null): string
     {
         $data = static::sortUniqueValues($data);
 
         $hashInput = implode('', [
             $class,
             $method,
+            $dtoClass ?? '',
             json_encode($data),
         ]);
 

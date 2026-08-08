@@ -28,6 +28,8 @@ use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
 use Interop\Queue\Processor as InteropProcessor;
 use PHPUnit\Framework\Attributes\DataProvider;
+use TestApp\Dto\OrderDto;
+use TestApp\Job\DtoJob;
 use TestApp\TestProcessor;
 use TestApp\WelcomeMailer;
 use Traversable;
@@ -242,6 +244,37 @@ class ProcessorTest extends TestCase
         $this->assertStringContainsString('Welcome mail sent', $logs[0]);
 
         $this->assertSame(InteropProcessor::ACK, $result);
+    }
+
+    /**
+     * Test that a job receives its data hydrated back into a DTO.
+     *
+     * @return void
+     */
+    public function testProcessMessageWithDto()
+    {
+        $messageBody = [
+            'class' => [DtoJob::class, 'execute'],
+            'data' => [
+                'id' => 7,
+                'customer' => 'Acme Corp',
+                'items' => [],
+            ],
+            'dtoClass' => OrderDto::class,
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $queueMessage = new NullMessage((string)json_encode($messageBody));
+        $processor = new Processor();
+
+        $result = $processor->process($queueMessage, $context);
+
+        $this->assertSame(InteropProcessor::ACK, $result);
+        $this->assertInstanceOf(OrderDto::class, DtoJob::$lastDto);
+        $this->assertSame(7, DtoJob::$lastDto->id);
+        $this->assertSame('Acme Corp', DtoJob::$lastDto->customer);
+
+        DtoJob::$lastDto = null;
     }
 
     /**

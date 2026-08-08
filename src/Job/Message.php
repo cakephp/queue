@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Queue\Job;
 
 use Cake\Core\ContainerInterface;
+use Cake\Queue\Dto\DtoManager;
 use Cake\Utility\Hash;
 use Closure;
 use Interop\Queue\Context;
@@ -32,6 +33,11 @@ class Message implements JsonSerializable
     protected array $parsedBody;
 
     protected ?Closure $callable = null;
+
+    /**
+     * @var object|null
+     */
+    protected ?object $dto = null;
 
     /**
      * @param \Interop\Queue\Message $originalMessage Queue message.
@@ -143,6 +149,44 @@ class Message implements JsonSerializable
         }
 
         return Hash::get($data, $key, $default);
+    }
+
+    /**
+     * Get the DTO class name the message was dispatched with, if any.
+     *
+     * @return class-string|null
+     */
+    public function getDtoClass(): ?string
+    {
+        $dtoClass = $this->parsedBody['dtoClass'] ?? null;
+        if (!is_string($dtoClass) || !class_exists($dtoClass)) {
+            return null;
+        }
+
+        return $dtoClass;
+    }
+
+    /**
+     * Get the message data hydrated back into a DTO object.
+     *
+     * Returns `null` when the message was not dispatched with a DTO.
+     *
+     * @return object|null
+     */
+    public function getDto(): ?object
+    {
+        if ($this->dto !== null) {
+            return $this->dto;
+        }
+
+        $dtoClass = $this->getDtoClass();
+        if ($dtoClass === null) {
+            return null;
+        }
+
+        $this->dto = DtoManager::deserialize($this->getArgument(), $dtoClass);
+
+        return $this->dto;
     }
 
     /**

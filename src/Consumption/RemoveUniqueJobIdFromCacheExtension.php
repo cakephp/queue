@@ -37,7 +37,7 @@ class RemoveUniqueJobIdFromCacheExtension implements MessageResultExtensionInter
 
         $data = $jobMessage->getArgument();
 
-        $uniqueId = QueueManager::getUniqueId($class, $method, $data);
+        $uniqueId = QueueManager::getUniqueId($class, $method, $data, $jobMessage->getDtoClass());
 
         Cache::delete($uniqueId, $this->cache);
     }

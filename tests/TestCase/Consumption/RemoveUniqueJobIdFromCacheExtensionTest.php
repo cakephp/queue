@@ -15,6 +15,7 @@ use Enqueue\Consumption\ChainExtension;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\BeforeClass;
 use Psr\Log\NullLogger;
+use TestApp\Dto\OrderDto;
 use TestApp\Job\UniqueJob;
 
 class RemoveUniqueJobIdFromCacheExtensionTest extends TestCase
@@ -26,9 +27,9 @@ class RemoveUniqueJobIdFromCacheExtensionTest extends TestCase
     {
         Log::drop('debug');
 
+        $cacheKey = QueueManager::getConfig('default')['uniqueCacheKey'] ?? null;
         QueueManager::drop('default');
 
-        $cacheKey = QueueManager::getConfig('default')['uniqueCacheKey'] ?? null;
         if ($cacheKey) {
             Cache::clear($cacheKey);
             Cache::drop($cacheKey);
@@ -42,6 +43,32 @@ class RemoveUniqueJobIdFromCacheExtensionTest extends TestCase
         QueueManager::push(UniqueJob::class, []);
 
         $uniqueId = QueueManager::getUniqueId(UniqueJob::class, 'execute', []);
+        $this->assertTrue(Cache::read($uniqueId, 'Cake/Queue.queueUnique.default'));
+
+        $consume();
+
+        $this->assertNull(Cache::read($uniqueId, 'Cake/Queue.queueUnique.default'));
+    }
+
+    /**
+     * Test that a unique job dispatched with a DTO is removed from the cache
+     * using a hash that includes the dtoClass, matching the one computed at push time.
+     *
+     * @return void
+     */
+    public function testJobWithDtoIsRemovedFromCacheAfterProcessing()
+    {
+        $consume = $this->setupQueue();
+
+        $dto = new OrderDto(7, 'Acme Corp', []);
+        QueueManager::push(UniqueJob::class, $dto);
+
+        $uniqueId = QueueManager::getUniqueId(
+            UniqueJob::class,
+            'execute',
+            ['id' => 7, 'customer' => 'Acme Corp', 'items' => []],
+            OrderDto::class,
+        );
         $this->assertTrue(Cache::read($uniqueId, 'Cake/Queue.queueUnique.default'));
 
         $consume();
