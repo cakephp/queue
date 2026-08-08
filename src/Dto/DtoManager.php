@@ -11,7 +11,7 @@ declare(strict_types=1);
  *
  * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org/)
  * @link          https://cakephp.org CakePHP(tm) Project
- * @since         2.0.0
+ * @since         3.0.0
  * @license       https://opensource.org/licenses/MIT MIT License
  */
 namespace Cake\Queue\Dto;
@@ -29,7 +29,7 @@ use JsonSerializable;
  * (cakephp-dto style) and plain DTOs mapped through `Cake\ORM\DtoMapper` (constructor
  * parameters, nested DTO type-hints and the `#[CollectionOf]` attribute).
  */
-final class DtoManager
+class DtoManager
 {
     /**
      * Serialize a DTO (or array) into an array suitable for queue transport.
