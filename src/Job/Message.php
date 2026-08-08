@@ -34,9 +34,6 @@ class Message implements JsonSerializable
 
     protected ?Closure $callable = null;
 
-    /**
-     * @var object|null
-     */
     protected ?object $dto = null;
 
     /**
@@ -132,7 +129,6 @@ class Message implements JsonSerializable
     /**
      * @param mixed $key Key
      * @param mixed $default Default value.
-     * @return mixed
      */
     public function getArgument(mixed $key = null, mixed $default = null): mixed
     {
@@ -170,8 +166,6 @@ class Message implements JsonSerializable
      * Get the message data hydrated back into a DTO object.
      *
      * Returns `null` when the message was not dispatched with a DTO.
-     *
-     * @return object|null
      */
     public function getDto(): ?object
     {
@@ -191,8 +185,6 @@ class Message implements JsonSerializable
 
     /**
      * The maximum number of attempts allowed by the job.
-     *
-     * @return int|null
      */
     public function getMaxAttempts(): ?int
     {

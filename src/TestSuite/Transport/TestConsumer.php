@@ -43,7 +43,6 @@ class TestConsumer implements Consumer
      * Receive message
      *
      * @param int|null $timeout Timeout in milliseconds
-     * @return \Interop\Queue\Message|null
      */
     public function receive(?int $timeout = null): ?Message
     {
@@ -52,8 +51,6 @@ class TestConsumer implements Consumer
 
     /**
      * Receive no wait
-     *
-     * @return \Interop\Queue\Message|null
      */
     public function receiveNoWait(): ?Message
     {

@@ -12,9 +12,6 @@ use Interop\Queue\Processor;
 
 class LimitAttemptsExtension implements MessageResultExtensionInterface
 {
-    /**
-     * @use \Cake\Event\EventDispatcherTrait<\Cake\Queue\Job\Message>
-     */
     use EventDispatcherTrait;
 
     /**

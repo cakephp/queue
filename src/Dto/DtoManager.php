@@ -56,7 +56,7 @@ final class DtoManager
             );
         }
 
-        return static::toScalarArray($data);
+        return self::toScalarArray($data);
     }
 
     /**
@@ -92,7 +92,7 @@ final class DtoManager
             }
 
             if (is_array($value)) {
-                $data[$key] = static::toScalarArray($value);
+                $data[$key] = self::toScalarArray($value);
             }
         }
 

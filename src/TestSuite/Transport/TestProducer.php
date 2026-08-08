@@ -63,8 +63,6 @@ class TestProducer implements Producer
 
     /**
      * Get delivery delay
-     *
-     * @return int|null
      */
     public function getDeliveryDelay(): ?int
     {
@@ -86,8 +84,6 @@ class TestProducer implements Producer
 
     /**
      * Get priority
-     *
-     * @return int|null
      */
     public function getPriority(): ?int
     {
@@ -109,8 +105,6 @@ class TestProducer implements Producer
 
     /**
      * Get time to live
-     *
-     * @return int|null
      */
     public function getTimeToLive(): ?int
     {

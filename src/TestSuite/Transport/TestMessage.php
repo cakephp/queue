@@ -83,7 +83,6 @@ class TestMessage implements Message
      *
      * @param string $name Property name
      * @param mixed $default Default value
-     * @return mixed
      */
     public function getProperty(string $name, mixed $default = null): mixed
     {
@@ -107,7 +106,6 @@ class TestMessage implements Message
      *
      * @param string $name Header name
      * @param mixed $default Default value
-     * @return mixed
      */
     public function getHeader(string $name, mixed $default = null): mixed
     {
@@ -178,8 +176,6 @@ class TestMessage implements Message
 
     /**
      * Get correlation ID
-     *
-     * @return string|null
      */
     public function getCorrelationId(): ?string
     {
@@ -199,8 +195,6 @@ class TestMessage implements Message
 
     /**
      * Get message ID
-     *
-     * @return string|null
      */
     public function getMessageId(): ?string
     {
@@ -220,8 +214,6 @@ class TestMessage implements Message
 
     /**
      * Get timestamp
-     *
-     * @return int|null
      */
     public function getTimestamp(): ?int
     {
@@ -241,8 +233,6 @@ class TestMessage implements Message
 
     /**
      * Get reply to
-     *
-     * @return string|null
      */
     public function getReplyTo(): ?string
     {

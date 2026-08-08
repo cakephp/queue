@@ -108,7 +108,7 @@ class QueueManagerTest extends TestCase
         $data = ['id' => 7, 'customer' => 'Acme Corp'];
 
         $withoutDto = QueueManager::getUniqueId('Example', 'hello', $data);
-        $withNullDto = QueueManager::getUniqueId('Example', 'hello', $data, null);
+        $withNullDto = QueueManager::getUniqueId('Example', 'hello', $data);
         $this->assertSame($withoutDto, $withNullDto, 'omitting dtoClass matches an explicit null');
 
         $withOrderDto = QueueManager::getUniqueId('Example', 'hello', $data, 'App\Dto\OrderDto');
