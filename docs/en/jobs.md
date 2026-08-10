@@ -104,7 +104,7 @@ $order = new OrderDto(id: 7, customer: 'Acme Corp');
 QueueManager::push(ProcessOrderJob::class, $order);
 ```
 
-The DTO is serialized into the same JSON-safe array that a plain array payload would produce (via `jsonSerialize()` when the DTO implements `JsonSerializable`, otherwise its public properties), and the DTO's class name travels alongside it so the job can hydrate it back. If you only have an array at the dispatch site but still want the job to receive a typed object, pass the target class via the `dtoClass` option instead:
+The DTO is serialized into the same JSON-safe array that a plain array payload would produce (via `jsonSerialize()` when the DTO implements `JsonSerializable`, otherwise its public properties). The DTO's class name is also recorded on the message as metadata (used for `shouldBeUnique` hashing and debugging). If you only have an array at the dispatch site but still want that metadata recorded, pass the class via the `dtoClass` option:
 
 ```php
 QueueManager::push(ProcessOrderJob::class, $data, [
@@ -116,19 +116,19 @@ A plain array push with no `dtoClass` option behaves exactly as before; the mess
 
 ### Receiving a DTO in a job
 
-Call `Message::getDto()` to hydrate the payload back into the DTO class it was dispatched with. `getArgument()` keeps returning the raw array, so existing jobs that only read array data are unaffected:
+Call `Message::getDto()` with the class your job expects. The expected type comes from your code, not from the message body — that way a tampered queue message cannot choose which class gets instantiated. `getArgument()` keeps returning the raw array:
 
 ```php
 public function execute(Message $message): ?string
 {
-    $order = $message->getDto(); // OrderDto, or null if no DTO was dispatched
+    $order = $message->getDto(OrderDto::class);
     $id = $message->getArgument('id'); // the raw array is still available
 
     return Processor::ACK;
 }
 ```
 
-`getDto()` returns `null` when the message wasn't dispatched with a DTO, and also when the recorded `dtoClass` can no longer be autoloaded (e.g. the class was renamed or removed after the job was queued) — a job can always fall back to `getArgument()` in that case instead of crashing.
+If the payload cannot be hydrated into the given class, `getDto()` throws. Jobs that still need to accept legacy array-only messages can catch that exception (or keep using `getArgument()` only) while they migrate.
 
 ### Supported DTO classes
 

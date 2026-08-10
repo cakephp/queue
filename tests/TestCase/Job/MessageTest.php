@@ -22,6 +22,7 @@ use Closure;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
 use Error;
+use InvalidArgumentException;
 use RuntimeException;
 use TestApp\Dto\OrderDto;
 use TestApp\Dto\OrderItemDto;
@@ -98,7 +99,7 @@ class MessageTest extends TestCase
     }
 
     /**
-     * Test that a DTO dispatched with the message is hydrated on the receiving side.
+     * Test that a DTO is hydrated into the class the job asks for.
      *
      * @return void
      */
@@ -123,7 +124,7 @@ class MessageTest extends TestCase
 
         $this->assertSame(OrderDto::class, $message->getDtoClass());
 
-        $dto = $message->getDto();
+        $dto = $message->getDto(OrderDto::class);
         $this->assertInstanceOf(OrderDto::class, $dto);
         $this->assertSame(7, $dto->id);
         $this->assertSame('Acme Corp', $dto->customer);
@@ -132,8 +133,8 @@ class MessageTest extends TestCase
         $this->assertSame('SKU-1', $dto->items[0]->sku);
         $this->assertSame(1, $dto->items[1]->quantity);
 
-        // The DTO is only hydrated once.
-        $this->assertSame($dto, $message->getDto());
+        // The DTO is only hydrated once for the same expected class.
+        $this->assertSame($dto, $message->getDto(OrderDto::class));
 
         // The raw data is still accessible as an array.
         $this->assertSame($parsedBody['data'], $message->getArgument());
@@ -160,22 +161,29 @@ class MessageTest extends TestCase
         $originalMessage = new NullMessage((string)json_encode($parsedBody));
         $message = new Message($originalMessage, $context);
 
-        $dto = $message->getDto();
+        $dto = $message->getDto(UserDto::class);
         $this->assertInstanceOf(UserDto::class, $dto);
         $this->assertSame(3, $dto->id);
         $this->assertSame('markstory', $dto->username);
     }
 
     /**
-     * Test that messages without a DTO class do not expose a DTO.
+     * Test that hydration uses the caller-supplied class even when the body has
+     * no `dtoClass` metadata (legacy array messages / gradual adoption).
      *
      * @return void
      */
-    public function testGetDtoWithoutDtoClass()
+    public function testGetDtoWithoutDtoClassMetadata()
     {
         $parsedBody = [
             'class' => [WelcomeMailer::class, 'welcome'],
-            'data' => ['id' => 7],
+            'data' => [
+                'id' => 7,
+                'customer' => 'Acme Corp',
+                'items' => [
+                    ['sku' => 'SKU-1', 'quantity' => 2],
+                ],
+            ],
         ];
         $connectionFactory = new NullConnectionFactory();
         $context = $connectionFactory->createContext();
@@ -183,21 +191,28 @@ class MessageTest extends TestCase
         $message = new Message($originalMessage, $context);
 
         $this->assertNull($message->getDtoClass());
-        $this->assertNull($message->getDto());
-        $this->assertSame(['id' => 7], $message->getArgument());
+
+        $dto = $message->getDto(OrderDto::class);
+        $this->assertInstanceOf(OrderDto::class, $dto);
+        $this->assertSame(7, $dto->id);
+        $this->assertSame('Acme Corp', $dto->customer);
     }
 
     /**
-     * Test that a `dtoClass` referencing a class that no longer exists at
-     * consume time is treated the same as no DTO at all, rather than crashing.
+     * Test that a tampered / unresolvable `dtoClass` on the body is ignored —
+     * only the class passed to `getDto()` is instantiated.
      *
      * @return void
      */
-    public function testGetDtoWithUnresolvableDtoClass()
+    public function testGetDtoIgnoresUntrustedBodyDtoClass()
     {
         $parsedBody = [
             'class' => [WelcomeMailer::class, 'welcome'],
-            'data' => ['id' => 7],
+            'data' => [
+                'id' => 7,
+                'customer' => 'Acme Corp',
+                'items' => [],
+            ],
             'dtoClass' => 'TestApp\Dto\DoesNotExist',
         ];
         $connectionFactory = new NullConnectionFactory();
@@ -206,8 +221,31 @@ class MessageTest extends TestCase
         $message = new Message($originalMessage, $context);
 
         $this->assertNull($message->getDtoClass());
-        $this->assertNull($message->getDto());
-        $this->assertSame(['id' => 7], $message->getArgument());
+
+        $dto = $message->getDto(OrderDto::class);
+        $this->assertInstanceOf(OrderDto::class, $dto);
+        $this->assertSame(7, $dto->id);
+    }
+
+    /**
+     * Test that requesting a class that cannot be autoloaded throws.
+     *
+     * @return void
+     */
+    public function testGetDtoThrowsForMissingExpectedClass()
+    {
+        $parsedBody = [
+            'class' => [WelcomeMailer::class, 'welcome'],
+            'data' => ['id' => 7],
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage((string)json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('DTO class `TestApp\Dto\DoesNotExist` does not exist.');
+        $message->getDto('TestApp\Dto\DoesNotExist');
     }
 
     /**

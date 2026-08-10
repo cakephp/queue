@@ -22,6 +22,7 @@ use Cake\Utility\Hash;
 use Closure;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
+use InvalidArgumentException;
 use JsonSerializable;
 use RuntimeException;
 
@@ -35,6 +36,11 @@ class Message implements JsonSerializable
     protected ?Closure $callable = null;
 
     protected ?object $dto = null;
+
+    /**
+     * @var class-string|null
+     */
+    protected ?string $dtoHydratedAs = null;
 
     /**
      * @param \Interop\Queue\Message $originalMessage Queue message.
@@ -148,7 +154,10 @@ class Message implements JsonSerializable
     }
 
     /**
-     * Get the DTO class name the message was dispatched with, if any.
+     * Get the DTO class name recorded on the message body at dispatch time, if any.
+     *
+     * This value is metadata for uniqueness hashing and debugging. It is never used
+     * as the hydration target — pass the expected class to `getDto()` instead.
      *
      * @return class-string|null
      */
@@ -163,22 +172,29 @@ class Message implements JsonSerializable
     }
 
     /**
-     * Get the message data hydrated back into a DTO object.
+     * Hydrate the message data into the expected DTO class.
      *
-     * Returns `null` when the message was not dispatched with a DTO.
+     * The class name must come from application code, not from the message body.
+     * That keeps queue consumers safe if a message is tampered with: only the type
+     * the job asks for is ever instantiated.
+     *
+     * @template T of object
+     * @param class-string<T> $dtoClass The DTO class the job expects.
+     * @return T
+     * @throws \InvalidArgumentException When `$dtoClass` does not exist or cannot be hydrated.
      */
-    public function getDto(): ?object
+    public function getDto(string $dtoClass): object
     {
-        if ($this->dto !== null) {
+        if ($this->dto !== null && $this->dtoHydratedAs === $dtoClass) {
             return $this->dto;
         }
 
-        $dtoClass = $this->getDtoClass();
-        if ($dtoClass === null) {
-            return null;
+        if (!class_exists($dtoClass)) {
+            throw new InvalidArgumentException(sprintf('DTO class `%s` does not exist.', $dtoClass));
         }
 
         $this->dto = DtoManager::deserialize($this->getArgument(), $dtoClass);
+        $this->dtoHydratedAs = $dtoClass;
 
         return $this->dto;
     }

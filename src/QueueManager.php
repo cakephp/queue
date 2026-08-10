@@ -208,14 +208,16 @@ class QueueManager
      *   \Cake\Queue\Processor and have the execute method invoked.
      * @param array<string, mixed>|object $data An array of data or a DTO object that will
      *   be passed to the job. When a DTO object is given it is serialized and the class
-     *   name is stored so the job can hydrate it back via `Message::getDto()`.
+     *   name is stored as message metadata (uniqueness / debugging). Jobs must still
+     *   pass the expected class to `Message::getDto()`.
      * @param array<string, mixed> $options An array of options for publishing the job:
      *   - `config` - A queue config name. Defaults to 'default'.
      *   - `delay` - Time (in integer seconds) to delay message, after which it
      *      will be processed. Not all message brokers accept this. Default `null`.
-     *   - `dtoClass` - The DTO class to hydrate the data into on the receiving side.
+     *   - `dtoClass` - Optional DTO class metadata recorded on the message body.
      *     Only needed when `$data` is an array. Ignored when `$data` is already a DTO
-     *     object. Default `null`.
+     *     object. Does not control hydration — the job passes the expected class to
+     *     `Message::getDto()`. Default `null`.
      *   - `expires` - Time (in integer seconds) after which the message expires.
      *     The message will be removed from the queue if this time is exceeded
      *     and it has not been consumed. Default `null`.

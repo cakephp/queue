@@ -6,6 +6,7 @@ namespace TestApp\Job;
 use Cake\Queue\Job\JobInterface;
 use Cake\Queue\Job\Message;
 use Interop\Queue\Processor;
+use TestApp\Dto\OrderDto;
 
 class DtoJob implements JobInterface
 {
@@ -13,7 +14,7 @@ class DtoJob implements JobInterface
 
     public function execute(Message $message): ?string
     {
-        static::$lastDto = $message->getDto();
+        static::$lastDto = $message->getDto(OrderDto::class);
 
         return Processor::ACK;
     }
