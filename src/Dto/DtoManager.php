@@ -62,9 +62,10 @@ class DtoManager
     /**
      * Hydrate queue data back into a DTO instance.
      *
+     * @template T of object
      * @param array<string, mixed> $data Serialized data.
-     * @param class-string $dtoClass DTO class name.
-     * @return object Hydrated DTO instance.
+     * @param class-string<T> $dtoClass DTO class name.
+     * @return T Hydrated DTO instance.
      * @throws \InvalidArgumentException When the DTO class does not exist.
      */
     public static function deserialize(array $data, string $dtoClass): object
@@ -73,7 +74,10 @@ class DtoManager
             throw new InvalidArgumentException(sprintf('DTO class `%s` does not exist.', $dtoClass));
         }
 
-        return (new ResultSetFactory())->hydrateDto($data, $dtoClass);
+        $dto = (new ResultSetFactory())->hydrateDto($data, $dtoClass);
+        assert($dto instanceof $dtoClass);
+
+        return $dto;
     }
 
     /**

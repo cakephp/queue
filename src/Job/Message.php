@@ -186,6 +186,8 @@ class Message implements JsonSerializable
     public function getDto(string $dtoClass): object
     {
         if ($this->dto !== null && $this->dtoHydratedAs === $dtoClass) {
+            assert($this->dto instanceof $dtoClass);
+
             return $this->dto;
         }
 
@@ -193,10 +195,13 @@ class Message implements JsonSerializable
             throw new InvalidArgumentException(sprintf('DTO class `%s` does not exist.', $dtoClass));
         }
 
-        $this->dto = DtoManager::deserialize($this->getArgument(), $dtoClass);
+        $dto = DtoManager::deserialize($this->getArgument(), $dtoClass);
+        assert($dto instanceof $dtoClass);
+
+        $this->dto = $dto;
         $this->dtoHydratedAs = $dtoClass;
 
-        return $this->dto;
+        return $dto;
     }
 
     /**
