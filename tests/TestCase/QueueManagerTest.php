@@ -24,6 +24,8 @@ use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
 use Enqueue\SimpleClient\SimpleClient;
 use LogicException;
+use TestApp\Dto\OrderDto;
+use TestApp\Dto\OrderItemDto;
 use TestApp\Job\LogToDebugJob;
 use TestApp\Job\UniqueJob;
 use TypeError;
@@ -93,6 +95,30 @@ class QueueManagerTest extends TestCase
         $first = QueueManager::getUniqueId('Example', 'hello', ['arr' => ['a' => 1, 'b' => 2]]);
         $second = QueueManager::getUniqueId('Example', 'hello', ['arr' => ['b' => 2, 'a' => 1]]);
         $this->assertEquals($first, $second, 'nested arrays are sorted too');
+    }
+
+    /**
+     * Test that the dtoClass argument is factored into the unique hash so two
+     * different DTO types that happen to serialize identically don't collide.
+     *
+     * @return void
+     */
+    public function testGetUniqueIdWithDtoClass()
+    {
+        $data = ['id' => 7, 'customer' => 'Acme Corp'];
+
+        $withoutDto = QueueManager::getUniqueId('Example', 'hello', $data);
+        $withNullDto = QueueManager::getUniqueId('Example', 'hello', $data);
+        $this->assertSame($withoutDto, $withNullDto, 'omitting dtoClass matches an explicit null');
+
+        $withOrderDto = QueueManager::getUniqueId('Example', 'hello', $data, 'App\Dto\OrderDto');
+        $this->assertNotEquals($withoutDto, $withOrderDto, 'a dtoClass changes the hash');
+
+        $withOtherDto = QueueManager::getUniqueId('Example', 'hello', $data, 'App\Dto\OtherDto');
+        $this->assertNotEquals($withOrderDto, $withOtherDto, 'different dtoClasses with identical data are distinct');
+
+        $withOrderDtoAgain = QueueManager::getUniqueId('Example', 'hello', $data, 'App\Dto\OrderDto');
+        $this->assertSame($withOrderDto, $withOrderDtoAgain, 'same dtoClass and data are the same');
     }
 
     public function testSetConfig()
@@ -223,6 +249,61 @@ class QueueManagerTest extends TestCase
         $this->assertStringContainsString('non-default-queue-name', file_get_contents($fsQueueFile));
     }
 
+    public function testPushWithDtoObject()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+        ]);
+
+        $dto = new OrderDto(7, 'Acme Corp', [
+            new OrderItemDto('SKU-1', 2),
+        ]);
+        QueueManager::push(LogToDebugJob::class, $dto, ['config' => 'test']);
+
+        $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $contents = file_get_contents($fsQueueFile);
+        $this->assertStringContainsString('dtoClass', $contents);
+        $this->assertStringContainsString('OrderDto', $contents);
+        $this->assertStringContainsString('Acme Corp', $contents);
+        $this->assertStringContainsString('SKU-1', $contents);
+    }
+
+    public function testPushWithDtoClassOption()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+        ]);
+
+        QueueManager::push(LogToDebugJob::class, [
+            'id' => 7,
+            'customer' => 'Acme Corp',
+        ], ['config' => 'test', 'dtoClass' => OrderDto::class]);
+
+        $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $contents = file_get_contents($fsQueueFile);
+        $this->assertStringContainsString('dtoClass', $contents);
+        $this->assertStringContainsString('OrderDto', $contents);
+    }
+
+    public function testPushWithoutDtoDoesNotAddDtoClass()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+        ]);
+
+        QueueManager::push(LogToDebugJob::class, ['id' => 7], ['config' => 'test']);
+
+        $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $contents = file_get_contents($fsQueueFile);
+        $this->assertStringNotContainsString('dtoClass', $contents);
+    }
+
     public function testUniqueMessageIsQueuedOnlyOnce()
     {
         QueueManager::setConfig('test', [
@@ -239,6 +320,62 @@ class QueueManagerTest extends TestCase
         $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
         $this->assertFileExists($fsQueueFile);
         $this->assertSame(1, substr_count(file_get_contents($fsQueueFile), 'UniqueJob'));
+    }
+
+    /**
+     * Test that pushing the same DTO twice for a unique job only queues it once.
+     *
+     * @return void
+     */
+    public function testUniqueMessageWithDtoObjectIsQueuedOnlyOnce()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
+        ]);
+
+        $first = new OrderDto(7, 'Acme Corp', [
+            new OrderItemDto('SKU-1', 2),
+        ]);
+        $second = new OrderDto(7, 'Acme Corp', [
+            new OrderItemDto('SKU-1', 2),
+        ]);
+
+        QueueManager::push(UniqueJob::class, $first, ['config' => 'test']);
+        QueueManager::push(UniqueJob::class, $second, ['config' => 'test']);
+
+        $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $this->assertSame(1, substr_count(file_get_contents($fsQueueFile), 'UniqueJob'));
+    }
+
+    /**
+     * Test that pushing DTOs with different field values for a unique job queues both.
+     *
+     * @return void
+     */
+    public function testUniqueMessageWithDifferentDtoObjectsAreBothQueued()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
+        ]);
+
+        $first = new OrderDto(7, 'Acme Corp', []);
+        $second = new OrderDto(8, 'Other Corp', []);
+
+        QueueManager::push(UniqueJob::class, $first, ['config' => 'test']);
+        QueueManager::push(UniqueJob::class, $second, ['config' => 'test']);
+
+        $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $this->assertSame(2, substr_count(file_get_contents($fsQueueFile), 'UniqueJob'));
     }
 
     public function testDroppedJobIsLoggedForUniqueJob()

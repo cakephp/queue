@@ -17,10 +17,12 @@ declare(strict_types=1);
 namespace Cake\Queue\Job;
 
 use Cake\Core\ContainerInterface;
+use Cake\Queue\Dto\DtoManager;
 use Cake\Utility\Hash;
 use Closure;
 use Interop\Queue\Context;
 use Interop\Queue\Message as QueueMessage;
+use InvalidArgumentException;
 use JsonSerializable;
 use RuntimeException;
 
@@ -32,6 +34,13 @@ class Message implements JsonSerializable
     protected array $parsedBody;
 
     protected ?Closure $callable = null;
+
+    protected ?object $dto = null;
+
+    /**
+     * @var class-string|null
+     */
+    protected ?string $dtoHydratedAs = null;
 
     /**
      * @param \Interop\Queue\Message $originalMessage Queue message.
@@ -126,7 +135,6 @@ class Message implements JsonSerializable
     /**
      * @param mixed $key Key
      * @param mixed $default Default value.
-     * @return mixed
      */
     public function getArgument(mixed $key = null, mixed $default = null): mixed
     {
@@ -146,9 +154,58 @@ class Message implements JsonSerializable
     }
 
     /**
-     * The maximum number of attempts allowed by the job.
+     * Get the DTO class name recorded on the message body at dispatch time, if any.
      *
-     * @return int|null
+     * This value is metadata for uniqueness hashing and debugging. It is never used
+     * as the hydration target — pass the expected class to `getDto()` instead.
+     *
+     * @return class-string|null
+     */
+    public function getDtoClass(): ?string
+    {
+        $dtoClass = $this->parsedBody['dtoClass'] ?? null;
+        if (!is_string($dtoClass) || !class_exists($dtoClass)) {
+            return null;
+        }
+
+        return $dtoClass;
+    }
+
+    /**
+     * Hydrate the message data into the expected DTO class.
+     *
+     * The class name must come from application code, not from the message body.
+     * That keeps queue consumers safe if a message is tampered with: only the type
+     * the job asks for is ever instantiated.
+     *
+     * @template T of object
+     * @param class-string<T> $dtoClass The DTO class the job expects.
+     * @return T
+     * @throws \InvalidArgumentException When `$dtoClass` does not exist or cannot be hydrated.
+     */
+    public function getDto(string $dtoClass): object
+    {
+        if ($this->dto !== null && $this->dtoHydratedAs === $dtoClass) {
+            assert($this->dto instanceof $dtoClass);
+
+            return $this->dto;
+        }
+
+        if (!class_exists($dtoClass)) {
+            throw new InvalidArgumentException(sprintf('DTO class `%s` does not exist.', $dtoClass));
+        }
+
+        $dto = DtoManager::deserialize($this->getArgument(), $dtoClass);
+        assert($dto instanceof $dtoClass);
+
+        $this->dto = $dto;
+        $this->dtoHydratedAs = $dtoClass;
+
+        return $dto;
+    }
+
+    /**
+     * The maximum number of attempts allowed by the job.
      */
     public function getMaxAttempts(): ?int
     {

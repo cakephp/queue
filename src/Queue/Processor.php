@@ -31,9 +31,6 @@ use Throwable;
 
 class Processor implements InteropProcessor
 {
-    /**
-     * @use \Cake\Event\EventDispatcherTrait<\Cake\Queue\Queue\Processor>
-     */
     use EventDispatcherTrait;
 
     /**

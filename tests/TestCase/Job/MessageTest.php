@@ -22,7 +22,11 @@ use Closure;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
 use Error;
+use InvalidArgumentException;
 use RuntimeException;
+use TestApp\Dto\OrderDto;
+use TestApp\Dto\OrderItemDto;
+use TestApp\Dto\UserDto;
 use TestApp\WelcomeMailer;
 
 class MessageTest extends TestCase
@@ -92,6 +96,156 @@ class MessageTest extends TestCase
         $this->assertSame(1, $message->getArgument('first'));
         $this->assertSame('two', $message->getArgument('second', 'ignore_this'));
         $this->assertSame('no third argument', $message->getArgument('third', 'no third argument'));
+    }
+
+    /**
+     * Test that a DTO is hydrated into the class the job asks for.
+     *
+     * @return void
+     */
+    public function testGetDto()
+    {
+        $parsedBody = [
+            'class' => [WelcomeMailer::class, 'welcome'],
+            'data' => [
+                'id' => 7,
+                'customer' => 'Acme Corp',
+                'items' => [
+                    ['sku' => 'SKU-1', 'quantity' => 2],
+                    ['sku' => 'SKU-2', 'quantity' => 1],
+                ],
+            ],
+            'dtoClass' => OrderDto::class,
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage((string)json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $this->assertSame(OrderDto::class, $message->getDtoClass());
+
+        $dto = $message->getDto(OrderDto::class);
+        $this->assertInstanceOf(OrderDto::class, $dto);
+        $this->assertSame(7, $dto->id);
+        $this->assertSame('Acme Corp', $dto->customer);
+        $this->assertCount(2, $dto->items);
+        $this->assertInstanceOf(OrderItemDto::class, $dto->items[0]);
+        $this->assertSame('SKU-1', $dto->items[0]->sku);
+        $this->assertSame(1, $dto->items[1]->quantity);
+
+        // The DTO is only hydrated once for the same expected class.
+        $this->assertSame($dto, $message->getDto(OrderDto::class));
+
+        // The raw data is still accessible as an array.
+        $this->assertSame($parsedBody['data'], $message->getArgument());
+        $this->assertSame(7, $message->getArgument('id'));
+    }
+
+    /**
+     * Test that DTOs using a `createFromArray()` factory are supported.
+     *
+     * @return void
+     */
+    public function testGetDtoWithCreateFromArray()
+    {
+        $parsedBody = [
+            'class' => [WelcomeMailer::class, 'welcome'],
+            'data' => [
+                'id' => 3,
+                'username' => 'markstory',
+            ],
+            'dtoClass' => UserDto::class,
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage((string)json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $dto = $message->getDto(UserDto::class);
+        $this->assertInstanceOf(UserDto::class, $dto);
+        $this->assertSame(3, $dto->id);
+        $this->assertSame('markstory', $dto->username);
+    }
+
+    /**
+     * Test that hydration uses the caller-supplied class even when the body has
+     * no `dtoClass` metadata (legacy array messages / gradual adoption).
+     *
+     * @return void
+     */
+    public function testGetDtoWithoutDtoClassMetadata()
+    {
+        $parsedBody = [
+            'class' => [WelcomeMailer::class, 'welcome'],
+            'data' => [
+                'id' => 7,
+                'customer' => 'Acme Corp',
+                'items' => [
+                    ['sku' => 'SKU-1', 'quantity' => 2],
+                ],
+            ],
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage((string)json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $this->assertNull($message->getDtoClass());
+
+        $dto = $message->getDto(OrderDto::class);
+        $this->assertInstanceOf(OrderDto::class, $dto);
+        $this->assertSame(7, $dto->id);
+        $this->assertSame('Acme Corp', $dto->customer);
+    }
+
+    /**
+     * Test that a tampered / unresolvable `dtoClass` on the body is ignored —
+     * only the class passed to `getDto()` is instantiated.
+     *
+     * @return void
+     */
+    public function testGetDtoIgnoresUntrustedBodyDtoClass()
+    {
+        $parsedBody = [
+            'class' => [WelcomeMailer::class, 'welcome'],
+            'data' => [
+                'id' => 7,
+                'customer' => 'Acme Corp',
+                'items' => [],
+            ],
+            'dtoClass' => 'TestApp\Dto\DoesNotExist',
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage((string)json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $this->assertNull($message->getDtoClass());
+
+        $dto = $message->getDto(OrderDto::class);
+        $this->assertInstanceOf(OrderDto::class, $dto);
+        $this->assertSame(7, $dto->id);
+    }
+
+    /**
+     * Test that requesting a class that cannot be autoloaded throws.
+     *
+     * @return void
+     */
+    public function testGetDtoThrowsForMissingExpectedClass()
+    {
+        $parsedBody = [
+            'class' => [WelcomeMailer::class, 'welcome'],
+            'data' => ['id' => 7],
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage((string)json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('DTO class `TestApp\Dto\DoesNotExist` does not exist.');
+        $message->getDto('TestApp\Dto\DoesNotExist');
     }
 
     /**

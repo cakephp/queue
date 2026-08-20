@@ -6,19 +6,16 @@ namespace TestApp\Job;
 use Cake\Queue\Job\JobInterface;
 use Cake\Queue\Job\Message;
 use Interop\Queue\Processor;
+use TestApp\Dto\OrderDto;
 
-/**
- * Upload job
- */
-class UploadJob implements JobInterface
+class DtoJob implements JobInterface
 {
-    /**
-     * Executes logic for UploadJob
-     *
-     * @param \Cake\Queue\Job\Message $message job message
-     */
+    public static ?object $lastDto = null;
+
     public function execute(Message $message): ?string
     {
+        static::$lastDto = $message->getDto(OrderDto::class);
+
         return Processor::ACK;
     }
 }
