@@ -3,7 +3,7 @@ name: Documentation Validation
 on:
     push:
         branches:
-            - 2.x
+            - 3.x
         paths:
             - 'docs/**'
             - '.github/**'

@@ -5,9 +5,10 @@ const require = createRequire(import.meta.url)
 const tocEn = require('./toc_en.json')
 
 const versions = {
-  text: '2.x',
+  text: '3.x',
   items: [
-    { text: '2.x (current)', link: 'https://book.cakephp.org/queue/2/', target: '_self' },
+    { text: '3.x (current)', link: 'https://book.cakephp.org/queue/3/', target: '_self' },
+    { text: '2.x', link: 'https://book.cakephp.org/queue/2/', target: '_self' },
     { text: '1.x', link: 'https://book.cakephp.org/queue/1/en/', target: '_self' },
   ],
 }
@@ -17,12 +18,12 @@ export default {
   srcDir: '.',
   title: 'Queue',
   description: 'CakePHP Queue Documentation',
-  base: '/queue/2/',
+  base: '/queue/3/',
   rewrites: {
     'en/:slug*': ':slug*',
   },
   sitemap: {
-    hostname: 'https://book.cakephp.org/queue/2/',
+    hostname: 'https://book.cakephp.org/queue/3/',
   },
   themeConfig: {
     siteTitle: false,
@@ -31,7 +32,7 @@ export default {
       { icon: 'github', link: 'https://github.com/cakephp/queue' },
     ],
     editLink: {
-      pattern: 'https://github.com/cakephp/queue/edit/2.x/docs/:path',
+      pattern: 'https://github.com/cakephp/queue/edit/3.x/docs/:path',
       text: 'Edit this page on GitHub',
     },
     sidebar: tocEn,
