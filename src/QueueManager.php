@@ -92,7 +92,9 @@ class QueueManager
             }
 
             return;
-        } elseif (is_array($key)) {
+        }
+
+        if (is_array($key)) {
             throw new LogicException('If config is not null, key must be a string.');
         }
 

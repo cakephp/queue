@@ -63,6 +63,7 @@ class DtoManager
      * Hydrate queue data back into a DTO instance.
      *
      * This method is not safe to use with user-defined `dtoClass` values.
+     *
      * @template T of object
      * @param array<string, mixed> $data Serialized data.
      * @param class-string<T> $dtoClass DTO class name.

@@ -110,7 +110,7 @@ class TestCustomProcessor implements InteropProcessor
         $callable = $message->getCallable();
         $response = $callable($message);
         if ($response === null) {
-            $response = InteropProcessor::ACK;
+            return InteropProcessor::ACK;
         }
 
         return $response;
