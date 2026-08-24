@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/cakephp/queue/actions/workflows/ci.yml/badge.svg)](https://github.com/cakephp/queue/actions/workflows/ci.yml)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.txt)
-[![Coverage Status](https://img.shields.io/codecov/c/github/cakephp/queue/master.svg?style=flat-square)](https://codecov.io/github/cakephp/queue?branch=master)
+[![Coverage Status](https://img.shields.io/codecov/c/github/cakephp/queue/3.x.svg?style=flat-square)](https://codecov.io/github/cakephp/queue?branch=3.x)
 [![PHPStan Level 8](https://img.shields.io/badge/PHPStan-level%208-brightgreen)](https://github.com/cakephp/queue)
 [![Total Downloads](https://img.shields.io/packagist/dt/cakephp/queue.svg?style=flat-square)](https://packagist.org/packages/cakephp/queue)
 
@@ -22,7 +22,7 @@ composer require cakephp/queue
 Install the transport you wish to use. For a list of available transports, see [this page](https://php-enqueue.github.io/transport). The example below is for pure-php redis:
 
 ```shell
-composer require enqueue/redis predis/predis:^1
+composer require enqueue/redis predis/predis:^3
 ```
 
 ## Configuration
@@ -46,4 +46,4 @@ Additionally, you will need to configure the ``default`` queue configuration in 
 
 ## Documentation
 
-Full documentation of the plugin can be found on the [CakePHP Cookbook](https://book.cakephp.org/queue/2/).
+Full documentation of the plugin can be found on the [CakePHP Cookbook](https://book.cakephp.org/queue/3/).

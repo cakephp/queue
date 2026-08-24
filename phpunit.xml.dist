@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         colors="true"
-         cacheDirectory=".phpunit.cache"
          bootstrap="tests/bootstrap.php"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.1/phpunit.xsd">
+         colors="true"
+         backupGlobals="true"
+         failOnDeprecation="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         cacheDirectory=".phpunit.cache"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.3/phpunit.xsd">
     <testsuites>
         <testsuite name="queue">
             <directory>tests/TestCase</directory>
@@ -15,7 +18,7 @@
     </extensions>
 
     <!-- Only collect coverage for src/ -->
-    <source>
+    <source restrictNotices="true" restrictWarnings="true" ignoreIndirectDeprecations="true">
         <include>
             <directory suffix=".php">./src/</directory>
         </include>

@@ -16,8 +16,7 @@
     "homepage": "https://github.com/cakephp/queue",
     "support": {
         "issues": "https://github.com/cakephp/queue/issues",
-        "forum": "https://stackoverflow.com/tags/cakephp",
-        "irc": "irc://irc.freenode.org/cakephp",
+        "forum": "https://discourse.cakephp.org/",
         "source": "https://github.com/cakephp/queue"
     },
     "require": {
@@ -29,9 +28,9 @@
     },
     "require-dev": {
         "cakephp/bake": "^3.5.1",
-        "cakephp/cakephp-codesniffer": "^5.0",
+        "cakephp/cakephp-codesniffer": "^5.3",
         "enqueue/fs": "^0.10",
-        "phpunit/phpunit": "^10.5.32 || ^11.3.3 || ^12.0.9"
+        "phpunit/phpunit": "^11.5.3 || ^12.1.3 || ^13.0"
     },
     "suggest": {
         "cakephp/bake": "Required if you want to generate jobs.",
@@ -67,7 +66,7 @@
         "phpstan": "tools/phpstan analyse",
         "stan-baseline": "tools/phpstan --generate-baseline",
         "stan-setup": "phive install",
-        "rector-setup": "cp composer.json composer.backup && composer require --dev rector/rector:\"^2.2\" && mv composer.backup composer.json",
+        "rector-setup": "cp composer.json composer.backup && composer require --dev rector/rector:\"~2.5.0\" && mv composer.backup composer.json",
         "rector-check": "vendor/bin/rector process --dry-run",
         "rector-fix": "vendor/bin/rector process",
         "test": "phpunit",

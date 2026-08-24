@@ -267,7 +267,6 @@ class WorkerCommandTest extends TestCase
     #[RunInSeparateProcess]
     public function testQueueProcessesJobWithDIService()
     {
-        $this->skipIf(version_compare(Configure::version(), '4.2', '<'), 'DI Container is only available since CakePHP 4.2');
         $config = [
             'queue' => 'default',
             'url' => 'file:///' . TMP . DS . 'queue',

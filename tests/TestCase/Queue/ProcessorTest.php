@@ -32,38 +32,21 @@ use TestApp\Dto\OrderDto;
 use TestApp\Job\DtoJob;
 use TestApp\TestProcessor;
 use TestApp\WelcomeMailer;
-use Traversable;
 
 class ProcessorTest extends TestCase
 {
     use QueueTestTrait;
 
     /**
-     * Convert EventList to array in a backwards-compatible way.
-     *
-     * In CakePHP 5.3.0+ EventList implements Traversable but array access is deprecated.
-     * In older versions, EventList only supports array access.
+     * Convert EventList to array.
      *
      * @param \Cake\Event\EventList $events The event list to convert.
      * @return array<\Cake\Event\EventInterface>
      */
     protected function eventListToArray(EventList $events): array
     {
-        if ($events instanceof Traversable) {
-            /** @var array<\Cake\Event\EventInterface> */
-            return iterator_to_array($events);
-        }
-
-        $result = [];
-        $count = $events->count();
-        for ($i = 0; $i < $count; $i++) {
-            $event = $events[$i];
-            if ($event !== null) {
-                $result[] = $event;
-            }
-        }
-
-        return $result;
+        /** @var array<\Cake\Event\EventInterface> */
+        return iterator_to_array($events);
     }
 
     /**

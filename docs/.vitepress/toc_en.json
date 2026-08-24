@@ -5,7 +5,8 @@
       "collapsed": false,
       "items": [
         { "text": "Installation and Configuration", "link": "/installation" },
-        { "text": "Defining and Queueing Jobs", "link": "/jobs" }
+        { "text": "Defining and Queueing Jobs", "link": "/jobs" },
+        { "text": "Upgrading to 3.0", "link": "/upgrading" }
       ]
     },
     {
