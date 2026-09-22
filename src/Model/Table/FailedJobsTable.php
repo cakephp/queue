@@ -73,6 +73,10 @@ class FailedJobsTable extends Table
             ->notEmptyString('data');
 
         $validator
+            ->scalar('metadata')
+            ->allowEmptyString('metadata');
+
+        $validator
             ->scalar('config')
             ->maxLength('config', 255)
             ->notEmptyString('config');

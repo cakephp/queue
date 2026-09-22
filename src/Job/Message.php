@@ -205,6 +205,21 @@ class Message implements JsonSerializable
     }
 
     /**
+     * Get the envelope metadata recorded on the message body at dispatch time.
+     *
+     * Metadata carries bookkeeping fields that belong next to the payload, 
+     * not inside it, so `data` stays pure for DTO hydration.
+     *
+     * @return array<string, mixed>
+     */
+    public function getMetadata(): array
+    {
+        $metadata = $this->parsedBody['metadata'] ?? [];
+
+        return is_array($metadata) ? $metadata : [];
+    }
+
+    /**
      * The maximum number of attempts allowed by the job.
      */
     public function getMaxAttempts(): ?int

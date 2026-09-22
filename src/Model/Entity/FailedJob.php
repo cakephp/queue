@@ -12,6 +12,7 @@ use Cake\ORM\Entity;
  * @property string $class
  * @property string $method
  * @property string $data
+ * @property string|null $metadata
  * @property string|null $config
  * @property string|null $priority
  * @property string|null $queue
@@ -37,6 +38,7 @@ class FailedJob extends Entity
         'class' => true,
         'method' => true,
         'data' => true,
+        'metadata' => true,
         'config' => true,
         'priority' => true,
         'queue' => true,
@@ -51,5 +53,23 @@ class FailedJob extends Entity
     protected function _getDecodedData(): array
     {
         return json_decode($this->data, true);
+    }
+
+    /**
+     * Envelope metadata as an array. Empty when the job was stored without
+     * a metadata envelope.
+     *
+     * @see \Cake\Queue\Model\Entity\FailedJob::$decoded_metadata
+     * @return array<string, mixed>
+     */
+    protected function _getDecodedMetadata(): array
+    {
+        if (empty($this->metadata)) {
+            return [];
+        }
+
+        $decoded = json_decode((string)$this->metadata, true);
+
+        return is_array($decoded) ? $decoded : [];
     }
 }
