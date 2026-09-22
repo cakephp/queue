@@ -138,6 +138,7 @@ class RequeueCommand extends Command
                         'config' => $failedJob->config,
                         'priority' => $failedJob->priority,
                         'queue' => $failedJob->queue,
+                        'metadata' => $failedJob->decoded_metadata ?? [],
                     ],
                 );
 

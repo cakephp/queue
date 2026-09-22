@@ -67,6 +67,9 @@ class FailedJobsListener implements EventListenerInterface
             'class' => $class,
             'method' => $method,
             'data' => json_encode($data),
+            'metadata' => isset($originalMessageBody['metadata'])
+                ? (string)json_encode($originalMessageBody['metadata'])
+                : null,
             'config' => $requeueOptions['config'],
             'priority' => $requeueOptions['priority'],
             'queue' => $requeueOptions['queue'],
