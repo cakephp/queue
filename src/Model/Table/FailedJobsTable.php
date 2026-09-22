@@ -73,6 +73,11 @@ class FailedJobsTable extends Table
             ->notEmptyString('data');
 
         $validator
+            ->scalar('dto_class')
+            ->maxLength('dto_class', 255)
+            ->allowEmptyString('dto_class');
+
+        $validator
             ->scalar('config')
             ->maxLength('config', 255)
             ->notEmptyString('config');

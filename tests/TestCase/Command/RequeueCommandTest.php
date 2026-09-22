@@ -19,9 +19,14 @@ namespace Cake\Queue\Test\TestCase\Command;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
 use Cake\Log\Log;
+use Cake\Queue\Job\Message;
 use Cake\Queue\QueueManager;
 use Cake\Queue\Test\TestCase\QueueTestTrait;
 use Cake\TestSuite\TestCase;
+use Enqueue\Null\NullConnectionFactory;
+use Enqueue\Null\NullMessage;
+use TestApp\Dto\OrderDto;
+use TestApp\Job\DtoJob;
 use TestApp\Job\LogToDebugJob;
 
 /**
@@ -196,5 +201,63 @@ class RequeueCommandTest extends TestCase
         QueueManager::drop('alternate_config');
 
         $this->assertDebugLogContains('Debug job was run');
+    }
+
+    public function testRequeuedDtoJobKeepsDtoClass()
+    {
+        $fsQueuePath = TMP . DS . uniqid('queue');
+        QueueManager::setConfig('default', [
+            'url' => 'file:///' . $fsQueuePath,
+            'queue' => 'default',
+        ]);
+
+        /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
+        $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
+        $failedJobsTable->deleteAll(['1=1']);
+
+        $failedJob = $failedJobsTable->newEntity([
+            'class' => DtoJob::class,
+            'method' => 'execute',
+            'data' => json_encode(['id' => 7, 'customer' => 'Acme Corp', 'items' => []]),
+            'dto_class' => OrderDto::class,
+            'config' => 'default',
+            'priority' => null,
+            'queue' => 'default',
+            'exception' => 'boom',
+        ]);
+        $failedJobsTable->saveOrFail($failedJob);
+
+        $this->exec('queue requeue -f');
+
+        $this->assertOutputContains('Requeueing 1 jobs.');
+        $this->assertOutputContains('1 jobs requeued.');
+
+        $fsQueueFile = $fsQueuePath . DS . 'enqueue.app.default';
+        $this->assertFileExists($fsQueueFile);
+
+        $contents = (string)file_get_contents($fsQueueFile);
+        $this->assertStringContainsString('dtoClass', $contents);
+        $this->assertStringContainsString('OrderDto', $contents);
+        $this->assertStringContainsString('Acme Corp', $contents);
+
+        unlink($fsQueueFile);
+    }
+
+    public function testRequeuedDtoJobHydratesAfterRequeue()
+    {
+        $parsedBody = [
+            'class' => [DtoJob::class, 'execute'],
+            'data' => ['id' => 7, 'customer' => 'Acme Corp', 'items' => []],
+            'dtoClass' => OrderDto::class,
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $message = new Message(new NullMessage((string)json_encode($parsedBody)), $context);
+
+        $dto = $message->getDto(OrderDto::class);
+
+        $this->assertInstanceOf(OrderDto::class, $dto);
+        $this->assertSame(7, $dto->id);
+        $this->assertSame('Acme Corp', $dto->customer);
     }
 }
