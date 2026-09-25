@@ -138,6 +138,7 @@ class RequeueCommand extends Command
                         'config' => $failedJob->config,
                         'priority' => $failedJob->priority,
                         'queue' => $failedJob->queue,
+                        'dtoClass' => $failedJob->dto_class ?? null,
                     ],
                 );
 
