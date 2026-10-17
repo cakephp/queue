@@ -13,6 +13,7 @@ use Cake\ORM\Entity;
  * @property string $method
  * @property array<string, mixed> $data
  * @property array<string, mixed>|null $metadata
+ * @property string|null $dto_class
  * @property string|null $config
  * @property string|null $priority
  * @property string|null $queue
@@ -36,6 +37,7 @@ class FailedJob extends Entity
         'class' => true,
         'method' => true,
         'data' => true,
+        'dto_class' => true,
         'metadata' => true,
         'config' => true,
         'priority' => true,

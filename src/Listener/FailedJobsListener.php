@@ -68,6 +68,7 @@ class FailedJobsListener implements EventListenerInterface
             'method' => $method,
             'data' => $data,
             'metadata' => $originalMessageBody['metadata'] ?? null,
+            'dto_class' => $originalMessageBody['dtoClass'] ?? null,
             'config' => $requeueOptions['config'],
             'priority' => $requeueOptions['priority'],
             'queue' => $requeueOptions['queue'],
