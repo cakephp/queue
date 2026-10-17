@@ -66,10 +66,8 @@ class FailedJobsListener implements EventListenerInterface
         $failedJob = $failedJobsTable->newEntity([
             'class' => $class,
             'method' => $method,
-            'data' => json_encode($data),
-            'metadata' => isset($originalMessageBody['metadata'])
-                ? (string)json_encode($originalMessageBody['metadata'])
-                : null,
+            'data' => $data,
+            'metadata' => $originalMessageBody['metadata'] ?? null,
             'config' => $requeueOptions['config'],
             'priority' => $requeueOptions['priority'],
             'queue' => $requeueOptions['queue'],

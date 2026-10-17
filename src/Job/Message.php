@@ -207,7 +207,7 @@ class Message implements JsonSerializable
     /**
      * Get the envelope metadata recorded on the message body at dispatch time.
      *
-     * Metadata carries bookkeeping fields that belong next to the payload, 
+     * Metadata carries bookkeeping fields that belong next to the payload,
      * not inside it, so `data` stays pure for DTO hydration.
      *
      * @return array<string, mixed>

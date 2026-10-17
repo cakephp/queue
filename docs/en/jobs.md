@@ -42,6 +42,7 @@ Job classes can use constructor injection in the same way as controllers or comm
 The `Message` object exposes:
 
 - `getArgument($key = null, $default = null)` to fetch the full payload or a nested value using `Hash::get()` notation.
+- `getMetadata()` to read the envelope metadata recorded next to the payload (see "Message Metadata Envelope").
 - `getContext()` to access the original queue context.
 - `getOriginalMessage()` to access the broker-specific message object.
 - `getParsedBody()` to inspect the parsed queue body.
@@ -87,6 +88,7 @@ Supported options:
 - `config`: queue config name. Defaults to `default`.
 - `delay`: delay processing by a number of seconds. Broker support varies.
 - `expires`: expire the message after a number of seconds if it has not been consumed.
+- `metadata`: optional envelope array recorded on the message body next to `data` (e.g. `tags`, `_uniqueId`, `batch_id`). Unlike `data` it is never passed to the job or hydrated into a DTO. Omitted from the body when empty. Defaults to `[]`.
 - `priority`: one of `\Enqueue\Client\MessagePriority::VERY_LOW`, `LOW`, `NORMAL`, `HIGH`, or `VERY_HIGH`.
 - `queue`: queue name to use. Defaults to the configured queue, then `default`.
 
@@ -155,3 +157,34 @@ Hydration mirrors the DTO conventions used elsewhere in CakePHP (`#[RequestToDto
   ```
 
 - **`createFromArray()` factory** — if the DTO class defines a static `createFromArray(array $data, bool $nested = false): static` method, it's used instead of reflection.
+
+## Message Metadata Envelope
+
+Besides the payload (`data`), a message can carry an envelope of bookkeeping fields in a sibling `metadata` section:
+
+```php
+QueueManager::push(ProcessOrderJob::class, $order, [
+    'metadata' => ['tags' => ['finance'], '_uniqueId' => $uuid],
+]);
+```
+
+```php
+public function execute(Message $message): ?string
+{
+    $order = $message->getDto(OrderDto::class);
+    $tags = $message->getMetadata()['tags'] ?? [];
+
+    return Processor::ACK;
+}
+```
+
+Rules:
+
+- `metadata` travels next to `data`, never inside it, so the payload stays pure and DTO-safe.
+- It is never passed to the job and never hydrated into a DTO — read it with `Message::getMetadata()`, which returns `[]` for legacy messages without an envelope.
+- It is omitted from the message body when empty, so pushes without it produce byte-identical bodies.
+- It survives failed-job storage and requeue (see Failed Jobs).
+
+### Third-party payload
+
+The envelope is intentionally opaque to this plugin: it is a carrier for third-party producer and monitoring software, which may write bookkeeping fields at dispatch time and read them back on the worker side. The base plugin transports and persists the envelope but never interprets its keys — what a tag means, and which keys matter, is defined by those consumers.

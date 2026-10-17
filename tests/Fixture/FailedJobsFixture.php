@@ -26,7 +26,7 @@ class FailedJobsFixture extends TestFixture
                 'id' => 1,
                 'class' => LogToDebugJob::class,
                 'method' => 'execute',
-                'data' => '{"sample_data_1": "sample value", "sample_data_2": 1}',
+                'data' => ['sample_data_1' => 'sample value', 'sample_data_2' => 1],
                 'metadata' => null,
                 'config' => 'default',
                 'priority' => null,
@@ -38,7 +38,7 @@ class FailedJobsFixture extends TestFixture
                 'id' => 2,
                 'class' => MaxAttemptsIsThreeJob::class,
                 'method' => 'execute',
-                'data' => '{"sample_data_1": "sample value", "sample_data_2": 1}',
+                'data' => ['sample_data_1' => 'sample value', 'sample_data_2' => 1],
                 'metadata' => null,
                 'config' => 'default',
                 'priority' => null,
@@ -50,7 +50,7 @@ class FailedJobsFixture extends TestFixture
                 'id' => 3,
                 'class' => LogToDebugJob::class,
                 'method' => 'execute',
-                'data' => '{"sample_data_1": "sample value", "sample_data_2": 1}',
+                'data' => ['sample_data_1' => 'sample value', 'sample_data_2' => 1],
                 'metadata' => null,
                 'config' => 'alternate_config',
                 'priority' => null,
@@ -60,5 +60,8 @@ class FailedJobsFixture extends TestFixture
             ],
         ];
         parent::init();
+
+        $this->_schema->setColumnType('data', 'json');
+        $this->_schema->setColumnType('metadata', 'json');
     }
 }

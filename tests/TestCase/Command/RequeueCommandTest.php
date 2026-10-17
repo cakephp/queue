@@ -213,8 +213,8 @@ class RequeueCommandTest extends TestCase
         $failedJob = $failedJobsTable->newEntity([
             'class' => LogToDebugJob::class,
             'method' => 'execute',
-            'data' => json_encode(['example_key' => 'example_value']),
-            'metadata' => json_encode(['tags' => ['finance'], '_uniqueId' => 'abc123']),
+            'data' => ['example_key' => 'example_value'],
+            'metadata' => ['tags' => ['finance'], '_uniqueId' => 'abc123'],
             'config' => 'default',
             'priority' => null,
             'queue' => 'default',

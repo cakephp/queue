@@ -159,7 +159,7 @@ class WorkerCommand extends Command
     protected function getLogger(Arguments $args): LoggerInterface
     {
         $logger = null;
-        if (!empty($args->getOption('verbose'))) {
+        if (!(in_array($args->getOption('verbose'), ['', '0'], true) || $args->getOption('verbose') === false || $args->getOption('verbose') === null)) {
             $logger = Log::engine((string)$args->getOption('logger'));
         }
 

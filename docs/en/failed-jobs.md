@@ -11,6 +11,16 @@ If `storeFailedJobs` is enabled, failed jobs are rejected, written to the `queue
 
 Your broker may also support dead-letter queues. Those are separate transport-level features. Queue's failed-job storage is transport-agnostic and only tracks jobs that exhaust Queue's retry handling.
 
+## Metadata Envelope
+
+The `queue_failed_jobs` table has a nullable `metadata` column that preserves the message envelope (`tags`, `_uniqueId`, `batch_id`, ...) through store and requeue: `queue requeue` pushes `data` and `metadata` back together. Rows stored before the envelope existed have `NULL` metadata and requeue exactly as before. Make sure the plugin migrations are applied:
+
+```bash
+bin/cake migrations migrate --plugin Cake/Queue
+```
+
+Both `data` and `metadata` are native `json` columns, so the ORM encodes and decodes them automatically — `$failedJob->data` and `$failedJob->metadata` are already arrays, no manual `json_decode()` needed.
+
 ## Requeue Failed Jobs
 
 Push failed jobs back onto the queue:

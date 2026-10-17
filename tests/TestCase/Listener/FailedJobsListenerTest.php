@@ -93,7 +93,7 @@ class FailedJobsListenerTest extends TestCase
 
         $this->assertSame(LogToDebugJob::class, $failedJob->class);
         $this->assertSame('execute', $failedJob->method);
-        $this->assertSame(json_encode(['example_key' => 'example_value']), $failedJob->data);
+        $this->assertSame(['example_key' => 'example_value'], $failedJob->data);
         $this->assertSame('example_config', $failedJob->config);
         $this->assertSame('example_priority', $failedJob->priority);
         $this->assertSame('example_queue', $failedJob->queue);
@@ -136,7 +136,7 @@ class FailedJobsListenerTest extends TestCase
 
         $failedJob = $failedJobsTable->find()->first();
 
-        $this->assertSame($parsedBody['metadata'], $failedJob->decoded_metadata);
+        $this->assertSame($parsedBody['metadata'], $failedJob->metadata);
     }
 
     public function testFailedJobWithoutMetadataStoresNull()
@@ -175,7 +175,6 @@ class FailedJobsListenerTest extends TestCase
         $failedJob = $failedJobsTable->find()->first();
 
         $this->assertNull($failedJob->metadata);
-        $this->assertSame([], $failedJob->decoded_metadata);
     }
 
     /**
