@@ -108,6 +108,15 @@ class TestQueueClient
         $jobClass = is_array($classData) ? $classData[0] : null;
         $method = is_array($classData) && isset($classData[1]) ? $classData[1] : 'execute';
         $data = $body['data'] ?? ($body['args'][0] ?? []);
+        $dtoClass = $body['dtoClass'] ?? null;
+        if (!is_string($dtoClass)) {
+            $dtoClass = null;
+        }
+
+        $metadata = $body['metadata'] ?? [];
+        if (!is_array($metadata)) {
+            $metadata = [];
+        }
 
         $requeueOptions = $body['requeueOptions'] ?? [];
         $configName = $requeueOptions['config'] ?? 'default';
@@ -145,6 +154,8 @@ class TestQueueClient
             'jobClass' => $jobClass,
             'method' => $method,
             'data' => $data,
+            'dtoClass' => $dtoClass,
+            'metadata' => $metadata,
             'options' => [
                 'config' => $configName,
                 'queue' => $queueName,
