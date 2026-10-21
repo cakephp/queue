@@ -11,15 +11,14 @@ use Cake\ORM\Entity;
  * @property int $id
  * @property string $class
  * @property string $method
- * @property string $data
+ * @property array<string, mixed> $data
+ * @property array<string, mixed>|null $metadata
  * @property string|null $dto_class
  * @property string|null $config
  * @property string|null $priority
  * @property string|null $queue
  * @property string|null $exception
  * @property \Cake\I18n\DateTime|null $created
- *
- * @property array $decoded_data
  */
 class FailedJob extends Entity
 {
@@ -39,19 +38,11 @@ class FailedJob extends Entity
         'method' => true,
         'data' => true,
         'dto_class' => true,
+        'metadata' => true,
         'config' => true,
         'priority' => true,
         'queue' => true,
         'exception' => true,
         'created' => true,
     ];
-
-    /**
-     * @see \Cake\Queue\Model\Entity\FailedJob::$decoded_data
-     * @return array<string, mixed>
-     */
-    protected function _getDecodedData(): array
-    {
-        return json_decode($this->data, true);
-    }
 }

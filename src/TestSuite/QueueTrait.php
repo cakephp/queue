@@ -242,6 +242,66 @@ trait QueueTrait
     }
 
     /**
+     * Assert a job was queued with specific metadata
+     *
+     * @param string $jobClass Job class name
+     * @param array<string, mixed> $metadata Expected metadata
+     * @param string $message Optional assertion message
+     * @return void
+     */
+    public function assertJobQueuedWithMetadata(
+        string $jobClass,
+        array $metadata,
+        string $message = '',
+    ): void {
+        $jobs = TestQueueClient::getQueuedJobsByClass($jobClass);
+        $this->assertNotEmpty($jobs, sprintf('Job %s was not queued', $jobClass));
+
+        $found = false;
+        foreach ($jobs as $job) {
+            if (($job['metadata'] ?? []) === $metadata) {
+                $found = true;
+                break;
+            }
+        }
+
+        $this->assertTrue(
+            $found,
+            $message ?: sprintf('Job %s was not queued with expected metadata', $jobClass),
+        );
+    }
+
+    /**
+     * Assert a job was queued with a specific DTO class
+     *
+     * @param string $jobClass Job class name
+     * @param string $dtoClass Expected DTO class name
+     * @param string $message Optional assertion message
+     * @return void
+     */
+    public function assertJobQueuedWithDtoClass(
+        string $jobClass,
+        string $dtoClass,
+        string $message = '',
+    ): void {
+        $jobs = TestQueueClient::getQueuedJobsByClass($jobClass);
+        $this->assertNotEmpty($jobs, sprintf('Job %s was not queued', $jobClass));
+
+        $found = false;
+        foreach ($jobs as $job) {
+            if (($job['dtoClass'] ?? null) === $dtoClass) {
+                $found = true;
+                break;
+            }
+        }
+
+        $this->assertTrue(
+            $found,
+            $message ?: sprintf('Job %s was not queued with DTO class %s', $jobClass, $dtoClass),
+        );
+    }
+
+    /**
      * Assert a job was queued a specific number of times
      *
      * @param string $jobClass Job class name

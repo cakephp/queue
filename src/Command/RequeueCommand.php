@@ -133,12 +133,13 @@ class RequeueCommand extends Command
             try {
                 QueueManager::push(
                     [$failedJob->class, $failedJob->method],
-                    $failedJob->decoded_data,
+                    $failedJob->data,
                     [
                         'config' => $failedJob->config,
                         'priority' => $failedJob->priority,
                         'queue' => $failedJob->queue,
                         'dtoClass' => $failedJob->dto_class ?? null,
+                        'metadata' => $failedJob->metadata ?? [],
                     ],
                 );
 

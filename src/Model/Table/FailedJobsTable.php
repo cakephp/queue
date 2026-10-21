@@ -40,6 +40,14 @@ class FailedJobsTable extends Table
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
 
+        // Force the JSON type on every driver. SQLite stores json columns as
+        // text, so introspection alone would not apply Cake\ORM's JsonType.
+        $schema = $this->getSchema();
+        $schema->setColumnType('data', 'json');
+        if ($schema->hasColumn('metadata')) {
+            $schema->setColumnType('metadata', 'json');
+        }
+
         $this->addBehavior('Timestamp');
     }
 
@@ -68,9 +76,13 @@ class FailedJobsTable extends Table
             ->notEmptyString('method');
 
         $validator
-            ->scalar('data')
             ->requirePresence('data', 'create')
-            ->notEmptyString('data');
+            ->allowEmptyArray('data')
+            ->array('data');
+
+        $validator
+            ->allowEmptyArray('metadata')
+            ->array('metadata');
 
         $validator
             ->scalar('dto_class')

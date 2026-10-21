@@ -94,7 +94,7 @@ class FailedJobsListenerTest extends TestCase
 
         $this->assertSame(LogToDebugJob::class, $failedJob->class);
         $this->assertSame('execute', $failedJob->method);
-        $this->assertSame(json_encode(['example_key' => 'example_value']), $failedJob->data);
+        $this->assertSame(['example_key' => 'example_value'], $failedJob->data);
         $this->assertSame('example_config', $failedJob->config);
         $this->assertSame('example_priority', $failedJob->priority);
         $this->assertSame('example_queue', $failedJob->queue);
@@ -137,7 +137,7 @@ class FailedJobsListenerTest extends TestCase
 
         $failedJob = $failedJobsTable->find()->first();
 
-        $this->assertSame(json_encode(['id' => 7, 'customer' => 'Acme Corp']), $failedJob->data);
+        $this->assertSame(['id' => 7, 'customer' => 'Acme Corp'], $failedJob->data);
         $this->assertSame(OrderDto::class, $failedJob->dto_class);
     }
 
@@ -177,6 +177,83 @@ class FailedJobsListenerTest extends TestCase
         $failedJob = $failedJobsTable->find()->first();
 
         $this->assertNull($failedJob->dto_class);
+    }
+
+    public function testFailedJobPreservesMetadata()
+    {
+        $parsedBody = [
+            'class' => [LogToDebugJob::class, 'execute'],
+            'data' => ['example_key' => 'example_value'],
+            'metadata' => ['tags' => ['finance'], '_uniqueId' => 'abc123'],
+            'requeueOptions' => [
+                'config' => 'example_config',
+                'priority' => 'example_priority',
+                'queue' => 'example_queue',
+            ],
+        ];
+        $messageBody = json_encode($parsedBody);
+        $connectionFactory = new NullConnectionFactory();
+
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage($messageBody);
+        $message = new Message($originalMessage, $context);
+
+        $event = new Event(
+            'Consumption.LimitAttemptsExtension.failed',
+            $message,
+            ['exception' => 'some message'],
+        );
+
+        /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
+        $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
+        $failedJobsTable->deleteAll(['1=1']);
+
+        EventManager::instance()->on(new FailedJobsListener());
+        EventManager::instance()->dispatch($event);
+
+        $this->assertSame(1, $failedJobsTable->find()->count());
+
+        $failedJob = $failedJobsTable->find()->first();
+
+        $this->assertSame($parsedBody['metadata'], $failedJob->metadata);
+    }
+
+    public function testFailedJobWithoutMetadataStoresNull()
+    {
+        $parsedBody = [
+            'class' => [LogToDebugJob::class, 'execute'],
+            'data' => ['example_key' => 'example_value'],
+            'requeueOptions' => [
+                'config' => 'example_config',
+                'priority' => 'example_priority',
+                'queue' => 'example_queue',
+            ],
+        ];
+        $messageBody = json_encode($parsedBody);
+        $connectionFactory = new NullConnectionFactory();
+
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage($messageBody);
+        $message = new Message($originalMessage, $context);
+
+        $event = new Event(
+            'Consumption.LimitAttemptsExtension.failed',
+            $message,
+            ['exception' => 'some message'],
+        );
+
+        /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
+        $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
+        $failedJobsTable->deleteAll(['1=1']);
+
+        EventManager::instance()->on(new FailedJobsListener());
+        EventManager::instance()->dispatch($event);
+
+        $this->assertSame(1, $failedJobsTable->find()->count());
+
+        $failedJob = $failedJobsTable->find()->first();
+
+        $this->assertNull($failedJob->metadata);
     }
 
     /**

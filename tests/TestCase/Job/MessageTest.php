@@ -249,6 +249,48 @@ class MessageTest extends TestCase
     }
 
     /**
+     * Test that envelope metadata is exposed separately from the payload.
+     *
+     * @return void
+     */
+    public function testGetMetadata()
+    {
+        $parsedBody = [
+            'class' => [WelcomeMailer::class, 'welcome'],
+            'data' => ['id' => 7],
+            'metadata' => [
+                'tags' => ['finance', 'orders'],
+                '_uniqueId' => 'abc123',
+            ],
+        ];
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage((string)json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $this->assertSame($parsedBody['metadata'], $message->getMetadata());
+        // The payload stays pure: no envelope keys leak into the job data.
+        $this->assertSame(['id' => 7], $message->getArgument());
+    }
+
+    /**
+     * Test that missing metadata defaults to an empty array.
+     *
+     * @return void
+     */
+    public function testGetMetadataDefaultsToEmpty()
+    {
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+
+        $plain = new Message(new NullMessage((string)json_encode([
+            'class' => [WelcomeMailer::class, 'welcome'],
+            'data' => ['id' => 7],
+        ])), $context);
+        $this->assertSame([], $plain->getMetadata());
+    }
+
+    /**
      * Test that invalid classes cannot be made into callables.
      *
      * @return void

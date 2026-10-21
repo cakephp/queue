@@ -304,6 +304,41 @@ class QueueManagerTest extends TestCase
         $this->assertStringNotContainsString('dtoClass', $contents);
     }
 
+    public function testPushWithMetadata()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+        ]);
+
+        QueueManager::push(LogToDebugJob::class, ['id' => 7], [
+            'config' => 'test',
+            'metadata' => ['tags' => ['finance'], '_uniqueId' => 'abc123'],
+        ]);
+
+        $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $contents = file_get_contents($fsQueueFile);
+        $this->assertStringContainsString('metadata', $contents);
+        $this->assertStringContainsString('finance', $contents);
+        $this->assertStringContainsString('abc123', $contents);
+    }
+
+    public function testPushWithoutMetadataDoesNotAddMetadata()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+        ]);
+
+        QueueManager::push(LogToDebugJob::class, ['id' => 7], ['config' => 'test']);
+
+        $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $contents = file_get_contents($fsQueueFile);
+        $this->assertStringNotContainsString('metadata', $contents);
+    }
+
     public function testUniqueMessageIsQueuedOnlyOnce()
     {
         QueueManager::setConfig('test', [

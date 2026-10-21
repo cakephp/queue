@@ -218,7 +218,7 @@ class RequeueCommandTest extends TestCase
         $failedJob = $failedJobsTable->newEntity([
             'class' => DtoJob::class,
             'method' => 'execute',
-            'data' => json_encode(['id' => 7, 'customer' => 'Acme Corp', 'items' => []]),
+            'data' => ['id' => 7, 'customer' => 'Acme Corp', 'items' => []],
             'dto_class' => OrderDto::class,
             'config' => 'default',
             'priority' => null,
@@ -259,5 +259,45 @@ class RequeueCommandTest extends TestCase
         $this->assertInstanceOf(OrderDto::class, $dto);
         $this->assertSame(7, $dto->id);
         $this->assertSame('Acme Corp', $dto->customer);
+    }
+
+    public function testRequeuedJobKeepsMetadata()
+    {
+        $fsQueuePath = TMP . DS . uniqid('queue');
+        QueueManager::setConfig('default', [
+            'url' => 'file:///' . $fsQueuePath,
+            'queue' => 'default',
+        ]);
+
+        /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
+        $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
+        $failedJobsTable->deleteAll(['1=1']);
+
+        $failedJob = $failedJobsTable->newEntity([
+            'class' => LogToDebugJob::class,
+            'method' => 'execute',
+            'data' => ['example_key' => 'example_value'],
+            'metadata' => ['tags' => ['finance'], '_uniqueId' => 'abc123'],
+            'config' => 'default',
+            'priority' => null,
+            'queue' => 'default',
+            'exception' => 'boom',
+        ]);
+        $failedJobsTable->saveOrFail($failedJob);
+
+        $this->exec('queue requeue -f');
+
+        $this->assertOutputContains('Requeueing 1 jobs.');
+        $this->assertOutputContains('1 jobs requeued.');
+
+        $fsQueueFile = $fsQueuePath . DS . 'enqueue.app.default';
+        $this->assertFileExists($fsQueueFile);
+
+        $contents = (string)file_get_contents($fsQueueFile);
+        $this->assertStringContainsString('metadata', $contents);
+        $this->assertStringContainsString('finance', $contents);
+        $this->assertStringContainsString('abc123', $contents);
+
+        unlink($fsQueueFile);
     }
 }

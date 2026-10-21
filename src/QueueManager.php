@@ -223,6 +223,10 @@ class QueueManager
      *   - `expires` - Time (in integer seconds) after which the message expires.
      *     The message will be removed from the queue if this time is exceeded
      *     and it has not been consumed. Default `null`.
+     *   - `metadata` - Optional envelope data recorded on the message body next
+     *     to `data` (e.g. `tags`, `_uniqueId`, `batch_id`). Unlike `data` it is
+     *     never passed to the job or hydrated into a DTO. Omitted from the body
+     *     when empty or not an array. Default `[]`.
      *   - `priority` - Valid values:
      *      - `\Enqueue\Client\MessagePriority::VERY_LOW`
      *      - `\Enqueue\Client\MessagePriority::LOW`
@@ -295,6 +299,11 @@ class QueueManager
         ];
         if ($dtoClass !== null) {
             $body['dtoClass'] = $dtoClass;
+        }
+
+        $metadata = $options['metadata'] ?? null;
+        if (is_array($metadata) && $metadata !== []) {
+            $body['metadata'] = $metadata;
         }
 
         $message = new ClientMessage($body);
