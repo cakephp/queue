@@ -28,7 +28,8 @@
         "psr/log": "^3.0",
         "queue-interop/amqp-interop": "^0.8.2",
         "queue-interop/queue-interop": "^0.8.2",
-        "ramsey/uuid": "^4.7.0"
+        "ramsey/uuid": "^4.7.0",
+        "symfony/config": "^6.4.3 || ^7.0.3 || ^8.0"
     },
     "require-dev": {
         "cakephp/bake": "4.x-dev",
