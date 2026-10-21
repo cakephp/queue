@@ -22,15 +22,19 @@
     "require": {
         "php": ">=8.5",
         "cakephp/cakephp": "6.x-dev",
-        "enqueue/simple-client": "^0.10",
+        "enqueue/simple-client": "^0.10.27",
+        "enqueue/dsn": "^0.10.27",
+        "enqueue/null": "^0.10.27",
         "psr/log": "^3.0",
+        "queue-interop/amqp-interop": "^0.8.2",
+        "queue-interop/queue-interop": "^0.8.2",
         "ramsey/uuid": "^4.7.0"
     },
     "require-dev": {
         "cakephp/bake": "4.x-dev",
         "cakephp/cakephp-codesniffer": "6.x-dev",
         "enqueue/enqueue": "^0.10.27",
-        "enqueue/fs": "^0.10",
+        "enqueue/fs": "^0.10.27",
         "phpunit/phpunit": "^13.0"
     },
     "suggest": {
