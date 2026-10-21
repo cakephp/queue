@@ -16,7 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Job;
 
-use Cake\Core\ContainerInterface;
+use Cake\Container\ContainerInterface;
 use Cake\Queue\Dto\DtoManager;
 use Cake\Utility\Hash;
 use Closure;
@@ -45,7 +45,7 @@ class Message implements JsonSerializable
     /**
      * @param \Interop\Queue\Message $originalMessage Queue message.
      * @param \Interop\Queue\Context $context Context.
-     * @param \Cake\Core\ContainerInterface|null $container DI container instance
+     * @param \Cake\Container\ContainerInterface|null $container DI container instance
      */
     public function __construct(
         protected readonly QueueMessage $originalMessage,

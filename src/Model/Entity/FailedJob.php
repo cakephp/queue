@@ -33,7 +33,7 @@ class FailedJob extends Entity
      *
      * @var array<string, bool>
      */
-    protected array $_accessible = [
+    protected array $patchable = [
         'class' => true,
         'method' => true,
         'data' => true,

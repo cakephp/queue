@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace TestApp;
 
-use Cake\Core\ContainerInterface;
+use Cake\Container\ContainerInterface;
 use Cake\Http\BaseApplication;
 use Cake\Http\MiddlewareQueue;
 use Cake\Queue\Test\test_app\src\Job\LogToDebugWithServiceJob;

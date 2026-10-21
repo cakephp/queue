@@ -17,8 +17,6 @@ declare(strict_types=1);
 namespace Cake\Queue\Command;
 
 use Cake\Command\Command;
-use Cake\Console\Arguments;
-use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\ORM\Locator\LocatorAwareTrait;
 
@@ -70,19 +68,15 @@ class PurgeFailedCommand extends Command
     }
 
     /**
-     * @param \Cake\Console\Arguments $args Arguments
-     * @param \Cake\Console\ConsoleIo $io ConsoleIo
      * @return int
      */
-    public function execute(Arguments $args, ConsoleIo $io): int
+    public function execute(): int
     {
         /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
         $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
-
         $jobsToDelete = $failedJobsTable->find();
-
-        if ($args->hasArgument('ids')) {
-            $idsArg = $args->getArgument('ids');
+        if ($this->args->hasArgument('ids')) {
+            $idsArg = $this->args->getArgument('ids');
 
             if ($idsArg !== null) {
                 $ids = explode(',', $idsArg);
@@ -91,39 +85,36 @@ class PurgeFailedCommand extends Command
             }
         }
 
-        if ($args->hasOption('class')) {
-            $jobsToDelete->where(['class' => $args->getOption('class')]);
+        if ($this->args->hasOption('class')) {
+            $jobsToDelete->where(['class' => $this->args->getOption('class')]);
         }
 
-        if ($args->hasOption('queue')) {
-            $jobsToDelete->where(['queue' => $args->getOption('queue')]);
+        if ($this->args->hasOption('queue')) {
+            $jobsToDelete->where(['queue' => $this->args->getOption('queue')]);
         }
 
-        if ($args->hasOption('config')) {
-            $jobsToDelete->where(['config' => $args->getOption('config')]);
+        if ($this->args->hasOption('config')) {
+            $jobsToDelete->where(['config' => $this->args->getOption('config')]);
         }
 
         $deletingCount = $jobsToDelete->count();
-
         if (!$deletingCount) {
-            $io->out('0 jobs found.');
+            $this->io->out('0 jobs found.');
 
             return self::CODE_SUCCESS;
         }
 
-        if (!$args->getOption('force')) {
-            $confirmed = $io->askChoice(sprintf('Delete %s jobs?', $deletingCount), ['y', 'n'], 'n');
+        if (!$this->args->getOption('force')) {
+            $confirmed = $this->io->askChoice(sprintf('Delete %s jobs?', $deletingCount), ['y', 'n'], 'n');
 
             if ($confirmed !== 'y') {
                 return self::CODE_SUCCESS;
             }
         }
 
-        $io->out(sprintf('Deleting %s jobs.', $deletingCount));
-
+        $this->io->out(sprintf('Deleting %s jobs.', $deletingCount));
         $failedJobsTable->deleteManyOrFail($jobsToDelete);
-
-        $io->success($deletingCount . ' jobs deleted.');
+        $this->io->success($deletingCount . ' jobs deleted.');
 
         return self::CODE_SUCCESS;
     }

@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace Cake\Queue\Command;
 
 use Bake\Command\SimpleBakeCommand;
-use Cake\Console\Arguments;
 use Cake\Console\ConsoleOptionParser;
 
 class JobCommand extends SimpleBakeCommand
@@ -51,14 +50,14 @@ class JobCommand extends SimpleBakeCommand
     /**
      * @inheritDoc
      */
-    public function templateData(Arguments $arguments): array
+    public function templateData(): array
     {
-        $parentData = parent::templateData($arguments);
+        $parentData = parent::templateData();
 
-        $maxAttempts = $arguments->getOption('max-attempts');
+        $maxAttempts = $this->args->getOption('max-attempts');
 
         $data = [
-            'isUnique' => $arguments->getOption('unique'),
+            'isUnique' => $this->args->getOption('unique'),
             'maxAttempts' => $maxAttempts ? (int)$maxAttempts : null,
         ];
 
@@ -71,9 +70,9 @@ class JobCommand extends SimpleBakeCommand
      * @param \Cake\Console\ConsoleOptionParser $parser The parser to update.
      * @return \Cake\Console\ConsoleOptionParser
      */
-    public function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
+    protected function buildOptionParser(ConsoleOptionParser $parser): ConsoleOptionParser
     {
-        $parser = $this->_setCommonOptions($parser);
+        $parser = $this->setCommonOptions($parser);
 
         return $parser
             ->setDescription('Bake a queue job class.')
