@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Cake\Queue\TestSuite;
 
 use Cake\Queue\QueueManager;
+use Cake\Queue\TestSuite\Transport\TestConnectionFactory;
+use Cake\Queue\TestSuite\Transport\TestDriver;
 use Enqueue\Client\Resources as ClientResources;
 use Enqueue\Resources;
 use Interop\Queue\Destination;
@@ -56,13 +58,13 @@ class TestQueueClient
     {
         if (!static::$registered) {
             Resources::addConnection(
-                Transport\TestConnectionFactory::class,
+                TestConnectionFactory::class,
                 ['test'],
                 [],
                 'cakephp/queue-testsuite',
             );
             ClientResources::addDriver(
-                Transport\TestDriver::class,
+                TestDriver::class,
                 ['test'],
                 [],
                 ['cakephp/queue-testsuite'],

@@ -64,7 +64,7 @@ class FailedJobsFixture extends TestFixture
         ];
         parent::init();
 
-        $this->_schema->setColumnType('data', 'json');
-        $this->_schema->setColumnType('metadata', 'json');
+        $this->schema->setColumnType('data', 'json');
+        $this->schema->setColumnType('metadata', 'json');
     }
 }
