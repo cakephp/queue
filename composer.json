@@ -30,7 +30,7 @@
         "cakephp/bake": "^3.5.1",
         "cakephp/cakephp-codesniffer": "^5.0",
         "enqueue/fs": "^0.10",
-        "phpunit/phpunit": "^10.5.32 || ^11.3.3 || ^12.0.9"
+        "phpunit/phpunit": "^13.4.5"
     },
     "suggest": {
         "cakephp/bake": "Required if you want to generate jobs.",
