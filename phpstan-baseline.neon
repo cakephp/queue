@@ -1,7 +1,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Parameter \#1 \$callback of static method Closure\:\:fromCallable\(\) expects callable\(\)\: mixed, array\{mixed, string\} given\.$#'
+			message: '#^Parameter \#1 \$callback of static method Closure\:\:fromCallable\(\) expects callable\(\)\: mixed, array\{object, string\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Job/Message.php

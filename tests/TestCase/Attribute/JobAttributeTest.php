@@ -56,11 +56,13 @@ class JobAttributeTest extends TestCase
         if (!is_dir($this->fsQueuePath)) {
             mkdir($this->fsQueuePath, 0777, true);
         }
+
         foreach (glob($this->fsQueuePath . DS . '*') ?: [] as $file) {
             if (is_file($file)) {
                 @unlink($file);
             }
         }
+
         $this->clearUniqueCache();
         JobAttributeReader::clearCache();
     }
@@ -72,6 +74,7 @@ class JobAttributeTest extends TestCase
                 @unlink($file);
             }
         }
+
         $this->clearUniqueCache();
         JobAttributeReader::clearCache();
         parent::tearDown();
@@ -87,6 +90,7 @@ class JobAttributeTest extends TestCase
                 $keys[] = $cacheKey;
             }
         }
+
         foreach ($keys as $cacheKey) {
             try {
                 Cache::clear($cacheKey);
@@ -241,11 +245,13 @@ class JobAttributeTest extends TestCase
         if (!is_dir($otherPath)) {
             mkdir($otherPath, 0777, true);
         }
+
         foreach (glob($otherPath . DS . '*') ?: [] as $file) {
             if (is_file($file)) {
                 @unlink($file);
             }
         }
+
         QueueManager::setConfig('test', [
             'url' => $this->fsUrl(),
             'queue' => 'test',
@@ -269,6 +275,7 @@ class JobAttributeTest extends TestCase
                     @unlink($file);
                 }
             }
+
             @rmdir($otherPath);
         }
     }

@@ -139,8 +139,9 @@ class JobAttributeReader
 
         $class = is_object($target) ? $target::class : $target;
         if (property_exists($class, 'maxAttempts') && isset($class::$maxAttempts)) {
-            /** @var int|null */
-            return $class::$maxAttempts;
+            $value = $class::$maxAttempts;
+
+            return is_int($value) ? $value : null;
         }
 
         return null;
