@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Cake\Queue\Consumption;
 
 use Cake\Cache\Cache;
+use Cake\Queue\Attribute\JobAttributeReader;
 use Cake\Queue\Job\Message;
 use Cake\Queue\QueueManager;
 use Enqueue\Consumption\Context\MessageResult;
@@ -31,7 +32,7 @@ class RemoveUniqueJobIdFromCacheExtension implements MessageResultExtensionInter
 
         [$class, $method] = $jobMessage->getTarget();
 
-        if (empty($class::$shouldBeUnique)) {
+        if (!JobAttributeReader::isUnique($class)) {
             return;
         }
 

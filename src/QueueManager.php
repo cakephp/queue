@@ -20,6 +20,7 @@ use BadMethodCallException;
 use Cake\Cache\Cache;
 use Cake\Core\App;
 use Cake\Log\Log;
+use Cake\Queue\Attribute\JobAttributeReader;
 use Cake\Queue\Dto\DtoManager;
 use Enqueue\Client\Message as ClientMessage;
 use Enqueue\SimpleClient\SimpleClient;
@@ -213,16 +214,19 @@ class QueueManager
      *   name is stored as message metadata (uniqueness / debugging). Jobs must still
      *   pass the expected class to `Message::getDto()`.
      * @param array<string, mixed> $options An array of options for publishing the job:
-     *   - `config` - A queue config name. Defaults to 'default'.
+     *   - `config` - A queue config name. Defaults to the `Config` attribute value,
+     *      then 'default'.
      *   - `delay` - Time (in integer seconds) to delay message, after which it
-     *      will be processed. Not all message brokers accept this. Default `null`.
+     *      will be processed. Not all message brokers accept this. Defaults to the
+     *      `Delay` attribute value, then `null`.
      *   - `dtoClass` - Optional DTO class metadata recorded on the message body.
      *     Only needed when `$data` is an array. Ignored when `$data` is already a DTO
      *     object. Does not control hydration — the job passes the expected class to
      *     `Message::getDto()`. Default `null`.
      *   - `expires` - Time (in integer seconds) after which the message expires.
      *     The message will be removed from the queue if this time is exceeded
-     *     and it has not been consumed. Default `null`.
+     *     and it has not been consumed. Defaults to the `Expires` attribute value,
+     *     then `null`.
      *   - `metadata` - Optional envelope data recorded on the message body next
      *     to `data` (e.g. `tags`, `_uniqueId`, `batch_id`). Unlike `data` it is
      *     never passed to the job or hydrated into a DTO. Omitted from the body
@@ -233,8 +237,12 @@ class QueueManager
      *      - `\Enqueue\Client\MessagePriority::NORMAL`
      *      - `\Enqueue\Client\MessagePriority::HIGH`
      *      - `\Enqueue\Client\MessagePriority::VERY_HIGH`
-     *   - `queue` - The name of a queue to use, from queue `config` array or
-     *      string 'default' if empty.
+     *      Defaults to the `Priority` attribute value, then `null`.
+     *   - `queue` - The name of a queue to use, from the `Queue` attribute value,
+     *      then queue `config` array or string 'default' if empty.
+     * Job classes may declare additive defaults via `Cake\Queue\Attribute\*`
+     * attributes. Explicit `$options` values always win over attributes, and
+     * attributes win over static properties (`$maxAttempts`, `$shouldBeUnique`).
      */
     public static function push(string|array $className, array|object $data = [], array $options = []): void
     {
@@ -254,7 +262,7 @@ class QueueManager
             $data = DtoManager::serialize($data);
         }
 
-        $name = $options['config'] ?? 'default';
+        $name = $options['config'] ?? JobAttributeReader::getConfig($class) ?? 'default';
 
         $config = static::getConfig($name) + [
             'logger' => null,
@@ -262,10 +270,10 @@ class QueueManager
 
         $logger = $config['logger'] ? Log::engine($config['logger']) : null;
 
-        if (!empty($class::$shouldBeUnique)) {
+        if (JobAttributeReader::isUnique($class)) {
             if (empty($config['uniqueCache'])) {
                 throw new InvalidArgumentException(
-                    $class . '::$shouldBeUnique is set to `true` but `uniqueCache` configuration is missing.',
+                    $class . ' is marked as unique (`ShouldBeUnique` attribute or `$shouldBeUnique` property) but `uniqueCache` configuration is missing.',
                 );
             }
 
@@ -285,7 +293,7 @@ class QueueManager
             }
         }
 
-        $queue = $options['queue'] ?? $config['queue'] ?? 'default';
+        $queue = $options['queue'] ?? JobAttributeReader::getQueue($class) ?? $config['queue'] ?? 'default';
 
         $body = [
             'class' => [$class, $method],
@@ -293,7 +301,7 @@ class QueueManager
             'data' => $data,
             'requeueOptions' => [
                 'config' => $name,
-                'priority' => $options['priority'] ?? null,
+                'priority' => $options['priority'] ?? JobAttributeReader::getPriority($class),
                 'queue' => $queue,
             ],
         ];
@@ -308,22 +316,25 @@ class QueueManager
 
         $message = new ClientMessage($body);
 
-        if (isset($options['delay'])) {
-            $message->setDelay($options['delay']);
+        $delay = $options['delay'] ?? JobAttributeReader::getDelay($class);
+        if ($delay !== null) {
+            $message->setDelay($delay);
         }
 
-        if (isset($options['expires'])) {
-            $message->setExpire($options['expires']);
+        $expires = $options['expires'] ?? JobAttributeReader::getExpires($class);
+        if ($expires !== null) {
+            $message->setExpire($expires);
         }
 
-        if (isset($options['priority'])) {
-            $message->setPriority($options['priority']);
+        $priority = $options['priority'] ?? JobAttributeReader::getPriority($class);
+        if ($priority !== null) {
+            $message->setPriority($priority);
         }
 
         $client = static::engine($name);
         $client->sendEvent($queue, $message);
 
-        if (!empty($class::$shouldBeUnique)) {
+        if (JobAttributeReader::isUnique($class)) {
             $uniqueId = static::getUniqueId($class, $method, $data, $dtoClass);
 
             Cache::add($uniqueId, true, $config['uniqueCacheKey']);

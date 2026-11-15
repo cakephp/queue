@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Queue\Job;
 
 use Cake\Container\ContainerInterface;
+use Cake\Queue\Attribute\JobAttributeReader;
 use Cake\Queue\Dto\DtoManager;
 use Cake\Utility\Hash;
 use Closure;
@@ -221,6 +222,9 @@ class Message implements JsonSerializable
 
     /**
      * The maximum number of attempts allowed by the job.
+     *
+     * Resolves the `MaxAttempts` attribute first, then the static `$maxAttempts`
+     * property for backwards compatibility.
      */
     public function getMaxAttempts(): ?int
     {
@@ -228,7 +232,7 @@ class Message implements JsonSerializable
 
         $class = $target[0];
 
-        return $class::$maxAttempts ?? null;
+        return JobAttributeReader::getMaxAttempts($class);
     }
 
     /**
