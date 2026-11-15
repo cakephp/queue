@@ -1,0 +1,31 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * CakePHP(tm) : Rapid Development Framework (https://cakephp.org)
+ * Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org/)
+ *
+ * Licensed under The MIT License
+ * For full copyright and license information, please see the LICENSE.txt
+ * Redistributions of files must retain the above copyright notice.
+ *
+ * @copyright     Copyright (c) Cake Software Foundation, Inc. (https://cakefoundation.org/)
+ * @link          https://cakephp.org CakePHP(tm) Project
+ * @since         4.0.0
+ * @license       https://opensource.org/licenses/MIT MIT License
+ */
+namespace Cake\Queue\Attribute;
+
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS)]
+readonly class Delay
+{
+    /**
+     * @param int $delay Seconds to delay the job for.
+     */
+    public function __construct(
+        public int $delay,
+    ) {
+    }
+}

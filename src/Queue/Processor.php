@@ -16,7 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Queue;
 
-use Cake\Core\ContainerInterface;
+use Cake\Container\ContainerInterface;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Queue\Job\Message;
 use Enqueue\Consumption\Result;
@@ -35,7 +35,7 @@ class Processor implements InteropProcessor
 
     /**
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
-     * @param \Cake\Core\ContainerInterface|null $container DI container instance
+     * @param \Cake\Container\ContainerInterface|null $container DI container instance
      */
     public function __construct(
         protected readonly LoggerInterface $logger = new NullLogger(),

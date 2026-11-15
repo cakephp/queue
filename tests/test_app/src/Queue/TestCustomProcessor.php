@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Cake\Queue\Test\test_app\src\Queue;
 
-use Cake\Core\ContainerInterface;
+use Cake\Container\ContainerInterface;
 use Cake\Event\EventDispatcherTrait;
 use Cake\Queue\Job\Message;
 use Enqueue\Consumption\Result;
@@ -34,7 +34,7 @@ class TestCustomProcessor implements InteropProcessor
      * Constructor
      *
      * @param \Psr\Log\LoggerInterface|null $logger Logger instance
-     * @param \Cake\Core\ContainerInterface|null $container DI container instance
+     * @param \Cake\Container\ContainerInterface|null $container DI container instance
      */
     public function __construct(?LoggerInterface $logger = null, ?ContainerInterface $container = null)
     {

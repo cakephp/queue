@@ -17,8 +17,6 @@ declare(strict_types=1);
 namespace Cake\Queue\Command;
 
 use Cake\Command\Command;
-use Cake\Console\Arguments;
-use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\Queue\QueueManager;
@@ -72,19 +70,15 @@ class RequeueCommand extends Command
     }
 
     /**
-     * @param \Cake\Console\Arguments $args Arguments
-     * @param \Cake\Console\ConsoleIo $io ConsoleIo
      * @return int
      */
-    public function execute(Arguments $args, ConsoleIo $io): int
+    public function execute(): int
     {
         /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
         $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
-
         $jobsToRequeueQuery = $failedJobsTable->find();
-
-        if ($args->hasArgument('ids')) {
-            $idsArg = $args->getArgument('ids');
+        if ($this->args->hasArgument('ids')) {
+            $idsArg = $this->args->getArgument('ids');
 
             if ($idsArg !== null) {
                 $ids = explode(',', $idsArg);
@@ -93,43 +87,40 @@ class RequeueCommand extends Command
             }
         }
 
-        if ($args->hasOption('class')) {
-            $jobsToRequeueQuery->where(['class' => $args->getOption('class')]);
+        if ($this->args->hasOption('class')) {
+            $jobsToRequeueQuery->where(['class' => $this->args->getOption('class')]);
         }
 
-        if ($args->hasOption('queue')) {
-            $jobsToRequeueQuery->where(['queue' => $args->getOption('queue')]);
+        if ($this->args->hasOption('queue')) {
+            $jobsToRequeueQuery->where(['queue' => $this->args->getOption('queue')]);
         }
 
-        if ($args->hasOption('config')) {
-            $jobsToRequeueQuery->where(['config' => $args->getOption('config')]);
+        if ($this->args->hasOption('config')) {
+            $jobsToRequeueQuery->where(['config' => $this->args->getOption('config')]);
         }
 
         $requeueingCount = $jobsToRequeueQuery->count();
-
         if (!$requeueingCount) {
-            $io->out('0 jobs found.');
+            $this->io->out('0 jobs found.');
 
             return self::CODE_SUCCESS;
         }
 
-        if (!$args->getOption('force')) {
-            $confirmed = $io->askChoice(sprintf('Requeue %s jobs?', $requeueingCount), ['y', 'n'], 'n');
+        if (!$this->args->getOption('force')) {
+            $confirmed = $this->io->askChoice(sprintf('Requeue %s jobs?', $requeueingCount), ['y', 'n'], 'n');
 
             if ($confirmed !== 'y') {
                 return self::CODE_SUCCESS;
             }
         }
 
-        $io->out(sprintf('Requeueing %s jobs.', $requeueingCount));
-
+        $this->io->out(sprintf('Requeueing %s jobs.', $requeueingCount));
         $succeededCount = 0;
         $failedCount = 0;
-
         /** @var array<\Cake\Queue\Model\Entity\FailedJob> $jobsToRequeue */
         $jobsToRequeue = $jobsToRequeueQuery->all();
         foreach ($jobsToRequeue as $failedJob) {
-            $io->verbose(sprintf('Requeueing FailedJob with ID %d.', $failedJob->id));
+            $this->io->verbose(sprintf('Requeueing FailedJob with ID %d.', $failedJob->id));
             try {
                 QueueManager::push(
                     [$failedJob->class, $failedJob->method],
@@ -147,19 +138,19 @@ class RequeueCommand extends Command
 
                 $succeededCount++;
             } catch (Exception $e) {
-                $io->err('Exception occurred while requeueing FailedJob with ID ' . $failedJob->id);
-                $io->err((string)$e);
+                $this->io->err('Exception occurred while requeueing FailedJob with ID ' . $failedJob->id);
+                $this->io->err((string)$e);
 
                 $failedCount++;
             }
         }
 
         if ($failedCount !== 0) {
-            $io->err(sprintf('Failed to requeue %d jobs.', $failedCount));
+            $this->io->err(sprintf('Failed to requeue %d jobs.', $failedCount));
         }
 
         if ($succeededCount !== 0) {
-            $io->success($succeededCount . ' jobs requeued.');
+            $this->io->success($succeededCount . ' jobs requeued.');
         }
 
         return self::CODE_SUCCESS;

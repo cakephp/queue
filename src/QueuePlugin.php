@@ -18,9 +18,9 @@ namespace Cake\Queue;
 
 use Bake\Command\SimpleBakeCommand;
 use Cake\Console\CommandCollection;
+use Cake\Container\ContainerInterface;
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
-use Cake\Core\ContainerInterface;
 use Cake\Core\PluginApplicationInterface;
 use Cake\Queue\Command\JobCommand;
 use Cake\Queue\Command\PurgeFailedCommand;
@@ -87,7 +87,7 @@ class QueuePlugin extends BasePlugin
     /**
      * Add DI container to Worker command
      *
-     * @param \Cake\Core\ContainerInterface $container The DI container
+     * @param \Cake\Container\ContainerInterface $container The DI container
      * @return void
      */
     public function services(ContainerInterface $container): void
@@ -95,6 +95,6 @@ class QueuePlugin extends BasePlugin
         $container->add(ContainerInterface::class, $container);
         $container
             ->add(WorkerCommand::class)
-            ->addArgument(ContainerInterface::class);
+            ->addArgument(ContainerInterface::class, 'container');
     }
 }

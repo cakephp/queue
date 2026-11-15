@@ -17,11 +17,10 @@ declare(strict_types=1);
 namespace Cake\Queue\Command;
 
 use Cake\Command\Command;
-use Cake\Console\Arguments;
-use Cake\Console\ConsoleIo;
+use Cake\Console\CommandFactoryInterface;
 use Cake\Console\ConsoleOptionParser;
+use Cake\Container\ContainerInterface;
 use Cake\Core\Configure;
-use Cake\Core\ContainerInterface;
 use Cake\Log\Log;
 use Cake\Queue\Consumption\LimitAttemptsExtension;
 use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
@@ -44,11 +43,14 @@ use Psr\Log\NullLogger;
 class WorkerCommand extends Command
 {
     /**
-     * @param \Cake\Core\ContainerInterface|null $container DI container instance
+     * @param \Cake\Console\CommandFactoryInterface|null $factory Command factory.
+     * @param \Cake\Container\ContainerInterface|null $container DI container instance
      */
     public function __construct(
+        ?CommandFactoryInterface $factory = null,
         protected readonly ?ContainerInterface $container = null,
     ) {
+        parent::__construct($factory);
     }
 
     /**
@@ -115,17 +117,16 @@ class WorkerCommand extends Command
     /**
      * Creates and returns a QueueExtension object
      *
-     * @param \Cake\Console\Arguments $args Arguments
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
      * @return \Enqueue\Consumption\ExtensionInterface
      */
-    protected function getQueueExtension(Arguments $args, LoggerInterface $logger): ExtensionInterface
+    protected function getQueueExtension(LoggerInterface $logger): ExtensionInterface
     {
-        $limitAttempsExtension = new LimitAttemptsExtension((int)$args->getOption('max-attempts') ?: null);
+        $limitAttempsExtension = new LimitAttemptsExtension((int)$this->args->getOption('max-attempts') ?: null);
 
         $limitAttempsExtension->getEventManager()->on(new FailedJobsListener());
 
-        $configKey = (string)$args->getOption('config');
+        $configKey = (string)$this->args->getOption('config');
         $config = QueueManager::getConfig($configKey);
 
         $extensions = [
@@ -133,13 +134,13 @@ class WorkerCommand extends Command
             $limitAttempsExtension,
         ];
 
-        if ($args->getOption('max-jobs') !== null) {
-            $maxJobs = (int)$args->getOption('max-jobs');
+        if ($this->args->getOption('max-jobs') !== null) {
+            $maxJobs = (int)$this->args->getOption('max-jobs');
             $extensions[] = new LimitConsumedMessagesExtension($maxJobs);
         }
 
-        if ($args->getOption('max-runtime') !== null) {
-            $endTime = new DateTime(sprintf('+%d seconds', (int)$args->getOption('max-runtime')));
+        if ($this->args->getOption('max-runtime') !== null) {
+            $endTime = new DateTime(sprintf('+%d seconds', (int)$this->args->getOption('max-runtime')));
             $extensions[] = new LimitConsumptionTimeExtension($endTime);
         }
 
@@ -153,14 +154,13 @@ class WorkerCommand extends Command
     /**
      * Creates and returns a LoggerInterface object
      *
-     * @param \Cake\Console\Arguments $args Arguments
      * @return \Psr\Log\LoggerInterface
      */
-    protected function getLogger(Arguments $args): LoggerInterface
+    protected function getLogger(): LoggerInterface
     {
         $logger = null;
-        if (!(in_array($args->getOption('verbose'), ['', '0'], true) || $args->getOption('verbose') === false || $args->getOption('verbose') === null)) {
-            $logger = Log::engine((string)$args->getOption('logger'));
+        if (!(in_array($this->args->getOption('verbose'), ['', '0'], true) || $this->args->getOption('verbose') === false || $this->args->getOption('verbose') === null)) {
+            $logger = Log::engine((string)$this->args->getOption('logger'));
         }
 
         return $logger ?? new NullLogger();
@@ -169,25 +169,23 @@ class WorkerCommand extends Command
     /**
      * Creates and returns a Processor object
      *
-     * @param \Cake\Console\Arguments $args Arguments
-     * @param \Cake\Console\ConsoleIo $io ConsoleIo
      * @param \Psr\Log\LoggerInterface $logger Logger instance
      * @return \Interop\Queue\Processor
      */
-    protected function getProcessor(Arguments $args, ConsoleIo $io, LoggerInterface $logger): InteropProcessor
+    protected function getProcessor(LoggerInterface $logger): InteropProcessor
     {
-        $configKey = (string)$args->getOption('config');
+        $configKey = (string)$this->args->getOption('config');
         $config = QueueManager::getConfig($configKey);
 
         $processorClass = $config['processor'] ?? Processor::class;
 
         if (!class_exists($processorClass)) {
-            $io->error(sprintf('Processor class %s not found', $processorClass));
+            $this->io->error(sprintf('Processor class %s not found', $processorClass));
             $this->abort();
         }
 
         if (!is_subclass_of($processorClass, InteropProcessor::class)) {
-            $io->error(sprintf('Processor class %s must implement Interop\Queue\Processor', $processorClass));
+            $this->io->error(sprintf('Processor class %s must implement Interop\Queue\Processor', $processorClass));
             $this->abort();
         }
 
@@ -195,27 +193,24 @@ class WorkerCommand extends Command
     }
 
     /**
-     * @param \Cake\Console\Arguments $args Arguments
-     * @param \Cake\Console\ConsoleIo $io ConsoleIo
      * @return int
      */
-    public function execute(Arguments $args, ConsoleIo $io): int
+    public function execute(): int
     {
-        $config = (string)$args->getOption('config');
+        $config = (string)$this->args->getOption('config');
         if (!Configure::check(sprintf('Queue.%s', $config))) {
-            $io->error(sprintf('Configuration key "%s" was not found', $config));
+            $this->io->error(sprintf('Configuration key "%s" was not found', $config));
             $this->abort();
         }
 
-        $logger = $this->getLogger($args);
-        $processor = $this->getProcessor($args, $io, $logger);
-        $extension = $this->getQueueExtension($args, $logger);
-
+        $logger = $this->getLogger();
+        $processor = $this->getProcessor($logger);
+        $extension = $this->getQueueExtension($logger);
         $hasListener = Configure::check(sprintf('Queue.%s.listener', $config));
         if ($hasListener) {
             $listenerClassName = Configure::read(sprintf('Queue.%s.listener', $config));
             if (!class_exists($listenerClassName)) {
-                $io->error(sprintf('Listener class %s not found', $listenerClassName));
+                $this->io->error(sprintf('Listener class %s not found', $listenerClassName));
                 $this->abort();
             }
 
@@ -228,11 +223,10 @@ class WorkerCommand extends Command
         }
 
         $client = QueueManager::engine($config);
-        $queue = $args->getOption('queue')
-            ? (string)$args->getOption('queue')
+        $queue = $this->args->getOption('queue')
+            ? (string)$this->args->getOption('queue')
             : Configure::read(sprintf('Queue.%s.queue', $config), 'default');
-        $processorName = $args->getOption('processor') ? (string)$args->getOption('processor') : 'default';
-
+        $processorName = $this->args->getOption('processor') ? (string)$this->args->getOption('processor') : 'default';
         $client->bindTopic($queue, $processor, $processorName);
         $client->consume($extension);
 
