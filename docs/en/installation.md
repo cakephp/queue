@@ -42,6 +42,9 @@ Define one or more queue connections in `config/app.php`:
         // Optional processor class. Defaults to Cake\Queue\Queue\Processor.
         'processor' => \App\Queue\CustomProcessor::class,
 
+        // Optional client class. Defaults to Cake\Queue\Client\EnqueueClient.
+        'clientClass' => \App\Queue\AuditedClient::class,
+
         // Sleep time in milliseconds when no messages are available.
         'receiveTimeout' => 10000,
 

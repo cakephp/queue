@@ -11,3 +11,10 @@ Workers dispatch events during normal message processing. If your queue config d
 - `Processor.message.failure`: dispatched when a message finishes with `Processor::REQUEUE`. Arguments: `message`.
 - `Processor.message.seen`: dispatched when a message is first observed by the worker. Arguments: `message`.
 - `Processor.message.start`: dispatched immediately before processing begins. Arguments: `message`.
+
+## Produce Events
+
+Producing is separate from processing. The queue client dispatches these events on its own event manager. See Custom Clients for setup.
+
+- `Queue.produce.success`: dispatched after the transport accepts the message. Arguments: `topic` or `command`, `message`, `messageId`, `transportDestination`, `transportMessage`, and `promise` for commands.
+- `Queue.produce.failure`: dispatched when the transport throws. Arguments: `topic` or `command`, `message`, `exception`.

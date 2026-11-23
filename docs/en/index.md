@@ -13,3 +13,4 @@ Queue jobs are regular PHP classes. They can receive constructor dependencies fr
 - [Running Workers](/workers) documents the worker command and its options.
 - [Failed Jobs](/failed-jobs) covers storing, requeueing, and purging failed jobs.
 - [Worker Events](/events) lists the events emitted while jobs are processed.
+- [Custom Clients](/clients) explains how to replace the default queue client and observe produce events.
