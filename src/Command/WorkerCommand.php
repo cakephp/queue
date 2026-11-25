@@ -227,7 +227,7 @@ class WorkerCommand extends Command
             }
         }
 
-        $client = QueueManager::engine($config);
+        $client = QueueManager::engine($config, $this->container);
         $queue = $args->getOption('queue')
             ? (string)$args->getOption('queue')
             : Configure::read(sprintf('Queue.%s.queue', $config), 'default');

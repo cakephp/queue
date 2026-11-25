@@ -20,10 +20,13 @@ namespace Cake\Queue\Test\TestCase;
 use BadMethodCallException;
 use Cake\Cache\Cache;
 use Cake\Log\Log;
+use Cake\Queue\Client\EnqueueClient;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
-use Enqueue\SimpleClient\SimpleClient;
+use Enqueue\Null\NullConnectionFactory;
+use InvalidArgumentException;
 use LogicException;
+use Psr\Container\ContainerInterface;
 use TestApp\Dto\OrderDto;
 use TestApp\Dto\OrderItemDto;
 use TestApp\Job\LogToDebugJob;
@@ -55,6 +58,7 @@ class QueueManagerTest extends TestCase
         }
 
         QueueManager::drop('test');
+        QueueManager::setContainer(null);
         Log::drop('test');
 
         // delete file based queues
@@ -119,6 +123,70 @@ class QueueManagerTest extends TestCase
 
         $withOrderDtoAgain = QueueManager::getUniqueId('Example', 'hello', $data, 'App\Dto\OrderDto');
         $this->assertSame($withOrderDto, $withOrderDtoAgain, 'same dtoClass and data are the same');
+    }
+
+    public function testSetAndGetContainer()
+    {
+        $this->assertNull(QueueManager::getContainer());
+
+        $container = $this->createStub(ContainerInterface::class);
+        QueueManager::setContainer($container);
+        $this->assertSame($container, QueueManager::getContainer());
+
+        QueueManager::setContainer(null);
+        $this->assertNull(QueueManager::getContainer());
+    }
+
+    public function testEngineUsesStaticContainer()
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->willReturn(true);
+        $container->expects($this->once())->method('get')->with(NullConnectionFactory::class)->willReturn(new NullConnectionFactory());
+
+        QueueManager::setContainer($container);
+        try {
+            QueueManager::setConfig('test-container', [
+                'url' => ['transport' => ['dsn' => 'null:', 'connection_factory_class' => NullConnectionFactory::class]],
+            ]);
+            $engine = QueueManager::engine('test-container');
+            $this->assertInstanceOf(EnqueueClient::class, $engine);
+        } finally {
+            QueueManager::setContainer(null);
+        }
+    }
+
+    public function testEnginePerCallContainerOverridesStatic()
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('has')->willReturn(true);
+        $container->expects($this->once())->method('get')->with(NullConnectionFactory::class)->willReturn(new NullConnectionFactory());
+
+        $this->assertNull(QueueManager::getContainer());
+        QueueManager::setConfig('test-container', [
+            'url' => ['transport' => ['dsn' => 'null:', 'connection_factory_class' => NullConnectionFactory::class]],
+        ]);
+        try {
+            $engine = QueueManager::engine('test-container', $container);
+            $this->assertInstanceOf(EnqueueClient::class, $engine);
+        } finally {
+            QueueManager::setContainer(null);
+        }
+    }
+
+    public function testSetContainerDropsCachedClients()
+    {
+        QueueManager::setConfig('test', [
+            'url' => 'null:',
+        ]);
+        $first = QueueManager::engine('test');
+
+        QueueManager::setContainer($this->createStub(ContainerInterface::class));
+        try {
+            $second = QueueManager::engine('test');
+            $this->assertNotSame($first, $second);
+        } finally {
+            QueueManager::setContainer(null);
+        }
     }
 
     public function testSetConfig()
@@ -196,7 +264,7 @@ class QueueManagerTest extends TestCase
             'queue' => 'other',
         ]);
         $engine = QueueManager::engine('test');
-        $this->assertInstanceOf(SimpleClient::class, $engine);
+        $this->assertInstanceOf(EnqueueClient::class, $engine);
         $this->assertSame('other', $engine->getDriver()->getConfig()->getRouterQueue());
     }
 
@@ -212,7 +280,7 @@ class QueueManagerTest extends TestCase
             'queue' => 'ignored',
         ]);
         $engine = QueueManager::engine('test');
-        $this->assertInstanceOf(SimpleClient::class, $engine);
+        $this->assertInstanceOf(EnqueueClient::class, $engine);
         $this->assertSame('other', $engine->getDriver()->getConfig()->getRouterQueue());
     }
 
@@ -223,9 +291,16 @@ class QueueManagerTest extends TestCase
             'url' => 'null:',
         ]);
         $engine = QueueManager::engine('test');
-        $this->assertInstanceOf(SimpleClient::class, $engine);
+        $this->assertInstanceOf(EnqueueClient::class, $engine);
 
         $this->assertSame($engine, QueueManager::engine('test'));
+    }
+
+    public function testEngineUnknownConfigThrows()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Queue config `missing` not found.');
+        QueueManager::engine('missing');
     }
 
     public function testPushInvalidClass()

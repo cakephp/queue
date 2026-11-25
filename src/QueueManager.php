@@ -20,11 +20,12 @@ use BadMethodCallException;
 use Cake\Cache\Cache;
 use Cake\Core\App;
 use Cake\Log\Log;
+use Cake\Queue\Client\EnqueueClient;
 use Cake\Queue\Dto\DtoManager;
 use Enqueue\Client\Message as ClientMessage;
-use Enqueue\SimpleClient\SimpleClient;
 use InvalidArgumentException;
 use LogicException;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 class QueueManager
@@ -39,9 +40,46 @@ class QueueManager
     /**
      * Queue clients
      *
-     * @var array<string, \Enqueue\SimpleClient\SimpleClient>
+     * @var array<string, \Cake\Queue\Client\EnqueueClient>
      */
     protected static array $_clients = [];
+
+    /**
+     * PSR-11 container used to resolve queue services.
+     *
+     * Set automatically from `QueuePlugin::services()` when the application
+     * uses dependency injection. Only `has()` and `get()` are used, so any
+     * PSR-11 container is accepted.
+     */
+    protected static ?ContainerInterface $container = null;
+
+    /**
+     * Set the PSR-11 container used to resolve queue services.
+     *
+     * Cached clients are dropped when the container instance changes so that
+     * already built clients never keep a stale container.
+     *
+     * @param \Psr\Container\ContainerInterface|null $container Container instance or null to detach.
+     * @return void
+     */
+    public static function setContainer(?ContainerInterface $container): void
+    {
+        if ($container !== static::$container) {
+            static::$_clients = [];
+        }
+
+        static::$container = $container;
+    }
+
+    /**
+     * Get the PSR-11 container used to resolve queue services.
+     *
+     * @return \Psr\Container\ContainerInterface|null Container instance or null when unavailable.
+     */
+    public static function getContainer(): ?ContainerInterface
+    {
+        return static::$container;
+    }
 
     /**
      * This method can be used to define configuration adapters for an application.
@@ -176,23 +214,43 @@ class QueueManager
     /**
      * Get a queueing engine
      *
+     * A per-call container overrides the static one for the initial build only.
+     * Already cached clients are reused as is, call `drop()` to rebuild them.
+     *
      * @param string $name Key name of a configured adapter to get.
-     * @return \Enqueue\SimpleClient\SimpleClient
+     * @param \Psr\Container\ContainerInterface|null $container Optional PSR-11 container, falls back to `getContainer()`.
+     * @return \Cake\Queue\Client\EnqueueClient
      */
-    public static function engine(string $name): SimpleClient
+    public static function engine(string $name, ?ContainerInterface $container = null): EnqueueClient
     {
         if (isset(static::$_clients[$name])) {
             return static::$_clients[$name];
         }
 
-        $config = static::getConfig($name) + [
+        $config = static::getConfig($name);
+        if ($config === null) {
+            throw new InvalidArgumentException(sprintf('Queue config `%s` not found.', $name));
+        }
+
+        $config += [
             'logger' => null,
             'receiveTimeout' => null,
+            'clientClass' => EnqueueClient::class,
         ];
 
         $logger = $config['logger'] ? Log::engine($config['logger']) : null;
 
-        static::$_clients[$name] = new SimpleClient($config['url'], $logger);
+        $clientClass = $config['clientClass'];
+        if (!is_string($clientClass) || !class_exists($clientClass)) {
+            throw new InvalidArgumentException(sprintf('Client class `%s` not found.', is_string($clientClass) ? $clientClass : gettype($clientClass)));
+        }
+
+        if (!is_a($clientClass, EnqueueClient::class, true)) {
+            throw new InvalidArgumentException(sprintf('Client class `%s` must extend `%s`.', $clientClass, EnqueueClient::class));
+        }
+
+        $resolvedContainer = $container ?? static::$container;
+        static::$_clients[$name] = new $clientClass($config['url'], $logger, $resolvedContainer);
         static::$_clients[$name]->setupBroker();
 
         if ($config['receiveTimeout'] !== null) {
@@ -235,8 +293,9 @@ class QueueManager
      *      - `\Enqueue\Client\MessagePriority::VERY_HIGH`
      *   - `queue` - The name of a queue to use, from queue `config` array or
      *      string 'default' if empty.
+     * @return string|null MessageId assigned by the transport on success, null when skipped as duplicate.
      */
-    public static function push(string|array $className, array|object $data = [], array $options = []): void
+    public static function push(string|array $className, array|object $data = [], array $options = []): ?string
     {
         [$class, $method] = is_array($className) ? $className : [$className, 'execute'];
 
@@ -281,7 +340,7 @@ class QueueManager
                     );
                 }
 
-                return;
+                return null;
             }
         }
 
@@ -328,6 +387,8 @@ class QueueManager
 
             Cache::add($uniqueId, true, $config['uniqueCacheKey']);
         }
+
+        return $message->getMessageId();
     }
 
     /**

@@ -15,6 +15,7 @@
       "items": [
         { "text": "Queueing Mail", "link": "/mail" },
         { "text": "Custom Processors", "link": "/processors" },
+        { "text": "Custom Clients", "link": "/clients" },
         { "text": "Running Workers", "link": "/workers" }
       ]
     },

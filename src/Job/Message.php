@@ -100,7 +100,7 @@ class Message implements JsonSerializable
         }
 
         $target = $this->getTarget();
-        if ($this->container && $this->container->has($target[0])) {
+        if ($this->container instanceof ContainerInterface && $this->container->has($target[0])) {
             $object = $this->container->get($target[0]);
         } else {
             $object = new $target[0]();
@@ -114,8 +114,7 @@ class Message implements JsonSerializable
     /**
      * Get the target class and method.
      *
-     * @return array{string, string}
-     * @phpstan-return array{class-string, string}
+     * @return array{class-string, string}
      */
     public function getTarget(): array
     {

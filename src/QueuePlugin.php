@@ -96,5 +96,7 @@ class QueuePlugin extends BasePlugin
         $container
             ->add(WorkerCommand::class)
             ->addArgument(ContainerInterface::class);
+
+        QueueManager::setContainer($container);
     }
 }
