@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Cake\Queue\Test\test_app\src\Job;
+namespace TestApp\Job;
 
 use Cake\Log\Log;
 use Cake\Queue\Job\JobInterface;

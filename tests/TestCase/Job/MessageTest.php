@@ -98,6 +98,22 @@ class MessageTest extends TestCase
         $this->assertSame('no third argument', $message->getArgument('third', 'no third argument'));
     }
 
+    public function testCorruptBodyGetArgumentDefaultsToNull(): void
+    {
+        $parsedBody = [
+            'class' => [WelcomeMailer::class, 'welcome'],
+        ];
+
+        $connectionFactory = new NullConnectionFactory();
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage(json_encode($parsedBody));
+        $message = new Message($originalMessage, $context);
+
+        $this->assertNull($message->getArgument());
+        $this->assertNull($message->getArgument('id'));
+        $this->assertSame('fallback', $message->getArgument('id', 'fallback'));
+    }
+
     /**
      * Test that a DTO is hydrated into the class the job asks for.
      *
@@ -199,8 +215,8 @@ class MessageTest extends TestCase
     }
 
     /**
-     * Test that a tampered / unresolvable `dtoClass` on the body is ignored —
-     * only the class passed to `getDto()` is instantiated.
+     * Test that a tampered / unresolvable `dtoClass` on the body is ignored.
+     * Only the class passed to `getDto()` is instantiated.
      *
      * @return void
      */

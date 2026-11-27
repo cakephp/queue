@@ -218,6 +218,51 @@ class FailedJobsListenerTest extends TestCase
         $this->assertSame($parsedBody['metadata'], $failedJob->metadata);
     }
 
+    public function testFailedJobPreservesStamps(): void
+    {
+        $parsedBody = [
+            'class' => [LogToDebugJob::class, 'execute'],
+            'data' => ['example_key' => 'example_value'],
+            'metadata' => [
+                'tags' => ['finance'],
+                'stamps' => [
+                    ['type' => 'ReceivedStamp', 'v' => 1, 'transport' => 'default'],
+                    ['type' => 'TenantStamp', 'v' => 1, 'tenant' => 'tenant:acme'],
+                ],
+            ],
+            'requeueOptions' => [
+                'config' => 'example_config',
+                'priority' => 'example_priority',
+                'queue' => 'example_queue',
+            ],
+        ];
+        $messageBody = json_encode($parsedBody);
+        $connectionFactory = new NullConnectionFactory();
+
+        $context = $connectionFactory->createContext();
+        $originalMessage = new NullMessage($messageBody);
+        $message = new Message($originalMessage, $context);
+
+        $event = new Event(
+            'Consumption.LimitAttemptsExtension.failed',
+            $message,
+            ['exception' => 'some message'],
+        );
+
+        /** @var \Cake\Queue\Model\Table\FailedJobsTable $failedJobsTable */
+        $failedJobsTable = $this->getTableLocator()->get('Cake/Queue.FailedJobs');
+        $failedJobsTable->deleteAll(['1=1']);
+
+        EventManager::instance()->on(new FailedJobsListener());
+        EventManager::instance()->dispatch($event);
+
+        $this->assertSame(1, $failedJobsTable->find()->count());
+
+        $failedJob = $failedJobsTable->find()->first();
+
+        $this->assertSame($parsedBody['metadata'], $failedJob->metadata);
+    }
+
     public function testFailedJobWithoutMetadataStoresNull()
     {
         $parsedBody = [

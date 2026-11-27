@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 namespace Cake\Queue\Job;
 
+use ArrayAccess;
 use Cake\Core\ContainerInterface;
 use Cake\Queue\Dto\DtoManager;
 use Cake\Utility\Hash;
@@ -43,6 +44,10 @@ class Message implements JsonSerializable
     protected ?string $dtoHydratedAs = null;
 
     /**
+     * A body that does not decode to an array (corrupt transport payload) is
+     * treated as empty: such messages fail callable resolution downstream
+     * and are rejected as invalid instead of crashing the worker.
+     *
      * @param \Interop\Queue\Message $originalMessage Queue message.
      * @param \Interop\Queue\Context $context Context.
      * @param \Cake\Core\ContainerInterface|null $container DI container instance
@@ -52,7 +57,8 @@ class Message implements JsonSerializable
         protected readonly Context $context,
         protected readonly ?ContainerInterface $container = null,
     ) {
-        $this->parsedBody = json_decode($originalMessage->getBody(), true);
+        $parsed = json_decode($originalMessage->getBody(), true);
+        $this->parsedBody = is_array($parsed) ? $parsed : [];
     }
 
     /**
@@ -142,11 +148,15 @@ class Message implements JsonSerializable
             $data = $this->parsedBody['data'];
         } else {
             // support old jobs that still use args key
-            $data = $this->parsedBody['args'][0];
+            $data = $this->parsedBody['args'][0] ?? null;
         }
 
         if ($key === null) {
             return $data;
+        }
+
+        if (!is_array($data) && !$data instanceof ArrayAccess) {
+            return $default;
         }
 
         return Hash::get($data, $key, $default);
@@ -156,7 +166,7 @@ class Message implements JsonSerializable
      * Get the DTO class name recorded on the message body at dispatch time, if any.
      *
      * This value is metadata for uniqueness hashing and debugging. It is never used
-     * as the hydration target — pass the expected class to `getDto()` instead.
+     * as the hydration target, pass the expected class to `getDto()` instead.
      *
      * @return class-string|null
      */

@@ -20,13 +20,25 @@ namespace Cake\Queue\Test\TestCase;
 use BadMethodCallException;
 use Cake\Cache\Cache;
 use Cake\Log\Log;
+use Cake\Queue\Bus\BusFactory;
+use Cake\Queue\Bus\BusStackInterface;
+use Cake\Queue\Bus\Envelope;
+use Cake\Queue\Bus\Stamp\HandledStamp;
+use Cake\Queue\Bus\Stamp\ReceivedStamp;
+use Cake\Queue\Bus\Stamp\SentStamp;
+use Cake\Queue\Bus\Stamp\SkippedAsDuplicateStamp;
+use Cake\Queue\Bus\StampInterface;
 use Cake\Queue\Client\EnqueueClient;
 use Cake\Queue\QueueManager;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
+use Interop\Queue\Processor as InteropProcessor;
 use InvalidArgumentException;
 use LogicException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Container\ContainerInterface;
+use stdClass;
+use TestApp\Bus\CallbackMiddleware;
 use TestApp\Dto\OrderDto;
 use TestApp\Dto\OrderItemDto;
 use TestApp\Job\LogToDebugJob;
@@ -310,6 +322,97 @@ class QueueManagerTest extends TestCase
         QueueManager::push('NotARealJob');
     }
 
+    public function testPushRejectsReceivedStamp()
+    {
+        QueueManager::setConfig('test', ['url' => 'null:']);
+
+        $this->expectException(InvalidArgumentException::class);
+        QueueManager::push(LogToDebugJob::class, [], [
+            'config' => 'test',
+            'stamps' => [new ReceivedStamp('default')],
+        ]);
+    }
+
+    public function testPushRejectsNonStamp()
+    {
+        QueueManager::setConfig('test', ['url' => 'null:']);
+
+        $this->expectException(InvalidArgumentException::class);
+        QueueManager::push(LogToDebugJob::class, [], [
+            'config' => 'test',
+            'stamps' => [new stdClass()],
+        ]);
+    }
+
+    /**
+     * @return array<string, array{\Cake\Queue\Bus\StampInterface}>
+     */
+    public static function nonSendableStampProvider(): array
+    {
+        return [
+            'sent' => [new SentStamp('fake')],
+            'skipped' => [new SkippedAsDuplicateStamp()],
+            'handled' => [new HandledStamp(InteropProcessor::ACK)],
+        ];
+    }
+
+    /**
+     * In-memory machinery stamps must not be accepted at dispatch: a forged
+     * `SentStamp` would fake a transport id, a forged
+     * `SkippedAsDuplicateStamp` would fake a duplicate skip.
+     */
+    #[DataProvider('nonSendableStampProvider')]
+    public function testPushRejectsNonSendableStamps(StampInterface $stamp)
+    {
+        QueueManager::setConfig('test', ['url' => 'null:']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('never leaves the process');
+        QueueManager::push(LogToDebugJob::class, [], [
+            'config' => 'test',
+            'stamps' => [$stamp],
+        ]);
+    }
+
+    public function testPushRejectsStampsMetadataKey()
+    {
+        QueueManager::setConfig('test', ['url' => 'null:']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('must not contain a `stamps` key');
+        QueueManager::push(LogToDebugJob::class, [], [
+            'config' => 'test',
+            'metadata' => ['stamps' => []],
+        ]);
+    }
+
+    /**
+     * A short-circuiting dispatch middleware is a pipeline misconfiguration,
+     * not a duplicate: `push()` must fail loudly instead of resolving to a
+     * skipped result while nothing reaches the transport.
+     */
+    public function testPushShortCircuitMiddlewareThrows()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+            BusFactory::DISPATCH_MIDDLEWARE => [
+                new CallbackMiddleware(
+                    static fn(Envelope $envelope, BusStackInterface $stack): Envelope => $envelope,
+                ),
+            ],
+        ]);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('produced no result');
+
+        try {
+            QueueManager::push(LogToDebugJob::class, [], ['config' => 'test']);
+        } finally {
+            $this->assertFileDoesNotExist($this->getFsQueueUrl() . DS . 'enqueue.app.test');
+        }
+    }
+
     public function testMessageIsPushedToQueuePassedAsOption()
     {
         QueueManager::setConfig('test', [
@@ -427,6 +530,32 @@ class QueueManagerTest extends TestCase
         QueueManager::push(UniqueJob::class, [], ['config' => 'test']);
         QueueManager::push(UniqueJob::class, [], ['config' => 'test']);
 
+        $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
+        $this->assertFileExists($fsQueueFile);
+        $this->assertSame(1, substr_count(file_get_contents($fsQueueFile), 'UniqueJob'));
+    }
+
+    /**
+     * Companion to `testPushShortCircuitMiddlewareThrows`: a duplicate unique
+     * push resolves to a skipped result while the first message WAS sent.
+     * Short-circuits now throw instead.
+     */
+    public function testDuplicateUniquePushReturnsSkippedResultWhileFirstWasSent()
+    {
+        QueueManager::setConfig('test', [
+            'url' => $this->getFsQueueUrl(),
+            'queue' => 'test',
+            'uniqueCache' => [
+                'engine' => 'File',
+            ],
+        ]);
+
+        QueueManager::push(UniqueJob::class, [], ['config' => 'test']);
+        $second = QueueManager::push(UniqueJob::class, [], ['config' => 'test']);
+
+        $this->assertTrue($second->isSkipped());
+        $this->assertFalse($second->isSent());
+        $this->assertNull($second->messageId);
         $fsQueueFile = $this->getFsQueueUrl() . DS . 'enqueue.app.test';
         $this->assertFileExists($fsQueueFile);
         $this->assertSame(1, substr_count(file_get_contents($fsQueueFile), 'UniqueJob'));

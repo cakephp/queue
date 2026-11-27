@@ -17,18 +17,33 @@ declare(strict_types=1);
 
 namespace Cake\Queue\Test\TestCase\Command;
 
+use Cake\Console\Arguments;
+use Cake\Console\ConsoleIo;
+use Cake\Console\Exception\StopException;
 use Cake\Console\TestSuite\ConsoleIntegrationTestTrait;
 use Cake\Core\Configure;
+use Cake\Core\ContainerInterface;
+use Cake\Event\EventListenerInterface;
 use Cake\Log\Log;
+use Cake\Queue\Bus\BusProcessor;
+use Cake\Queue\Command\WorkerCommand;
 use Cake\Queue\QueueManager;
-use Cake\Queue\Test\test_app\src\Job\LogToDebugWithServiceJob;
-use Cake\Queue\Test\test_app\src\Queue\TestCustomProcessor;
 use Cake\Queue\Test\TestCase\QueueTestTrait;
 use Cake\TestSuite\TestCase;
+use Interop\Queue\Processor as InteropProcessor;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+use Psr\Log\NullLogger;
+use ReflectionMethod;
+use RuntimeException;
+use stdClass;
+use TestApp\Bus\RecordingListener;
 use TestApp\Job\LogToDebugJob;
+use TestApp\Job\LogToDebugWithServiceJob;
 use TestApp\Job\RequeueJob;
+use TestApp\NeedsArgListener;
+use TestApp\Queue\TestCustomProcessor;
+use TestApp\Queue\UnresolvableProcessor;
 use TestApp\WelcomeMailerListener;
 
 /**
@@ -40,6 +55,13 @@ class WorkerCommandTest extends TestCase
 {
     use ConsoleIntegrationTestTrait;
     use QueueTestTrait;
+
+    protected function tearDown(): void
+    {
+        Configure::delete('Queue');
+
+        parent::tearDown();
+    }
 
     /**
      * Test that command description prints out
@@ -64,6 +86,23 @@ class WorkerCommandTest extends TestCase
         ]);
         $this->exec('queue worker --max-runtime=0');
         $this->assertEmpty($this->output());
+    }
+
+    /**
+     * Test that negative limits abort with a friendly error instead of a trace.
+     */
+    #[RunInSeparateProcess]
+    public function testQueueAbortsWithNegativeLimits(): void
+    {
+        Configure::write('Queue', [
+            'default' => [
+                'queue' => 'default',
+                'url' => 'null:',
+            ],
+        ]);
+
+        $this->exec('queue worker --max-jobs=-5');
+        $this->assertErrorContains('maxJobs');
     }
 
     /**
@@ -367,7 +406,7 @@ class WorkerCommandTest extends TestCase
 
         $this->assertDebugLogContains('Debug job was run');
         $this->assertDebugLogContains('TestCustomProcessor processing message');
-        $this->assertDebugLogContains('Message processed successfully by TestCustomProcessor');
+        $this->assertDebugLogContains('Message processed successfully');
     }
 
     /**
@@ -409,6 +448,24 @@ class WorkerCommandTest extends TestCase
     }
 
     /**
+     * Test that queue aborts when custom processor cannot be constructed.
+     */
+    #[RunInSeparateProcess]
+    public function testQueueAbortsWithUnresolvableProcessor()
+    {
+        $config = [
+            'queue' => 'default',
+            'url' => 'file:///' . TMP . DS . 'queue',
+            'processor' => UnresolvableProcessor::class,
+        ];
+        Configure::write('Queue', ['default' => $config]);
+
+        $this->exec('queue worker --max-runtime=0');
+
+        $this->assertErrorContains('could not be resolved');
+    }
+
+    /**
      * Test that custom processor works with listener configuration.
      */
     #[RunInSeparateProcess]
@@ -436,5 +493,193 @@ class WorkerCommandTest extends TestCase
 
         $this->assertDebugLogContains('Debug job was run');
         $this->assertDebugLogContains('TestCustomProcessor processing message');
+    }
+
+    public function testListenerResolvedFromContainerWhenRegistered(): void
+    {
+        Configure::write('Queue', [
+            'default' => ['listener' => RecordingListener::class],
+        ]);
+
+        $listener = new RecordingListener();
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')->willReturnMap([[RecordingListener::class, true]]);
+        $container->method('get')->willReturnMap([[RecordingListener::class, $listener]]);
+
+        $resolved = $this->resolveListener(new WorkerCommand($container));
+
+        $this->assertSame($listener, $resolved);
+    }
+
+    public function testListenerWithRequiredArgsAbortsWithoutContainer(): void
+    {
+        Configure::write('Queue', [
+            'default' => ['listener' => NeedsArgListener::class],
+        ]);
+
+        $io = $this->createMock(ConsoleIo::class);
+        $io->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('could not be resolved'));
+
+        $this->expectException(StopException::class);
+
+        $this->resolveListener(new WorkerCommand(), $io);
+    }
+
+    public function testListenerFromContainerMustImplementListenerInterface(): void
+    {
+        Configure::write('Queue', [
+            'default' => ['listener' => RecordingListener::class],
+        ]);
+
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')->willReturnMap([[RecordingListener::class, true]]);
+        $container->method('get')->willReturnMap([[RecordingListener::class, new stdClass()]]);
+
+        $io = $this->createMock(ConsoleIo::class);
+        $io->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('must implement'));
+
+        $this->expectException(StopException::class);
+
+        $this->resolveListener(new WorkerCommand($container), $io);
+    }
+
+    public function testListenerContainerFailureAbortsCleanly(): void
+    {
+        Configure::write('Queue', [
+            'default' => ['listener' => RecordingListener::class],
+        ]);
+
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')->willReturnMap([[RecordingListener::class, true]]);
+        $container->method('get')->willThrowException(new RuntimeException('Wiring failure.'));
+
+        $io = $this->createMock(ConsoleIo::class);
+        $io->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('could not be resolved'));
+
+        $this->expectException(StopException::class);
+
+        $this->resolveListener(new WorkerCommand($container), $io);
+    }
+
+    public function testListenerInstanceIsUsedAsIs(): void
+    {
+        $listener = new RecordingListener();
+        Configure::write('Queue', [
+            'default' => ['listener' => $listener],
+        ]);
+
+        $resolved = $this->resolveListener(new WorkerCommand());
+
+        $this->assertSame($listener, $resolved);
+    }
+
+    protected function resolveListener(WorkerCommand $command, ?ConsoleIo $io = null): ?EventListenerInterface
+    {
+        $args = new Arguments([], ['config' => 'default'], []);
+        $io ??= $this->createStub(ConsoleIo::class);
+
+        $method = new ReflectionMethod(WorkerCommand::class, 'getListener');
+
+        return $method->invoke($command, $args, $io);
+    }
+
+    public function testListenerClassMustImplementListenerInterface(): void
+    {
+        Configure::write('Queue', [
+            'default' => ['listener' => stdClass::class],
+        ]);
+
+        $io = $this->createMock(ConsoleIo::class);
+        $io->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('must implement'));
+
+        $this->expectException(StopException::class);
+
+        $this->resolveListener(new WorkerCommand(), $io);
+    }
+
+    public function testProcessorResolvedFromContainerWhenRegistered(): void
+    {
+        QueueManager::setConfig('proc-container', ['url' => 'null:', 'processor' => TestCustomProcessor::class]);
+
+        $processor = new TestCustomProcessor();
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')->willReturnMap([[TestCustomProcessor::class, true]]);
+        $container->method('get')->willReturnMap([[TestCustomProcessor::class, $processor]]);
+
+        $resolved = $this->resolveProcessor(new WorkerCommand($container), 'proc-container');
+
+        $this->assertSame($processor, $resolved);
+    }
+
+    public function testProcessorFromContainerMustImplementProcessor(): void
+    {
+        QueueManager::setConfig('proc-container', ['url' => 'null:', 'processor' => TestCustomProcessor::class]);
+
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')->willReturnMap([[TestCustomProcessor::class, true]]);
+        $container->method('get')->willReturnMap([[TestCustomProcessor::class, new stdClass()]]);
+
+        $io = $this->createMock(ConsoleIo::class);
+        $io->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('must implement'));
+
+        $this->expectException(StopException::class);
+
+        $this->resolveProcessor(new WorkerCommand($container), 'proc-container', $io);
+    }
+
+    public function testProcessorContainerFailureAbortsCleanly(): void
+    {
+        QueueManager::setConfig('proc-container', ['url' => 'null:', 'processor' => TestCustomProcessor::class]);
+
+        $container = $this->createStub(ContainerInterface::class);
+        $container->method('has')->willReturnMap([[TestCustomProcessor::class, true]]);
+        $container->method('get')->willThrowException(new RuntimeException('Wiring failure.'));
+
+        $io = $this->createMock(ConsoleIo::class);
+        $io->expects($this->once())
+            ->method('error')
+            ->with($this->stringContains('could not be resolved'));
+
+        $this->expectException(StopException::class);
+
+        $this->resolveProcessor(new WorkerCommand($container), 'proc-container', $io);
+    }
+
+    protected function resolveProcessor(
+        WorkerCommand $command,
+        string $config = 'default',
+        ?ConsoleIo $io = null,
+    ): InteropProcessor {
+        $args = new Arguments([], ['config' => $config], []);
+        $io ??= $this->createStub(ConsoleIo::class);
+
+        $method = new ReflectionMethod(WorkerCommand::class, 'getProcessor');
+
+        return $method->invoke($command, $args, $io, new NullLogger());
+    }
+
+    public function testDefaultProcessorIsBusProcessor(): void
+    {
+        Configure::write('Queue', ['default' => ['queue' => 'default', 'url' => 'null:']]);
+        QueueManager::setConfig('default-bus', ['url' => 'null:']);
+
+        $args = new Arguments([], ['config' => 'default-bus'], []);
+        $io = $this->createStub(ConsoleIo::class);
+
+        $method = new ReflectionMethod(WorkerCommand::class, 'getProcessor');
+
+        $processor = $method->invoke(new WorkerCommand(), $args, $io, new NullLogger());
+
+        $this->assertInstanceOf(BusProcessor::class, $processor);
     }
 }

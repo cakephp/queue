@@ -21,10 +21,10 @@ use Cake\Mailer\Exception\MissingMailerException;
 use Cake\Mailer\Mailer;
 use Cake\Queue\Job\MailerJob;
 use Cake\Queue\Job\Message;
-use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
+use Interop\Queue\Processor;
 
 class MailerJobTest extends TestCase
 {

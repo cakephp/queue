@@ -31,13 +31,13 @@ The client dispatches two events around every produce operation. Subscribe to th
 
 Produce events carry identifiers and routing metadata only, never message bodies. The sender already holds the message object, while events are broadcast to every listener, so bodies are deliberately excluded. Event payloads are safe to log.
 
-The `messageId` value is assigned by the transport during `sendEvent` or `sendCommand`. The client only observes it through the post send extension and never generates it. `QueueManager::push()` returns this value on success and `null` when a unique push is skipped as duplicate.
+The `messageId` value is assigned by the transport during `sendEvent` or `sendCommand`. The client only observes it through the post send extension and never generates it. `QueueManager::push()` returns a `DispatchResult`: `messageId` on success (`null` when the transport assigns none) and `skippedAsDuplicate` when a unique push is skipped as duplicate.
 
 Direct calls on `$client->getProducer()->sendEvent()` or `sendCommand()` bypass these events. Only `EnqueueClient::sendEvent()`, `EnqueueClient::sendCommand()` and `QueueManager::push()` dispatch produce events.
 
 When binding processors, always pass an explicit `$processorName`. Names generated with `uniqid()` are a fallback for tests and prototypes, not a naming scheme.
 
-Custom client classes with a non-standard producer must assign a message id on the passed message before returning, otherwise `QueueManager::push()` reports `null` on success, indistinguishable from a push skipped as duplicate.
+Custom client classes with a non-standard producer must assign a message id on the passed message before returning, otherwise `QueueManager::push()` reports a `null` message id on success. The outcome stays unambiguous through `DispatchResult::skippedAsDuplicate`.
 
 ## Example
 

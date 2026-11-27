@@ -20,8 +20,8 @@ use Cake\Log\Log;
 use Cake\Mailer\AbstractTransport;
 use Cake\Mailer\Message as MailerMessage;
 use Cake\Mailer\TransportFactory;
-use Cake\Queue\Queue\Processor;
 use Exception;
+use Interop\Queue\Processor as InteropProcessor;
 use InvalidArgumentException;
 
 /**
@@ -53,10 +53,10 @@ class SendMailJob implements JobInterface
         }
 
         if (!$result) {
-            return Processor::REJECT;
+            return InteropProcessor::REJECT;
         }
 
-        return Processor::ACK;
+        return InteropProcessor::ACK;
     }
 
     /**

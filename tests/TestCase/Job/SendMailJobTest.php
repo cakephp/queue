@@ -22,10 +22,10 @@ use Cake\Mailer\Transport\DebugTransport;
 use Cake\Mailer\TransportFactory;
 use Cake\Queue\Job\Message as QueueJobMessage;
 use Cake\Queue\Job\SendMailJob;
-use Cake\Queue\Queue\Processor;
 use Cake\TestSuite\TestCase;
 use Enqueue\Null\NullConnectionFactory;
 use Enqueue\Null\NullMessage;
+use Interop\Queue\Processor;
 
 class SendMailJobTest extends TestCase
 {

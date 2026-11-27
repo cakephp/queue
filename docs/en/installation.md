@@ -39,7 +39,8 @@ Define one or more queue connections in `config/app.php`:
         // Optional listener class attached to worker processor events.
         'listener' => \App\Listener\WorkerListener::class,
 
-        // Optional processor class. Defaults to Cake\Queue\Queue\Processor.
+        // Optional processor class implementing Interop\Queue\Processor. When omitted,
+        // the worker consumes through the default bus pipeline.
         'processor' => \App\Queue\CustomProcessor::class,
 
         // Optional client class. Defaults to Cake\Queue\Client\EnqueueClient.
