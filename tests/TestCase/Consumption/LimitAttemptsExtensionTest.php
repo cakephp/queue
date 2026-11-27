@@ -6,9 +6,11 @@ namespace Cake\Queue\Test\TestCase\Job;
 use Cake\Event\EventList;
 use Cake\Event\EventManager;
 use Cake\Log\Log;
+use Cake\Queue\Bus\BusProcessor;
+use Cake\Queue\Bus\MessageBus;
+use Cake\Queue\Bus\Middleware\HandlerMiddleware;
 use Cake\Queue\Consumption\LimitAttemptsExtension;
 use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
-use Cake\Queue\Queue\Processor as QueueProcessor;
 use Cake\Queue\QueueManager;
 use Cake\Queue\Test\TestCase\QueueTestTrait;
 use Cake\TestSuite\TestCase;
@@ -108,7 +110,7 @@ class LimitAttemptsExtensionTest extends TestCase
 
         $client = QueueManager::engine('default');
 
-        $processor = new QueueProcessor(new NullLogger());
+        $processor = new BusProcessor(new MessageBus([new HandlerMiddleware(new NullLogger())]));
         $client->bindTopic('default', $processor);
 
         $extension = new ChainExtension([

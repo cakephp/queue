@@ -6,8 +6,8 @@ namespace TestApp;
 use Cake\Core\ContainerInterface;
 use Cake\Http\BaseApplication;
 use Cake\Http\MiddlewareQueue;
-use Cake\Queue\Test\test_app\src\Job\LogToDebugWithServiceJob;
 use Cake\Routing\RouteBuilder;
+use TestApp\Job\LogToDebugWithServiceJob;
 
 class Application extends BaseApplication
 {

@@ -396,10 +396,11 @@ class EnqueueClientTest extends TestCase
             $captured = $event->getData();
         });
 
-        $messageId = QueueManager::push(LogToDebugJob::class, ['foo' => 'bar'], ['config' => 'test-produce']);
+        $result = QueueManager::push(LogToDebugJob::class, ['foo' => 'bar'], ['config' => 'test-produce']);
 
-        $this->assertNotEmpty($messageId);
-        $this->assertSame($messageId, $captured['messageId']);
+        $this->assertTrue($result->isSent());
+        $this->assertNotEmpty($result->messageId);
+        $this->assertSame($result->messageId, $captured['messageId']);
     }
 
     public function testQueueManagerUsesCustomClientClass(): void

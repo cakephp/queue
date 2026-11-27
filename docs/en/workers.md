@@ -24,8 +24,12 @@ The plugin also registers `bin/cake worker` as an alias for the same command.
 When a worker starts it:
 
 - Loads the named queue config.
-- Instantiates the configured processor class or falls back to `Cake\Queue\Queue\Processor`.
+- Instantiates the configured processor class, or consumes through the default
+  bus pipeline when none is configured.
 - Attaches retry limiting and optional failed-job persistence.
 - Applies optional consumption limits such as max jobs and max runtime.
 - Attaches the configured listener class, if any, to processor events.
+  Like the queue name, the listener (`Queue.<config>.listener`) comes from
+  the application configuration (`Configure`), not from programmatic
+  `QueueManager::setConfig()` calls.
 - Binds the processor to the selected queue and consumes messages.

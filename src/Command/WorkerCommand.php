@@ -22,21 +22,19 @@ use Cake\Console\ConsoleIo;
 use Cake\Console\ConsoleOptionParser;
 use Cake\Core\Configure;
 use Cake\Core\ContainerInterface;
+use Cake\Event\EventListenerInterface;
 use Cake\Log\Log;
-use Cake\Queue\Consumption\LimitAttemptsExtension;
-use Cake\Queue\Consumption\LimitConsumedMessagesExtension;
-use Cake\Queue\Consumption\RemoveUniqueJobIdFromCacheExtension;
-use Cake\Queue\Listener\FailedJobsListener;
-use Cake\Queue\Queue\Processor;
+use Cake\Queue\Bus\BusFactory;
+use Cake\Queue\Bus\BusProcessor;
 use Cake\Queue\QueueManager;
-use DateTime;
-use Enqueue\Consumption\ChainExtension;
-use Enqueue\Consumption\Extension\LimitConsumptionTimeExtension;
-use Enqueue\Consumption\Extension\LoggerExtension;
 use Enqueue\Consumption\ExtensionInterface;
 use Interop\Queue\Processor as InteropProcessor;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use ReflectionClass;
+use ReflectionMethod;
+use Throwable;
 
 /**
  * Worker command.
@@ -115,39 +113,22 @@ class WorkerCommand extends Command
     /**
      * Creates and returns a QueueExtension object
      *
+     * The assembly lives in `BusFactory::consumeExtensions()`; this method
+     * maps console options onto it so subclasses overriding it keep working.
+     *
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Psr\Log\LoggerInterface $logger Logger instance.
      * @return \Enqueue\Consumption\ExtensionInterface
      */
     protected function getQueueExtension(Arguments $args, LoggerInterface $logger): ExtensionInterface
     {
-        $limitAttempsExtension = new LimitAttemptsExtension((int)$args->getOption('max-attempts') ?: null);
-
-        $limitAttempsExtension->getEventManager()->on(new FailedJobsListener());
-
-        $configKey = (string)$args->getOption('config');
-        $config = QueueManager::getConfig($configKey);
-
-        $extensions = [
-            new LoggerExtension($logger),
-            $limitAttempsExtension,
-        ];
-
-        if ($args->getOption('max-jobs') !== null) {
-            $maxJobs = (int)$args->getOption('max-jobs');
-            $extensions[] = new LimitConsumedMessagesExtension($maxJobs);
-        }
-
-        if ($args->getOption('max-runtime') !== null) {
-            $endTime = new DateTime(sprintf('+%d seconds', (int)$args->getOption('max-runtime')));
-            $extensions[] = new LimitConsumptionTimeExtension($endTime);
-        }
-
-        if (isset($config['uniqueCacheKey'])) {
-            $extensions[] = new RemoveUniqueJobIdFromCacheExtension($config['uniqueCacheKey']);
-        }
-
-        return new ChainExtension($extensions);
+        return BusFactory::consumeExtensions(
+            (string)$args->getOption('config'),
+            $logger,
+            (int)$args->getOption('max-attempts') ?: null,
+            ($maxJobs = $args->getOption('max-jobs')) !== null ? (int)$maxJobs : null,
+            ($maxRuntime = $args->getOption('max-runtime')) !== null ? (int)$maxRuntime : null,
+        );
     }
 
     /**
@@ -158,16 +139,23 @@ class WorkerCommand extends Command
      */
     protected function getLogger(Arguments $args): LoggerInterface
     {
-        $logger = null;
-        if (!(in_array($args->getOption('verbose'), ['', '0'], true) || $args->getOption('verbose') === false || $args->getOption('verbose') === null)) {
-            $logger = Log::engine((string)$args->getOption('logger'));
+        $verbose = $args->getOption('verbose');
+        $quiet = in_array($verbose, ['', '0'], true) || $verbose === false || $verbose === null;
+        if (!$quiet) {
+            return Log::engine((string)$args->getOption('logger')) ?? new NullLogger();
         }
 
-        return $logger ?? new NullLogger();
+        return new NullLogger();
     }
 
     /**
      * Creates and returns a Processor object
+     *
+     * Always returns an `Interop\Queue\Processor` ready to bind to the
+     * transport. Without a custom `processor` config this is a bus-backed
+     * `BusProcessor` (consume bus with `HandlerMiddleware` as the terminal);
+     * with one, the configured class resolved from the container when
+     * registered there, instantiated directly otherwise.
      *
      * @param \Cake\Console\Arguments $args Arguments
      * @param \Cake\Console\ConsoleIo $io ConsoleIo
@@ -177,12 +165,23 @@ class WorkerCommand extends Command
     protected function getProcessor(Arguments $args, ConsoleIo $io, LoggerInterface $logger): InteropProcessor
     {
         $configKey = (string)$args->getOption('config');
-        $config = QueueManager::getConfig($configKey);
+        $config = QueueManager::getConfig($configKey) ?? [];
 
-        $processorClass = $config['processor'] ?? Processor::class;
+        $processorClass = $config['processor'] ?? null;
+        if ($processorClass === null) {
+            $bus = BusFactory::consumeBus($configKey, [
+                'logger' => $logger,
+                'listener' => $this->getListener($args, $io),
+            ]);
 
-        if (!class_exists($processorClass)) {
-            $io->error(sprintf('Processor class %s not found', $processorClass));
+            return new BusProcessor($bus, $this->container, $configKey, BusFactory::stampTypes($configKey), $logger);
+        }
+
+        if (!is_string($processorClass) || !class_exists($processorClass)) {
+            $io->error(sprintf(
+                'Processor class %s not found',
+                is_string($processorClass) ? $processorClass : get_debug_type($processorClass),
+            ));
             $this->abort();
         }
 
@@ -191,7 +190,139 @@ class WorkerCommand extends Command
             $this->abort();
         }
 
-        return new $processorClass($logger, $this->container);
+        if ($this->container instanceof ContainerInterface && $this->container->has($processorClass)) {
+            try {
+                $processor = $this->container->get($processorClass);
+            } catch (Throwable $processorError) {
+                $io->error(sprintf(
+                    'Processor class %s could not be resolved: %s',
+                    $processorClass,
+                    $processorError->getMessage(),
+                ));
+                $this->abort();
+            }
+
+            if (!$processor instanceof InteropProcessor) {
+                $io->error(sprintf('Processor class %s must implement Interop\Queue\Processor', $processorClass));
+                $this->abort();
+            }
+
+            return $processor;
+        }
+
+        $reflection = new ReflectionClass($processorClass);
+        $constructor = $reflection->getConstructor();
+        if (!$reflection->isInstantiable() || ($constructor instanceof ReflectionMethod && !$constructor->isPublic())) {
+            $io->error(sprintf(
+                'Processor class %s could not be resolved: register it in the container.',
+                $processorClass,
+            ));
+            $this->abort();
+        }
+
+        try {
+            return $this->newProcessorInstance($processorClass, $logger);
+        } catch (Throwable $throwable) {
+            $io->error(sprintf(
+                'Processor class %s could not be resolved: %s',
+                $processorClass,
+                $throwable->getMessage(),
+            ));
+            $this->abort();
+        }
+    }
+
+    /**
+     * Instantiate a custom processor with the worker logger and container.
+     *
+     * Constructors can fail with any throwable (missing arguments, type
+     * mismatches, wiring failures in the body); the caller converts that
+     * into a clean abort. The `@throws` documents the throw point that
+     * `new` on a class-string does not expose to static analysis.
+     *
+     * @param class-string<\Interop\Queue\Processor> $class Processor class name.
+     * @param \Psr\Log\LoggerInterface $logger Logger instance.
+     * @return \Interop\Queue\Processor
+     * @throws \Throwable When instantiation fails.
+     */
+    protected function newProcessorInstance(string $class, LoggerInterface $logger): InteropProcessor
+    {
+        return new $class($logger, $this->container);
+    }
+
+    /**
+     * Creates and returns a listener object
+     *
+     * Resolves the `Queue.<config>.listener` setting the same way jobs are
+     * built: a prebuilt instance is used as is, a class name is taken from
+     * the container when registered there and instantiated directly
+     * otherwise. Returns null when no listener is configured.
+     *
+     * @param \Cake\Console\Arguments $args Arguments
+     * @param \Cake\Console\ConsoleIo $io ConsoleIo
+     */
+    protected function getListener(Arguments $args, ConsoleIo $io): ?EventListenerInterface
+    {
+        $config = (string)$args->getOption('config');
+        if (!Configure::check(sprintf('Queue.%s.listener', $config))) {
+            return null;
+        }
+
+        $listener = Configure::read(sprintf('Queue.%s.listener', $config));
+        if ($listener instanceof EventListenerInterface) {
+            return $listener;
+        }
+
+        $listenerClass = $listener;
+        if (!is_string($listenerClass) || !class_exists($listenerClass)) {
+            $io->error(sprintf(
+                'Listener class %s not found',
+                is_string($listenerClass) ? $listenerClass : get_debug_type($listenerClass),
+            ));
+            $this->abort();
+        }
+
+        if (!is_subclass_of($listenerClass, EventListenerInterface::class)) {
+            $io->error(sprintf(
+                'Listener class %s must implement Cake\Event\EventListenerInterface',
+                $listenerClass,
+            ));
+            $this->abort();
+        }
+
+        $container = $this->container;
+        if ($container instanceof ContainerInterface && $container->has($listenerClass)) {
+            try {
+                $listener = $container->get($listenerClass);
+            } catch (Throwable $listenerError) {
+                $io->error(sprintf(
+                    'Listener class %s could not be resolved: %s',
+                    $listenerClass,
+                    $listenerError->getMessage(),
+                ));
+                $this->abort();
+            }
+        } else {
+            if (!BusFactory::canInstantiateWithoutArguments($listenerClass)) {
+                $io->error(sprintf(
+                    'Listener class %s could not be resolved: register it in the container.',
+                    $listenerClass,
+                ));
+                $this->abort();
+            }
+
+            $listener = new $listenerClass();
+        }
+
+        if (!$listener instanceof EventListenerInterface) {
+            $io->error(sprintf(
+                'Listener class %s must implement Cake\Event\EventListenerInterface',
+                $listenerClass,
+            ));
+            $this->abort();
+        }
+
+        return $listener;
     }
 
     /**
@@ -209,22 +340,20 @@ class WorkerCommand extends Command
 
         $logger = $this->getLogger($args);
         $processor = $this->getProcessor($args, $io, $logger);
-        $extension = $this->getQueueExtension($args, $logger);
+        try {
+            $extension = $this->getQueueExtension($args, $logger);
+        } catch (InvalidArgumentException $invalidArgumentException) {
+            $io->error($invalidArgumentException->getMessage());
+            $this->abort();
+        }
 
-        $hasListener = Configure::check(sprintf('Queue.%s.listener', $config));
-        if ($hasListener) {
-            $listenerClassName = Configure::read(sprintf('Queue.%s.listener', $config));
-            if (!class_exists($listenerClassName)) {
-                $io->error(sprintf('Listener class %s not found', $listenerClassName));
-                $this->abort();
-            }
-
-            /** @var \Cake\Event\EventListenerInterface $listener */
-            $listener = new $listenerClassName();
-
-            if ($processor instanceof Processor) {
-                $processor->getEventManager()->on($listener);
-            }
+        if (!$processor instanceof BusProcessor) {
+            $bus = BusFactory::consumeBus($config, [
+                'logger' => $logger,
+                'processor' => $processor,
+                'listener' => $this->getListener($args, $io),
+            ]);
+            $processor = new BusProcessor($bus, $this->container, $config, BusFactory::stampTypes($config), $logger);
         }
 
         $client = QueueManager::engine($config, $this->container);
@@ -233,7 +362,11 @@ class WorkerCommand extends Command
             : Configure::read(sprintf('Queue.%s.queue', $config), 'default');
         $processorName = $args->getOption('processor') ? (string)$args->getOption('processor') : 'default';
 
-        $client->bindTopic($queue, $processor, $processorName);
+        $client->bindTopic(
+            $queue,
+            $processor,
+            $processorName,
+        );
         $client->consume($extension);
 
         return self::CODE_SUCCESS;

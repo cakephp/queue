@@ -20,13 +20,18 @@ use BadMethodCallException;
 use Cake\Cache\Cache;
 use Cake\Core\App;
 use Cake\Log\Log;
+use Cake\Queue\Bus\BusFactory;
+use Cake\Queue\Bus\Dispatch;
+use Cake\Queue\Bus\DispatchResult;
+use Cake\Queue\Bus\Envelope;
+use Cake\Queue\Bus\NonSendableStampInterface;
+use Cake\Queue\Bus\Stamp\ReceivedStamp;
+use Cake\Queue\Bus\StampInterface;
 use Cake\Queue\Client\EnqueueClient;
 use Cake\Queue\Dto\DtoManager;
-use Enqueue\Client\Message as ClientMessage;
 use InvalidArgumentException;
 use LogicException;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
 
 class QueueManager
 {
@@ -48,16 +53,23 @@ class QueueManager
      * PSR-11 container used to resolve queue services.
      *
      * Set automatically from `QueuePlugin::services()` when the application
-     * uses dependency injection. Only `has()` and `get()` are used, so any
-     * PSR-11 container is accepted.
+     * uses dependency injection. Any PSR-11 container is accepted for
+     * storage and engine wiring, but service resolution (bus middleware,
+     * jobs, listeners) requires a `Cake\Core\ContainerInterface`
+     * instance: other containers are ignored there and classes are
+     * instantiated directly.
      */
     protected static ?ContainerInterface $container = null;
 
     /**
      * Set the PSR-11 container used to resolve queue services.
      *
-     * Cached clients are dropped when the container instance changes so that
-     * already built clients never keep a stale container.
+     * Cached clients are dropped when the container instance changes
+     * so that already built clients never keep a stale container. Buses
+     * themselves are rebuilt on every use (`BusFactory::reset()` is a
+     * no-op kept for backward compatibility). Bus
+     * middleware, jobs and listeners resolve through it only when it is a
+     * `Cake\Core\ContainerInterface` instance.
      *
      * @param \Psr\Container\ContainerInterface|null $container Container instance or null to detach.
      * @return void
@@ -66,6 +78,7 @@ class QueueManager
     {
         if ($container !== static::$container) {
             static::$_clients = [];
+            BusFactory::reset();
         }
 
         static::$container = $container;
@@ -209,6 +222,7 @@ class QueueManager
     public static function drop(string $key): void
     {
         unset(static::$_clients[$key], static::$_config[$key]);
+        BusFactory::reset($key);
     }
 
     /**
@@ -264,8 +278,9 @@ class QueueManager
      * Push a single job onto the queue.
      *
      * @param array<int, string>|string $className The classname of a job that implements the
-     *   \Cake\Queue\Job\JobInterface. The class will be constructed by
-     *   \Cake\Queue\Processor and have the execute method invoked.
+     *   \Cake\Queue\Job\JobInterface. The class will be constructed through the
+     *   container when available (or directly otherwise) and the job
+     *   dispatched through the dispatch bus.
      * @param array<string, mixed>|object $data An array of data or a DTO object that will
      *   be passed to the job. When a DTO object is given it is serialized and the class
      *   name is stored as message metadata (uniqueness / debugging). Jobs must still
@@ -276,7 +291,7 @@ class QueueManager
      *      will be processed. Not all message brokers accept this. Default `null`.
      *   - `dtoClass` - Optional DTO class metadata recorded on the message body.
      *     Only needed when `$data` is an array. Ignored when `$data` is already a DTO
-     *     object. Does not control hydration — the job passes the expected class to
+     *     object. Does not control hydration. The job passes the expected class to
      *     `Message::getDto()`. Default `null`.
      *   - `expires` - Time (in integer seconds) after which the message expires.
      *     The message will be removed from the queue if this time is exceeded
@@ -284,7 +299,13 @@ class QueueManager
      *   - `metadata` - Optional envelope data recorded on the message body next
      *     to `data` (e.g. `tags`, `_uniqueId`, `batch_id`). Unlike `data` it is
      *     never passed to the job or hydrated into a DTO. Omitted from the body
-     *     when empty or not an array. Default `[]`.
+     *     when empty or not an array. The `stamps` key is reserved for the bus
+     *     and must not be set here; use the `stamps` option instead. Default `[]`.
+     *   - `stamps` - Optional list of `Cake\Queue\Bus\StampInterface` carried by
+     *     the dispatch envelope and written to the `metadata.stamps` list.
+     *     In-memory machinery stamps (`NonSendableStampInterface`,
+     *     `ReceivedStamp`) are rejected. The `metadata` passes through
+     *     verbatim, except for the reserved `stamps` key. Default `[]`.
      *   - `priority` - Valid values:
      *      - `\Enqueue\Client\MessagePriority::VERY_LOW`
      *      - `\Enqueue\Client\MessagePriority::LOW`
@@ -293,9 +314,12 @@ class QueueManager
      *      - `\Enqueue\Client\MessagePriority::VERY_HIGH`
      *   - `queue` - The name of a queue to use, from queue `config` array or
      *      string 'default' if empty.
-     * @return string|null MessageId assigned by the transport on success, null when skipped as duplicate.
+     * @return \Cake\Queue\Bus\DispatchResult Dispatch outcome: transport message
+     *   identity (null when the transport assigns none) and whether the dispatch
+     *   was skipped as a duplicate unique job.
+     * @throws \LogicException When the dispatch pipeline is short-circuited without sending.
      */
-    public static function push(string|array $className, array|object $data = [], array $options = []): ?string
+    public static function push(string|array $className, array|object $data = [], array $options = []): DispatchResult
     {
         [$class, $method] = is_array($className) ? $className : [$className, 'execute'];
 
@@ -315,80 +339,76 @@ class QueueManager
 
         $name = $options['config'] ?? 'default';
 
-        $config = static::getConfig($name) + [
+        $config = static::getConfig($name);
+        if ($config === null) {
+            throw new InvalidArgumentException(sprintf('Queue config `%s` not found.', $name));
+        }
+
+        $config += [
             'logger' => null,
         ];
 
-        $logger = $config['logger'] ? Log::engine($config['logger']) : null;
+        $queue = $options['queue'] ?? $config['queue'] ?? 'default';
 
-        if (!empty($class::$shouldBeUnique)) {
-            if (empty($config['uniqueCache'])) {
+        $stamps = $options['stamps'] ?? [];
+        if (!is_array($stamps)) {
+            throw new InvalidArgumentException('The `stamps` option must be a list of `StampInterface`.');
+        }
+
+        foreach ($stamps as $stamp) {
+            if (!$stamp instanceof StampInterface) {
+                throw new InvalidArgumentException(sprintf(
+                    'The `stamps` option must be a list of `StampInterface`, `%s` given.',
+                    get_debug_type($stamp),
+                ));
+            }
+
+            if ($stamp instanceof ReceivedStamp) {
                 throw new InvalidArgumentException(
-                    $class . '::$shouldBeUnique is set to `true` but `uniqueCache` configuration is missing.',
+                    'The `stamps` option must not contain `ReceivedStamp`: it marks consumed envelopes.',
                 );
             }
 
-            $uniqueId = static::getUniqueId($class, $method, $data, $dtoClass);
-
-            if (Cache::read($uniqueId, $config['uniqueCacheKey'])) {
-                if ($logger instanceof LoggerInterface) {
-                    $logger->debug(
-                        sprintf(
-                            'An identical instance of %s already exists on the queue. This push will be ignored.',
-                            $class,
-                        ),
-                    );
-                }
-
-                return null;
+            if ($stamp instanceof NonSendableStampInterface) {
+                throw new InvalidArgumentException(sprintf(
+                    'The `stamps` option must not contain `%s`: it never leaves the process.',
+                    $stamp::class,
+                ));
             }
         }
 
-        $queue = $options['queue'] ?? $config['queue'] ?? 'default';
-
-        $body = [
-            'class' => [$class, $method],
-            'args' => [$data],
-            'data' => $data,
-            'requeueOptions' => [
-                'config' => $name,
-                'priority' => $options['priority'] ?? null,
-                'queue' => $queue,
-            ],
-        ];
-        if ($dtoClass !== null) {
-            $body['dtoClass'] = $dtoClass;
-        }
-
         $metadata = $options['metadata'] ?? null;
-        if (is_array($metadata) && $metadata !== []) {
-            $body['metadata'] = $metadata;
+        if ($metadata !== null && !is_array($metadata)) {
+            throw new InvalidArgumentException('The `metadata` option must be an array or null.');
         }
 
-        $message = new ClientMessage($body);
-
-        if (isset($options['delay'])) {
-            $message->setDelay($options['delay']);
+        if (!is_array($metadata)) {
+            $metadata = [];
         }
 
-        if (isset($options['expires'])) {
-            $message->setExpire($options['expires']);
+        if (array_key_exists('stamps', $metadata)) {
+            throw new InvalidArgumentException(
+                'The `metadata` option must not contain a `stamps` key: ' .
+                'it is reserved for the bus. Use the `stamps` option instead.',
+            );
         }
 
-        if (isset($options['priority'])) {
-            $message->setPriority($options['priority']);
-        }
+        $dispatch = new Dispatch(
+            $class,
+            $method,
+            $data,
+            $dtoClass,
+            $queue,
+            $name,
+            $options['delay'] ?? null,
+            $options['expires'] ?? null,
+            $options['priority'] ?? null,
+            $metadata,
+        );
+        $envelope = new Envelope($dispatch, $stamps);
+        $finished = BusFactory::dispatchBus($name)->handle($envelope);
 
-        $client = static::engine($name);
-        $client->sendEvent($queue, $message);
-
-        if (!empty($class::$shouldBeUnique)) {
-            $uniqueId = static::getUniqueId($class, $method, $data, $dtoClass);
-
-            Cache::add($uniqueId, true, $config['uniqueCacheKey']);
-        }
-
-        return $message->getMessageId();
+        return DispatchResult::fromEnvelope($finished);
     }
 
     /**
